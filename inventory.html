@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventory · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="stats-grid" id="stats"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="row" style="gap:12px; flex-wrap:wrap;">
+          <h3 style="margin:0;">Inventory On Hand</h3>
+          <input id="search" placeholder="Search by name or code..." style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;width:240px;">
+          <select id="filterCategory" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All categories</option>
+          </select>
+          <select id="filterStatus" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All stock levels</option>
+            <option value="ok">Healthy</option>
+            <option value="warn">Near min</option>
+            <option value="low">Below min</option>
+            <option value="out">Out of stock</option>
+          </select>
+        </div>
+        <button class="btn" onclick="window.print()">🖨 Print</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('inventory', 'Inventory', 'Live stock on hand · last received · last issued · days of cover');
+
+    const my = userSections();
+    const search = document.getElementById('search');
+    const filterCategory = document.getElementById('filterCategory');
+    const filterStatus = document.getElementById('filterStatus');
+
+    // Populate category filter
+    const sections = DB.list('sections').filter(s => my.includes('*') || my.includes(s.id));
+    const allCats = DB.list('categories').filter(c => my.includes('*') || sections.some(s => s.id === c.sectionId));
+    filterCategory.innerHTML = '<option value="">All categories</option>' +
+      allCats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+    // Pre-compute last-in / last-out / 30-day consumption per product
+    function buildActivityMap() {
+      const m = {};
+      DB.list('stockIn').forEach(si => si.items.forEach(it => {
+        const e = m[it.productId] || (m[it.productId] = { lastIn: null, lastInQty: 0, lastOut: null, lastOutQty: 0, totalOut30: 0 });
+        if (!e.lastIn || si.date > e.lastIn) { e.lastIn = si.date; e.lastInQty = it.qty; }
+      }));
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+      DB.list('stockOut').forEach(so => so.items.forEach(it => {
+        const e = m[it.productId] || (m[it.productId] = { lastIn: null, lastInQty: 0, lastOut: null, lastOutQty: 0, totalOut30: 0 });
+        if (!e.lastOut || so.date > e.lastOut) { e.lastOut = so.date; e.lastOutQty = it.qty; }
+        if (new Date(so.date) >= cutoff) e.totalOut30 += it.qty;
+      }));
+      return m;
+    }
+
+    function refresh() {
+      const activity = buildActivityMap();
+      let prods = DB.productsForUser(my);
+      const q = search.value.toLowerCase();
+      if (q) prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
+      if (filterCategory.value) prods = prods.filter(p => p.categoryId === filterCategory.value);
+      if (filterStatus.value) prods = prods.filter(p => DB.productStockStatus(p) === filterStatus.value);
+
+      // Stats
+      const totalSkus = prods.length;
+      const totalValue = prods.reduce((s, p) => s + (p.currentStock * p.unitPrice), 0);
+      const outCount = prods.filter(p => p.currentStock === 0).length;
+      const lowCount = prods.filter(p => p.currentStock > 0 && p.currentStock < p.minStock).length;
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card"><div class="label">Items Tracked</div><div class="value">${totalSkus}</div><div class="sub">${my.includes('*') ? 'across all categories' : 'in your category'}</div></div>
+        <div class="stat-card ok"><div class="label">Inventory Value</div><div class="value">${fmtMoney(totalValue)}</div><div class="sub">stock on hand</div></div>
+        <div class="stat-card ${lowCount ? 'warn' : 'ok'}"><div class="label">Below Minimum</div><div class="value">${lowCount}</div><div class="sub">need reorder</div></div>
+        <div class="stat-card ${outCount ? 'danger' : 'ok'}"><div class="label">Out of Stock</div><div class="value">${outCount}</div><div class="sub">zero on hand</div></div>
+      `;
+
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Code</th><th>Item</th><th>Category</th>
+          <th class="text-right">On Hand</th><th class="text-right">Min</th>
+          <th class="text-right">Days of Cover</th>
+          <th>Last Received</th><th>Last Issued</th>
+          <th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${prods.map(p => {
+            const cat = DB.category(p.categoryId);
+            const status = DB.productStockStatus(p);
+            const badgeClass = status === 'out' ? 'danger' : status === 'low' ? 'warn' : status === 'warn' ? 'info' : 'ok';
+            const badgeText = status === 'out' ? 'OUT' : status === 'low' ? 'LOW' : status === 'warn' ? 'NEAR MIN' : 'OK';
+            const a = activity[p.id] || {};
+            const avgDaily = (a.totalOut30 || 0) / 30;
+            const daysCover = avgDaily > 0 ? Math.round(p.currentStock / avgDaily) : '—';
+            const coverClass = avgDaily > 0 ? (daysCover < 7 ? 'danger' : daysCover < 14 ? 'warn' : 'ok') : 'muted';
+            return `
+            <tr style="cursor:pointer;" onclick="showHistory('${p.id}')">
+              <td class="text-sm text-mute">${p.code}</td>
+              <td class="bold">${escapeHtml(displayName(p))}${p.freshItem ? ' <span class="badge muted" style="font-size:9px;">FRESH</span>' : ''}</td>
+              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
+              <td class="text-right">
+                <div class="bold">${p.currentStock.toLocaleString('en-IN')} ${p.baseUnit}</div>
+              </td>
+              <td class="text-right text-mute">${p.minStock} ${p.baseUnit}</td>
+              <td class="text-right"><span class="badge ${coverClass}">${daysCover === '—' ? '—' : daysCover + 'd'}</span></td>
+              <td class="text-sm">${a.lastIn ? `${fmtDate(a.lastIn)}<br><span class="text-mute">+${a.lastInQty} ${p.baseUnit}</span>` : '<span class="text-mute">—</span>'}</td>
+              <td class="text-sm">${a.lastOut ? `${fmtDate(a.lastOut)}<br><span class="text-mute">−${a.lastOutQty} ${p.baseUnit}</span>` : '<span class="text-mute">—</span>'}</td>
+              <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+              <td class="text-right"><button class="btn btn-sm" onclick="event.stopPropagation(); showHistory('${p.id}')">History</button></td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="10" class="empty">No items match the filters</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    window.showHistory = (productId) => {
+      const p = DB.product(productId);
+      const ins = DB.list('stockIn').flatMap(si => si.items.filter(it => it.productId === productId).map(it => ({
+        type: 'IN', date: si.date, qty: it.qty, ref: si.srvNo, party: DB.supplier(si.supplierId)?.name || '—', batch: it.batchNo, expiry: it.expiry
+      })));
+      const outs = DB.list('stockOut').flatMap(so => so.items.filter(it => it.productId === productId).map(it => ({
+        type: 'OUT', date: so.date, qty: -it.qty, ref: so.voucherNo, party: DB.ship(so.shipId)?.name || '—', batch: it.batchNo
+      })));
+      const spoils = DB.list('spoilage').filter(s => s.productId === productId).map(s => ({
+        type: 'SPOIL', date: s.date, qty: -s.qty, ref: '—', party: s.reason, notes: s.notes
+      }));
+      const events = [...ins, ...outs, ...spoils].sort((a, b) => b.date.localeCompare(a.date));
+      const rows = events.map(e => `
+        <tr>
+          <td>${fmtDate(e.date)}</td>
+          <td><span class="badge ${e.type === 'IN' ? 'ok' : e.type === 'OUT' ? 'info' : 'danger'}">${e.type}</span></td>
+          <td class="text-sm">${e.ref}</td>
+          <td class="text-sm">${escapeHtml(e.party)}</td>
+          <td class="text-right bold" style="color:${e.qty >= 0 ? 'var(--ok)' : 'var(--danger)'};">${e.qty >= 0 ? '+' : ''}${e.qty} ${p.baseUnit}</td>
+          <td class="text-sm text-mute">${e.batch || e.notes || '—'}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" class="empty">No movement history</td></tr>';
+
+      openModal(`${displayName(p)} — Movement History`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Item Code</div><div class="bold">${p.code}</div></div>
+            <div><div class="text-sm text-mute">Current Stock</div><div class="bold">${p.currentStock} ${p.baseUnit}</div></div>
+            <div><div class="text-sm text-mute">Min Stock</div><div class="bold">${p.minStock} ${p.baseUnit}</div></div>
+          </div>
+          <table class="data">
+            <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Party / Reason</th><th class="text-right">Change</th><th>Batch / Notes</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `, null, '', 'wide');
+    };
+
+    search.addEventListener('input', refresh);
+    filterCategory.addEventListener('change', refresh);
+    filterStatus.addEventListener('change', refresh);
+    refresh();
+  </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Items · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card">
+      <div class="card-header">
+        <div class="row" style="gap:14px; flex-wrap:wrap;">
+          <h3 style="margin:0;">All Items</h3>
+          <input id="search" placeholder="Search by name or code..." style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;width:280px;">
+          <select id="filterCategory" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All categories</option>
+          </select>
+          <select id="filterStatus" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All stock levels</option>
+            <option value="low">Low stock</option>
+            <option value="out">Out of stock</option>
+            <option value="ok">Healthy</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="addBtn">+ Add Item</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="tbl"></table>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('products', 'Items', 'Item master · manage stock, units and minimum levels');
+
+    const search = document.getElementById('search');
+    const filterCategory = document.getElementById('filterCategory');
+    const filterStatus = document.getElementById('filterStatus');
+    const tbl = document.getElementById('tbl');
+    const my = userSections();
+    const canSeeAll = my.includes('*');
+
+    function refresh() {
+      const sections = DB.list('sections').filter(s => canSeeAll || my.includes(s.id));
+      const cats = DB.list('categories').filter(c => canSeeAll || sections.some(s => s.id === c.sectionId));
+      filterCategory.innerHTML = '<option value="">All categories</option>' +
+        cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+      let prods = DB.productsForUser(my);
+      const q = search.value.toLowerCase();
+      if (q) prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
+      if (filterCategory.value) prods = prods.filter(p => p.categoryId === filterCategory.value);
+      if (filterStatus.value) prods = prods.filter(p => {
+        const s = DB.productStockStatus(p);
+        return filterStatus.value === s || (filterStatus.value === 'low' && s === 'out');
+      });
+
+      tbl.innerHTML = `
+        <thead><tr>
+          <th>Code</th><th>Item</th><th>Category</th>
+          <th class="text-right">Current Stock</th>
+          <th class="text-right">Min</th>
+          <th class="text-right">Unit Price</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${prods.map(p => {
+            const cat = DB.category(p.categoryId);
+            const status = DB.productStockStatus(p);
+            const badgeClass = status === 'out' ? 'danger' : status === 'low' ? 'warn' : status === 'warn' ? 'info' : 'ok';
+            const badgeText = status === 'out' ? 'OUT' : status === 'low' ? 'LOW' : status === 'warn' ? 'NEAR MIN' : 'OK';
+            return `
+            <tr>
+              <td class="text-sm text-mute">${p.code}</td>
+              <td class="bold">${escapeHtml(Prefs.get().codeView ? p.code : p.name)}${p.freshItem ? ' <span class="badge muted" style="font-size:9px;">FRESH</span>' : ''}</td>
+              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
+              <td class="text-right">
+                <div class="bold">${p.currentStock.toLocaleString('en-IN')} ${p.baseUnit}</div>
+              </td>
+              <td class="text-right text-mute">${p.minStock} ${p.baseUnit}</td>
+              <td class="text-right">${fmtMoney(p.unitPrice)}</td>
+              <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+              <td class="text-right">
+                ${can('update') ? `<button class="btn btn-sm" onclick="editProduct('${p.id}')">Edit</button>` : ''}
+                ${can('delete') ? `<button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')">×</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">No products match the filters</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    function productForm(p = {}) {
+      const sections = DB.list('sections').filter(s => canSeeAll || my.includes(s.id));
+      const cats = DB.list('categories').filter(c => canSeeAll || sections.some(s => s.id === c.sectionId));
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Item Code <span class="req">*</span></label><input id="f_code" value="${escapeHtml(p.code || '')}" placeholder="e.g. CNVICT-NGFDAM102"></div>
+            <div class="field"><label>Item Name <span class="req">*</span></label><input id="f_name" value="${escapeHtml(p.name || '')}"></div>
+          </div>
+          <div class="field">
+            <label class="row-between" style="align-items:center;">
+              <span>Category <span class="req">*</span></span>
+              <button type="button" class="btn btn-sm" id="newCatBtn" style="padding:2px 8px;font-size:11px;">+ New</button>
+            </label>
+            <select id="f_cat">
+              ${cats.map(c => {
+                const sec = DB.section(c.sectionId);
+                return `<option value="${c.id}" ${c.id === p.categoryId ? 'selected' : ''}>${escapeHtml(c.name)}${sec ? ' — ' + sec.name : ''}</option>`;
+              }).join('')}
+            </select>
+            <div id="newCatPanel" style="display:none; margin-top:8px; padding:10px; background:#fafbfd; border:1px dashed var(--border); border-radius:6px;">
+              <div class="row" style="gap:6px; margin-bottom:6px;">
+                <input id="newCatName" placeholder="Category name" style="flex:2; border:1px solid var(--border); padding:6px 8px; border-radius:4px; font-size:12px;">
+                <select id="newCatSection" style="flex:1; border:1px solid var(--border); padding:6px 8px; border-radius:4px; font-size:12px;">
+                  ${sections.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="row" style="gap:6px;">
+                <button type="button" class="btn btn-sm btn-primary" id="saveCatBtn">Add Category</button>
+                <button type="button" class="btn btn-sm" id="cancelCatBtn">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Base Unit</label>
+              <select id="f_baseUnit">${['kg', 'Ltr', 'Nos'].map(u => `<option ${u === p.baseUnit ? 'selected' : ''}>${u}</option>`).join('')}</select>
+            </div>
+            <div class="field"><label>Unit Price (₹)</label><input id="f_price" type="number" step="0.01" value="${p.unitPrice ?? ''}"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Current Stock</label><input id="f_stock" type="number" value="${p.currentStock ?? 0}"></div>
+            <div class="field"><label>Min Stock</label><input id="f_min" type="number" value="${p.minStock ?? 0}"></div>
+          </div>
+          <label class="checkbox-row" style="display:flex; align-items:center; gap:8px; padding:8px 0; cursor:pointer;">
+            <input type="checkbox" id="f_fresh" ${p.freshItem ? 'checked' : ''} style="width:16px; height:16px; margin:0; cursor:pointer;">
+            <span style="font-size:13px;">Fresh item (may arrive without delivery challan)</span>
+          </label>
+        </div>
+      `;
+    }
+
+    // Wire up the inline "+ New Category" once the modal is rendered
+    function wireCategoryInline() {
+      const newBtn    = document.getElementById('newCatBtn');
+      const panel     = document.getElementById('newCatPanel');
+      const nameInput = document.getElementById('newCatName');
+      const secSel    = document.getElementById('newCatSection');
+      const saveBtn   = document.getElementById('saveCatBtn');
+      const cancelBtn = document.getElementById('cancelCatBtn');
+      const catSelect = document.getElementById('f_cat');
+      if (!newBtn) return;
+      newBtn.onclick  = () => { panel.style.display = 'block'; nameInput.focus(); };
+      cancelBtn.onclick = () => { panel.style.display = 'none'; nameInput.value = ''; };
+      saveBtn.onclick = () => {
+        const name = nameInput.value.trim();
+        if (!name) { toast('Enter a category name', 'danger'); return; }
+        const sectionId = secSel.value;
+        const rec = DB.upsert('categories', { name, sectionId });
+        // Refresh dropdown with section labels and select the new one
+        const cats = DB.list('categories');
+        catSelect.innerHTML = cats.map(c => {
+          const sec = DB.section(c.sectionId);
+          return `<option value="${c.id}" ${c.id === rec.id ? 'selected' : ''}>${escapeHtml(c.name)}${sec ? ' — ' + sec.name : ''}</option>`;
+        }).join('');
+        panel.style.display = 'none';
+        nameInput.value = '';
+        toast(`Category "${name}" added`, 'ok');
+      };
+    }
+
+    window.editProduct = (id) => {
+      openModal('Edit Item', productForm(DB.product(id)), () => save(DB.product(id)), 'Save Changes');
+      setTimeout(wireCategoryInline, 30);
+    };
+    window.deleteProduct = (id) => {
+      const p = DB.product(id);
+      if (confirm('Delete "' + p.name + '"?')) { DB.remove('products', id); toast('Deleted'); refresh(); }
+    };
+
+    function save(existing = {}) {
+      const code = document.getElementById('f_code').value.trim();
+      const name = document.getElementById('f_name').value.trim();
+      const categoryId = document.getElementById('f_cat').value;
+      if (!code || !name || !categoryId) { toast('Code, Name and Category required', 'danger'); return false; }
+      const cat = DB.category(categoryId);
+      const rec = {
+        ...existing,
+        code, name,
+        categoryId,
+        sectionId: cat?.sectionId || existing.sectionId || '',  // derived from category
+        baseUnit: document.getElementById('f_baseUnit').value,
+        packSize: 1, packUnit: 'nos', packToBase: 1,   // kept for data-layer compatibility
+        unitPrice: Number(document.getElementById('f_price').value) || 0,
+        currentStock: Number(document.getElementById('f_stock').value) || 0,
+        minStock: Number(document.getElementById('f_min').value) || 0,
+        freshItem: document.getElementById('f_fresh').checked
+      };
+      DB.upsert('products', rec);
+      toast('Saved');
+      refresh();
+    }
+
+    document.getElementById('addBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot add products', 'warn');
+      openModal('Add Item', productForm({}), () => save({}), 'Create');
+      setTimeout(wireCategoryInline, 30);
+    });
+    [search, filterCategory, filterStatus].forEach(el => el.addEventListener('input', refresh));
+    refresh();
+  </script>
+</body>
+</html>

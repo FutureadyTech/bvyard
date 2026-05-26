@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Goods Receipt · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card">
+      <div class="card-header">
+        <h3>Goods Receipt <span class="text-sm text-mute" style="font-weight:400;">(Stock Receipt Voucher)</span></h3>
+        <div class="row" style="gap:8px;">
+          <button class="btn" id="scanBtn">📷 Scan DC <span class="text-mute" style="font-size:11px;">(soon)</span></button>
+          <button class="btn btn-primary" id="newBtn">+ New Receipt</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('stock-in', 'Goods Receipt', 'Record supplier deliveries to BV Yard · stock increases here');
+
+    // ─── List view ────────────────────────────────────────────────
+    function refresh() {
+      const rows = DB.list('stockIn');
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>SRV No.</th><th>Date</th><th>Supplier</th><th>DC No.</th>
+          <th>Against PO</th><th class="text-right">Items</th>
+          <th class="text-right">Total Value</th><th>Approved By</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.slice().reverse().map(si => {
+            const sp   = DB.supplier(si.supplierId);
+            const po   = si.poId ? DB.get('purchaseOrders', si.poId) : null;
+            const appr = DB.user(si.approvedBy);
+            const totalValue = si.items.reduce((s, it) => {
+              return s + (it.qty * (it.rate || DB.product(it.productId)?.unitPrice || 0));
+            }, 0);
+            const hasShort = po && si.items.some(it => {
+              const poi = po.items.find(p => p.productId === it.productId);
+              return poi && it.qty < poi.qty;
+            });
+            return `<tr>
+              <td class="bold">${si.srvNo}</td>
+              <td>${fmtDate(si.date)}</td>
+              <td>${sp ? escapeHtml(sp.name) : '—'}</td>
+              <td class="text-sm text-mute">${si.dcNo || '—'}</td>
+              <td class="text-sm">${po ? `<span class="bold">${po.poNo}</span>` : '<span class="text-mute">Direct</span>'}</td>
+              <td class="text-right">${si.items.length}</td>
+              <td class="text-right bold">${fmtMoney(totalValue)}</td>
+              <td class="text-sm">${appr ? appr.name : '—'}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                ${hasShort ? '<span class="badge warn" style="margin-right:6px;font-size:10px;">SHORT</span>' : ''}
+                <button class="btn btn-sm" onclick="viewSRV('${si.id}')">View</button>
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="9" class="empty">No receipts recorded yet</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    // ─── View modal ───────────────────────────────────────────────
+    window.viewSRV = (id) => {
+      const si   = DB.get('stockIn', id);
+      const sp   = DB.supplier(si.supplierId);
+      const po   = si.poId ? DB.get('purchaseOrders', si.poId) : null;
+      const prep = DB.user(si.preparedBy);
+      const appr = DB.user(si.approvedBy);
+      const totalValue = si.items.reduce((s, it) => s + (it.qty * (it.rate || DB.product(it.productId)?.unitPrice || 0)), 0);
+
+      const itemRows = si.items.map(it => {
+        const p      = DB.product(it.productId);
+        const poItem = po?.items.find(x => x.productId === it.productId);
+        const rate   = it.rate || p?.unitPrice || 0;
+        const sub    = it.qty * rate;
+        const isShort = poItem && it.qty < poItem.qty;
+        const isOver  = poItem && it.qty > poItem.qty;
+        const badge   = isShort
+          ? '<span class="badge warn">SHORT</span>'
+          : isOver
+            ? '<span class="badge info">EXCESS</span>'
+            : poItem ? '<span class="badge ok">FULL</span>' : '—';
+        return `<tr${isShort ? ' style="background:#fffbeb;"' : ''}>
+          <td class="bold">${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td class="text-right text-mute">${poItem ? poItem.qty + ' ' + (p?.baseUnit || '') : '—'}</td>
+          <td class="text-right bold">${it.qty} ${p?.baseUnit || ''}</td>
+          <td>${badge}</td>
+          <td class="text-right">${fmtMoney(rate)}</td>
+          <td class="text-right bold">${fmtMoney(sub)}</td>
+          <td class="text-sm text-mute">${it.batchNo || '—'}</td>
+          <td class="text-sm text-mute">${it.expiry ? fmtDate(it.expiry) : '—'}</td>
+        </tr>`;
+      }).join('');
+
+      openModal(`SRV — ${si.srvNo}`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(si.date)}</div></div>
+            <div><div class="text-sm text-mute">Supplier</div><div class="bold">${sp?.name || '—'}</div><div class="text-sm text-mute">${sp?.code || ''}</div></div>
+            <div><div class="text-sm text-mute">DC No.</div><div class="bold">${si.dcNo || '—'}</div></div>
+          </div>
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Against PO</div><div class="bold">${po ? po.poNo : 'Direct (no PO)'}</div></div>
+            <div><div class="text-sm text-mute">Prepared By</div><div class="bold">${prep ? prep.name + ' · ' + prep.rank : '—'}</div></div>
+            <div><div class="text-sm text-mute">Approved By</div><div class="bold">${appr ? appr.name + ' · ' + appr.rank : '—'}</div></div>
+          </div>
+          <table class="data">
+            <thead><tr>
+              <th>Item</th><th>Code</th>
+              <th class="text-right">PO Qty</th><th class="text-right">Received</th><th>Status</th>
+              <th class="text-right">Rate</th><th class="text-right">Subtotal</th>
+              <th>Batch No.</th><th>Expiry</th>
+            </tr></thead>
+            <tbody>${itemRows}</tbody>
+            <tfoot><tr>
+              <td colspan="6" class="text-right bold" style="padding:10px 12px;">Total Value</td>
+              <td class="text-right bold" style="color:var(--navy-700);padding:10px 12px;">${fmtMoney(totalValue)}</td>
+              <td colspan="2"></td>
+            </tr></tfoot>
+          </table>
+          ${si.remarks ? `
+            <div style="border:1px solid var(--border);padding:10px 14px;border-radius:6px;background:#fffbeb;">
+              <span class="text-sm text-mute">Remarks: </span><span class="text-sm">${escapeHtml(si.remarks)}</span>
+            </div>` : ''}
+        </div>
+      `, null, '', 'wide');
+    };
+
+    // ─── Form state ───────────────────────────────────────────────
+    let formItems = [];
+
+    // Build one item row for the form
+    function buildRow(it, i) {
+      const cats  = DB.list('categories');
+      const prods = DB.list('products');
+      const p     = DB.product(it.productId);
+      const sub   = (it.qty || 0) * (it.rate || 0);
+
+      // Products grouped by category for the select
+      const grouped = cats.map(c => {
+        const ps = prods.filter(pp => pp.categoryId === c.id);
+        if (!ps.length) return '';
+        return `<optgroup label="${escapeHtml(c.name)}">${
+          ps.map(pp => `<option value="${pp.id}" ${pp.id === it.productId ? 'selected' : ''}>${escapeHtml(pp.name)}</option>`).join('')
+        }</optgroup>`;
+      }).join('');
+
+      const shortWarn = it._short ? 'border-color:#f59e0b;background:#fffbeb;' : '';
+
+      return `<tr data-i="${i}" style="${it._short ? 'background:#fffbeb;' : ''}">
+        <td style="min-width:210px;">
+          <select data-i="${i}" class="i_prod" style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:12px;${it._fromPO ? 'opacity:0.7;' : ''}" ${it._fromPO ? 'disabled' : ''}>${grouped}</select>
+          ${p ? `<div class="text-sm text-mute" style="margin-top:2px;">${p.code} · ${p.baseUnit}</div>` : ''}
+        </td>
+        <td class="text-right text-mute" style="font-size:12px;white-space:nowrap;">
+          ${it.orderedQty != null ? `${it.orderedQty} ${p?.baseUnit || ''}` : '—'}
+        </td>
+        <td style="min-width:130px;">
+          <div class="row" style="gap:4px;align-items:center;">
+            <input data-i="${i}" class="i_qty" type="number" value="${it.qty || ''}" min="0" placeholder="0"
+              style="width:85px;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:13px;text-align:right;${shortWarn}">
+            <span class="text-sm text-mute">${p?.baseUnit || 'units'}</span>
+          </div>
+          ${it._short ? `<div class="text-sm" style="color:#d97706;margin-top:2px;">↓ ${it.orderedQty - it.qty} short</div>` : ''}
+        </td>
+        <td style="min-width:110px;">
+          <div class="row" style="gap:4px;align-items:center;">
+            <span class="text-sm text-mute">₹</span>
+            <input data-i="${i}" class="i_rate" type="number" value="${it.rate || ''}" min="0" placeholder="0.00" step="0.01"
+              style="width:85px;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:13px;text-align:right;">
+          </div>
+        </td>
+        <td class="text-right bold i_sub" style="font-size:13px;white-space:nowrap;">${sub > 0 ? fmtMoney(sub) : '—'}</td>
+        <td style="min-width:110px;">
+          <input data-i="${i}" class="i_batch" placeholder="e.g. MAR 26" value="${it.batchNo || ''}"
+            style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:12px;">
+        </td>
+        <td style="min-width:120px;">
+          <input data-i="${i}" class="i_exp" type="date" value="${it.expiry || ''}"
+            style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:12px;">
+        </td>
+        <td>
+          ${!it._fromPO ? `<button onclick="rmItem(${i})" class="btn btn-sm" style="color:var(--danger);border-color:var(--danger);padding:4px 8px;">×</button>` : ''}
+        </td>
+      </tr>`;
+    }
+
+    function renderItems() {
+      const tbody = document.getElementById('itemTbody');
+      if (!tbody) return;
+      if (!formItems.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty" style="padding:24px;">Select a PO to auto-load items, or add manually</td></tr>';
+        updateTotal();
+        return;
+      }
+      tbody.innerHTML = formItems.map((it, i) => buildRow(it, i)).join('');
+
+      // Wire up events
+      tbody.querySelectorAll('.i_prod').forEach(el => el.onchange = e => {
+        const i = +e.target.dataset.i;
+        formItems[i].productId = e.target.value;
+        const p = DB.product(e.target.value);
+        if (p) formItems[i].rate = p.unitPrice;
+        renderItems();
+      });
+      tbody.querySelectorAll('.i_qty').forEach(el => el.oninput = e => {
+        const i = +e.target.dataset.i;
+        formItems[i].qty = Number(e.target.value) || 0;
+        if (formItems[i].orderedQty != null) {
+          formItems[i]._short = formItems[i].qty < formItems[i].orderedQty;
+        }
+        updateSubtotal(i);
+        updateTotal();
+        // Update short indicator without full re-render
+        const row = document.querySelector(`tr[data-i="${i}"]`);
+        if (row) {
+          const inp = row.querySelector('.i_qty');
+          if (formItems[i]._short) {
+            inp.style.borderColor = '#f59e0b';
+            inp.style.background  = '#fffbeb';
+            row.style.background  = '#fffbeb';
+          } else {
+            inp.style.borderColor = '';
+            inp.style.background  = '';
+            row.style.background  = '';
+          }
+          // Update the short label
+          let shortDiv = row.querySelector('.short-hint');
+          if (formItems[i]._short) {
+            if (!shortDiv) {
+              shortDiv = document.createElement('div');
+              shortDiv.className = 'short-hint text-sm';
+              shortDiv.style.color = '#d97706';
+              shortDiv.style.marginTop = '2px';
+              inp.parentNode.parentNode.appendChild(shortDiv);
+            }
+            shortDiv.textContent = `↓ ${formItems[i].orderedQty - formItems[i].qty} short`;
+          } else if (shortDiv) {
+            shortDiv.remove();
+          }
+        }
+      });
+      tbody.querySelectorAll('.i_rate').forEach(el => el.oninput = e => {
+        const i = +e.target.dataset.i;
+        formItems[i].rate = Number(e.target.value) || 0;
+        updateSubtotal(i);
+        updateTotal();
+      });
+      tbody.querySelectorAll('.i_batch').forEach(el => el.onchange = e => { formItems[+e.target.dataset.i].batchNo = e.target.value; });
+      tbody.querySelectorAll('.i_exp').forEach(el => el.onchange = e => { formItems[+e.target.dataset.i].expiry = e.target.value; });
+
+      updateTotal();
+    }
+
+    function updateSubtotal(i) {
+      const el = document.querySelector(`tr[data-i="${i}"] .i_sub`);
+      if (!el) return;
+      const sub = (formItems[i].qty || 0) * (formItems[i].rate || 0);
+      el.textContent = sub > 0 ? fmtMoney(sub) : '—';
+    }
+
+    function updateTotal() {
+      const el = document.getElementById('itemTotal');
+      if (!el) return;
+      const total = formItems.reduce((s, it) => s + (it.qty || 0) * (it.rate || 0), 0);
+      el.textContent = total > 0 ? fmtMoney(total) : '—';
+    }
+
+    window.rmItem = (i) => { formItems.splice(i, 1); renderItems(); };
+
+    // When a PO is selected — auto-populate supplier + items
+    function loadPOItems(poId) {
+      if (!poId) {
+        formItems = formItems.filter(it => !it._fromPO);
+        renderItems();
+        return;
+      }
+      const po = DB.get('purchaseOrders', poId);
+      if (!po) return;
+
+      // Auto-fill supplier
+      const supEl = document.getElementById('f_supplier');
+      if (supEl) supEl.value = po.supplierId;
+
+      // Load PO items — default received qty = ordered qty (user adjusts down if short)
+      formItems = po.items.map(it => {
+        const p = DB.product(it.productId);
+        return {
+          productId:  it.productId,
+          qty:        it.qty,
+          orderedQty: it.qty,
+          rate:       it.rate || p?.unitPrice || 0,
+          batchNo:    '',
+          expiry:     '',
+          _fromPO:    true,
+          _short:     false
+        };
+      });
+      renderItems();
+      toast(`Loaded ${po.items.length} items from ${po.poNo}`, 'ok');
+    }
+
+    // ─── New Receipt form ─────────────────────────────────────────
+    function newSRVForm() {
+      const suppliers = DB.list('suppliers');
+      const pos       = DB.list('purchaseOrders').filter(p => p.status === 'issued');
+      const prepUsers = DB.list('users').filter(u => ['inventory_manager','data_entry'].includes(u.role));
+      const apprUsers = DB.list('users').filter(u => ['reviewer','super_admin'].includes(u.role));
+
+      return `
+        <div class="form-grid">
+
+          <!-- SRV No · Date · DC No -->
+          <div class="form-row-3">
+            <div class="field">
+              <label>SRV No. <span class="req">*</span></label>
+              <input id="f_srv" value="26BA9SE${Math.floor(Math.random()*9000+1000)}">
+            </div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input id="f_date" type="date" value="${DB.today()}">
+            </div>
+            <div class="field">
+              <label>DC No. <span class="text-mute" style="font-weight:400;font-size:11px;">(Delivery Challan from supplier)</span></label>
+              <input id="f_dc" placeholder="e.g. DC/2026/0452">
+            </div>
+          </div>
+
+          <!-- Against PO · Supplier -->
+          <div class="form-row">
+            <div class="field">
+              <label>Against PO <span class="text-mute" style="font-weight:400;font-size:11px;">(auto-loads items + supplier)</span></label>
+              <select id="f_po">
+                <option value="">— Direct receipt (fresh items, no PO) —</option>
+                ${pos.map(po => {
+                  const sp = DB.supplier(po.supplierId);
+                  return `<option value="${po.id}">${po.poNo} · ${sp?.name || ''} · ${po.items.length} item${po.items.length !== 1 ? 's' : ''}</option>`;
+                }).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Supplier <span class="req">*</span></label>
+              <select id="f_supplier">
+                ${suppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${s.code})</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <!-- Items table -->
+          <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+            <div class="row-between" style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid var(--border);">
+              <div>
+                <span class="bold" style="font-size:13px;">Items Received</span>
+                <span class="text-sm text-mute" style="margin-left:8px;">PO items are pre-loaded — adjust qty if delivery is short</span>
+              </div>
+              <button class="btn btn-sm btn-primary" id="addItemBtn">+ Add Item</button>
+            </div>
+            <div class="table-wrap" style="margin:0;">
+              <table class="data" style="margin:0;">
+                <thead><tr>
+                  <th>Item</th>
+                  <th class="text-right">PO Qty</th>
+                  <th>Qty Received <span class="req">*</span></th>
+                  <th>Rate (₹ / unit)</th>
+                  <th class="text-right">Subtotal</th>
+                  <th>Batch No.</th>
+                  <th>Expiry Date</th>
+                  <th></th>
+                </tr></thead>
+                <tbody id="itemTbody"></tbody>
+                <tfoot>
+                  <tr style="background:#f8fafc;border-top:2px solid var(--border);">
+                    <td colspan="4" class="text-right bold" style="padding:10px 14px;">Grand Total</td>
+                    <td class="text-right bold" id="itemTotal" style="padding:10px 14px;color:var(--navy-700);font-size:15px;">—</td>
+                    <td colspan="3"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Prepared / Approved -->
+          <div class="form-row">
+            <div class="field">
+              <label>Prepared By</label>
+              <select id="f_prep">${prepUsers.map(u => `<option value="${u.id}">${u.name} · ${u.rank}</option>`).join('')}</select>
+            </div>
+            <div class="field">
+              <label>Approved By</label>
+              <select id="f_appr">${apprUsers.map(u => `<option value="${u.id}">${u.name} · ${u.rank}</option>`).join('')}</select>
+            </div>
+          </div>
+
+          <!-- Remarks -->
+          <div class="field">
+            <label>Remarks <span class="text-mute" style="font-weight:400;font-size:11px;">(damage, short delivery, quality notes — optional)</span></label>
+            <input id="f_remarks" placeholder="e.g. 2 bags arrived damaged, accepted under protest">
+          </div>
+
+        </div>
+      `;
+    }
+
+    document.getElementById('newBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot create SRVs', 'warn');
+      formItems = [];
+
+      openModal('New Goods Receipt (SRV)', newSRVForm(), () => {
+        const srvNo      = document.getElementById('f_srv').value.trim();
+        const date       = document.getElementById('f_date').value;
+        const supplierId = document.getElementById('f_supplier').value;
+        const poId       = document.getElementById('f_po').value || null;
+        const dcNo       = document.getElementById('f_dc').value.trim();
+        const preparedBy = document.getElementById('f_prep').value;
+        const approvedBy = document.getElementById('f_appr').value;
+        const remarks    = document.getElementById('f_remarks').value.trim();
+
+        // Strip UI-only fields before saving
+        const items = formItems
+          .filter(it => it.productId && (it.qty || 0) > 0)
+          .map(({ _fromPO, _short, orderedQty, ...rest }) => rest);
+
+        if (!srvNo || !supplierId) { toast('SRV No. and Supplier are required', 'danger'); return false; }
+        if (!items.length)          { toast('Add at least one item with qty > 0', 'danger'); return false; }
+
+        DB.upsert('stockIn', {
+          id: DB.uid('si'), srvNo, date, supplierId, poId,
+          dcNo: dcNo || undefined,
+          items, preparedBy, approvedBy,
+          remarks: remarks || undefined
+        });
+
+        // Update stock
+        items.forEach(it => DB.adjustStock(it.productId, it.qty));
+
+        // Mark PO as received
+        if (poId) {
+          const po = DB.get('purchaseOrders', poId);
+          if (po && po.status === 'issued') { po.status = 'received'; DB.upsert('purchaseOrders', po); }
+        }
+
+        toast('Receipt saved — inventory updated', 'ok');
+        refresh();
+      }, 'Save & Update Stock', 'wide');
+
+      setTimeout(() => {
+        renderItems();
+        document.getElementById('f_po').addEventListener('change', e => loadPOItems(e.target.value));
+        document.getElementById('addItemBtn').addEventListener('click', () => {
+          const firstProd = DB.list('products')[0];
+          formItems.push({
+            productId: firstProd?.id || '',
+            qty:       0,
+            rate:      firstProd?.unitPrice || 0,
+            batchNo:   '',
+            expiry:    ''
+          });
+          renderItems();
+        });
+      }, 50);
+    });
+
+    document.getElementById('scanBtn').addEventListener('click', () => {
+      toast('OCR scan of Delivery Challan — coming in phase 2', 'warn');
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suppliers · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card">
+      <div class="card-header">
+        <h3>Suppliers</h3>
+        <button class="btn btn-primary" id="newBtn">+ Add Supplier</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('suppliers', 'Suppliers', 'Manage vendors who supply goods to BV Yard');
+
+    // ─── List ─────────────────────────────────────────────────────
+    function refresh() {
+      const suppliers = DB.list('suppliers');
+      const pos       = DB.list('purchaseOrders');
+      const stockIns  = DB.list('stockIn');
+
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Code</th><th>Name</th><th>GST No.</th>
+          <th>Contact</th><th>WhatsApp</th>
+          <th class="text-right">POs Raised</th><th class="text-right">Deliveries</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${suppliers.map(s => {
+            const poCount  = pos.filter(p => p.supplierId === s.id).length;
+            const siCount  = stockIns.filter(si => si.supplierId === s.id).length;
+            return `<tr>
+              <td class="bold text-sm">${escapeHtml(s.code)}</td>
+              <td>
+                <div class="bold">${escapeHtml(s.name)}</div>
+                <div class="text-sm text-mute">${escapeHtml(s.address || '')}</div>
+              </td>
+              <td class="text-sm">${escapeHtml(s.gst || '—')}</td>
+              <td class="text-sm">${escapeHtml(s.contact || '—')}</td>
+              <td class="text-sm">
+                ${s.whatsapp
+                  ? `<a href="https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--navy-700);">📱 ${escapeHtml(s.whatsapp)}</a>`
+                  : '—'}
+              </td>
+              <td class="text-right">${poCount}</td>
+              <td class="text-right">${siCount}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <button class="btn btn-sm" onclick="editSupplier('${s.id}')">Edit</button>
+                ${can('delete') ? `<button class="btn btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="deleteSupplier('${s.id}','${escapeHtml(s.name)}')">Delete</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">No suppliers yet</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    // ─── Form ─────────────────────────────────────────────────────
+    function supplierForm(s = {}) {
+      return `
+        <div class="form-grid">
+
+          <div class="form-row">
+            <div class="field">
+              <label>Supplier Name <span class="req">*</span></label>
+              <input id="f_name" value="${escapeHtml(s.name || '')}" placeholder="e.g. Trident Creation">
+            </div>
+            <div class="field">
+              <label>Supplier Code <span class="req">*</span></label>
+              <input id="f_code" value="${escapeHtml(s.code || '')}" placeholder="e.g. T0005K" style="text-transform:uppercase;">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Address</label>
+            <input id="f_addr" value="${escapeHtml(s.address || '')}" placeholder="Full address with PIN code">
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>GST Number</label>
+              <input id="f_gst" value="${escapeHtml(s.gst || '')}" placeholder="e.g. 27AAEPD8880H1ZN" style="text-transform:uppercase;">
+            </div>
+            <div class="field">
+              <label>Contact Email</label>
+              <input id="f_email" type="email" value="${escapeHtml(s.contact || '')}" placeholder="e.g. sales@supplier.in">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>WhatsApp Number <span class="text-mute" style="font-weight:400;font-size:11px;">(used for sending POs — include country code)</span></label>
+            <input id="f_wa" value="${escapeHtml(s.whatsapp || '')}" placeholder="+919876543210">
+          </div>
+
+        </div>
+      `;
+    }
+
+    function collectForm() {
+      return {
+        name:     document.getElementById('f_name').value.trim(),
+        code:     document.getElementById('f_code').value.trim().toUpperCase(),
+        address:  document.getElementById('f_addr').value.trim(),
+        gst:      document.getElementById('f_gst').value.trim().toUpperCase(),
+        contact:  document.getElementById('f_email').value.trim(),
+        whatsapp: document.getElementById('f_wa').value.trim()
+      };
+    }
+
+    // ─── New ──────────────────────────────────────────────────────
+    document.getElementById('newBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot add suppliers', 'warn');
+      openModal('Add Supplier', supplierForm(), () => {
+        const data = collectForm();
+        if (!data.name || !data.code) { toast('Name and Code are required', 'danger'); return false; }
+        if (DB.list('suppliers').some(s => s.code === data.code)) {
+          toast('Supplier code already exists', 'danger'); return false;
+        }
+        DB.upsert('suppliers', { id: DB.uid('sp'), ...data });
+        toast(`${data.name} added`, 'ok');
+        refresh();
+      }, 'Save Supplier');
+    });
+
+    // ─── Edit ─────────────────────────────────────────────────────
+    window.editSupplier = (id) => {
+      if (!can('update')) return toast('Your role cannot edit suppliers', 'warn');
+      const s = DB.get('suppliers', id);
+      openModal('Edit Supplier', supplierForm(s), () => {
+        const data = collectForm();
+        if (!data.name || !data.code) { toast('Name and Code are required', 'danger'); return false; }
+        const dup = DB.list('suppliers').find(x => x.code === data.code && x.id !== id);
+        if (dup) { toast('Supplier code already used by another supplier', 'danger'); return false; }
+        DB.upsert('suppliers', { ...s, ...data });
+        toast(`${data.name} updated`, 'ok');
+        refresh();
+      }, 'Save Changes');
+    };
+
+    // ─── Delete ───────────────────────────────────────────────────
+    window.deleteSupplier = (id, name) => {
+      if (!can('delete')) return toast('Your role cannot delete suppliers', 'warn');
+      const linked = DB.list('purchaseOrders').some(p => p.supplierId === id)
+                  || DB.list('stockIn').some(si => si.supplierId === id);
+      if (linked) {
+        toast(`Cannot delete — ${name} has linked POs or deliveries`, 'danger'); return;
+      }
+      if (!confirm(`Delete supplier "${name}"? This cannot be undone.`)) return;
+      DB.remove('suppliers', id);
+      toast(`${name} deleted`, 'ok');
+      refresh();
+    };
+
+    refresh();
+  </script>
+</body>
+</html>

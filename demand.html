@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demands · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card">
+      <div class="card-header">
+        <div class="row" style="gap:14px;">
+          <h3 style="margin:0;">Demands Raised</h3>
+          <select id="filter" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="partially_fulfilled">Partially Fulfilled</option>
+            <option value="fulfilled">Fulfilled</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="newBtn">+ Raise Demand</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('demand', 'Demands', 'Ship raises demand → Reviewer approves → Fulfill → Outward (gate-out)');
+
+    const my = userSections();
+    const canAll = my.includes('*');
+
+    function relevantToMe(d) {
+      if (canAll) return true;
+      // Show demand if at least one item is in user's sections
+      return d.items.some(it => {
+        const p = DB.product(it.productId);
+        return p && my.includes(p.sectionId);
+      });
+    }
+
+    function refresh() {
+      const f = document.getElementById('filter').value;
+      let rows = DB.list('demands').filter(relevantToMe);
+      if (f) rows = rows.filter(d => d.status === f);
+      const channelIcon = { print: '🖨️', email: '✉️', whatsapp: '💬' };
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Demand</th><th>Date · Day</th><th>Via</th><th>From Ship</th>
+          <th>Categories</th>
+          <th class="text-right">Items</th>
+          <th>Qty %</th><th>Item %</th>
+          <th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.slice().reverse().map(d => {
+            const ship = DB.ship(d.shipId);
+            const { qtyPct, itemPct } = DB.demandFulfilmentPct(d);
+            const touchSecs = [...new Set(d.items.map(it => DB.product(it.productId)?.categoryId).filter(Boolean))]
+              .map(cid => DB.category(cid)?.name).filter(Boolean).join(', ');
+            const statusClass = d.status === 'fulfilled' ? 'ok' : d.status === 'rejected' ? 'danger' : d.status === 'partially_fulfilled' ? 'info' : 'warn';
+            const barCls = qtyPct >= 80 ? '' : qtyPct >= 50 ? 'warn' : 'danger';
+            const day = d.dayOfWeek || DB.dayOfWeek(d.date);
+            return `
+            <tr>
+              <td class="bold">${d.demandNo}</td>
+              <td>${fmtDate(d.date)} <span class="badge muted">${day}</span></td>
+              <td title="${d.sourceChannel || ''}">${channelIcon[d.sourceChannel] || '—'}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td class="text-sm text-mute">${touchSecs}</td>
+              <td class="text-right">${d.items.length}</td>
+              <td><span class="fulfil-bar ${barCls}"><span style="width:${qtyPct}%"></span></span>${qtyPct}%</td>
+              <td><span class="fulfil-bar ${barCls}"><span style="width:${itemPct}%"></span></span>${itemPct}%</td>
+              <td><span class="badge ${statusClass}">${d.status.replace('_', ' ').toUpperCase()}</span></td>
+              <td class="text-right" style="white-space:nowrap;">
+                <button class="btn btn-sm" onclick="viewDemand('${d.id}')">View</button>
+                ${d.status === 'pending' && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="approveDemand('${d.id}')">Approve</button>` : ''}
+                ${['approved','partially_fulfilled'].includes(d.status) && can('create') ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}
+                ${d.status === 'pending' && can('approve') ? `<button class="btn btn-sm btn-danger" onclick="rejectDemand('${d.id}')">Reject</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="10" class="empty">No demands match</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    window.viewDemand = (id) => {
+      const d = DB.get('demands', id);
+      DB.recalcDemandFulfilment(id);
+      const ship = DB.ship(d.shipId);
+
+      // Build lookup: for each demand item, find any substitutions or absents recorded against it
+      const linkedFulfillments = DB.list('stockOut').filter(so => so.demandId === d.id);
+      const subsByOriginalId = {};
+      const absentSet = new Set();
+      linkedFulfillments.forEach(so => {
+        so.items.forEach(it => {
+          if (it.substitutedForProductId) {
+            (subsByOriginalId[it.substitutedForProductId] = subsByOriginalId[it.substitutedForProductId] || []).push({
+              productId: it.productId,
+              qty: it.qty,
+              voucherNo: so.voucherNo
+            });
+          }
+        });
+        (so.absent || []).forEach(pid => absentSet.add(pid));
+      });
+
+      const itemRows = d.items.map(it => {
+        const p = DB.product(it.productId);
+        const fulfilled = it.fulfilledQty || 0;
+        const pct = Math.round((fulfilled / it.demandedQty) * 100);
+        const cls = pct >= 100 ? '' : pct >= 50 ? 'warn' : 'danger';
+        const subs = subsByOriginalId[it.productId] || [];
+        const isAbsent = absentSet.has(it.productId);
+
+        let noteCell = '<span class="text-mute">—</span>';
+        if (subs.length) {
+          noteCell = subs.map(s => {
+            const sp = DB.product(s.productId);
+            return `<div class="text-sm" style="color:#92400e;">↔ Substituted with <strong>${escapeHtml(sp ? displayName(sp) : '—')}</strong> · ${s.qty} ${sp?.baseUnit || ''}</div>`;
+          }).join('');
+        } else if (isAbsent) {
+          noteCell = '<span class="badge danger">ABSENT</span>';
+        }
+
+        return `<tr>
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td>${it.demandedQty} ${p?.baseUnit || ''}</td>
+          <td>${fulfilled} ${p?.baseUnit || ''}</td>
+          <td><span class="fulfil-bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></span>${pct}%</td>
+          <td>${noteCell}</td>
+        </tr>`;
+      }).join('');
+      const { qtyPct, itemPct } = DB.demandFulfilmentPct(d);
+      openModal(`Demand ${d.demandNo}`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(d.date)}</div></div>
+            <div><div class="text-sm text-mute">Ship</div><div class="bold">${ship?.name || '—'}</div></div>
+            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${d.status === 'fulfilled' ? 'ok' : d.status === 'rejected' ? 'danger' : 'warn'}">${d.status.toUpperCase()}</span></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card" style="background:#fafbfd;"><div class="text-sm text-mute">Qty Fulfilment</div><div class="bold" style="font-size:22px;">${qtyPct}%</div></div>
+            <div class="card" style="background:#fafbfd;"><div class="text-sm text-mute">Item Fulfilment</div><div class="bold" style="font-size:22px;">${itemPct}%</div></div>
+          </div>
+          <table class="data">
+            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Fulfilled</th><th>%</th><th>Substitute / Note</th></tr></thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+        </div>
+      `, null, '', 'wide');
+    };
+
+    window.approveDemand = (id) => {
+      if (!can('approve')) return toast('Your role cannot approve', 'warn');
+      const d = DB.get('demands', id);
+      if (!confirm(`Approve demand ${d.demandNo}? It will be ready for fulfillment.`)) return;
+      d.status = 'approved';
+      d.approvedBy = Session.get()?.id || null;
+      d.approvedAt = new Date().toISOString();
+      DB.upsert('demands', d);
+      toast(`Approved — ready for fulfillment`, 'ok');
+      refresh();
+    };
+
+    window.rejectDemand = (id) => {
+      if (!can('approve')) return;
+      const d = DB.get('demands', id);
+      if (!confirm(`Reject ${d.demandNo}?`)) return;
+      d.status = 'rejected';
+      DB.upsert('demands', d);
+      toast('Rejected', 'warn');
+      refresh();
+    };
+
+    let demItems = [];
+    function demandForm() {
+      const ships = DB.list('ships');
+      const lowStock = DB.lowStockItems(my);
+      return `
+        <div class="form-grid">
+          <div class="form-row-3">
+            <div class="field"><label>Demand No. <span class="req">*</span></label><input id="f_dno" value="26R${Math.floor(Math.random()*9000+1000)}"></div>
+            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
+            <div class="field"><label>From Ship <span class="req">*</span></label>
+              <select id="f_ship">${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="field"><label>Received via</label>
+            <div class="row" style="gap:8px;">
+              ${[['print','🖨️ Print'],['email','✉️ Email'],['whatsapp','💬 WhatsApp']].map(([v,l]) => `
+                <label class="row" style="gap:6px;background:#fafbfd;padding:6px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;">
+                  <input type="radio" name="f_channel" value="${v}" ${v === 'whatsapp' ? 'checked' : ''} style="margin:0;">
+                  ${l}
+                </label>`).join('')}
+            </div>
+          </div>
+          ${lowStock.length ? `
+            <div class="card" style="background:var(--navy-50); border-color:var(--navy-600);">
+              <div class="row-between">
+                <div>
+                  <div class="bold">${lowStock.length} items below minimum stock</div>
+                  <div class="text-sm text-mute">Pre-fill demand from low-stock items?</div>
+                </div>
+                <button class="btn btn-sm btn-primary" id="prefillBtn" type="button">Pre-fill</button>
+              </div>
+            </div>
+          ` : ''}
+          <div style="border:1px dashed var(--border); padding:12px; border-radius:8px;">
+            <div class="row-between" style="margin-bottom:10px;">
+              <div class="bold">Items Demanded</div>
+              <button class="btn btn-sm btn-primary" id="addItemBtn">+ Add Item</button>
+            </div>
+            <div id="itemList"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDemItems() {
+      const allProds = DB.list('products');
+      const allCats = DB.list('categories');
+      const wrap = document.getElementById('itemList');
+      if (!demItems.length) { wrap.innerHTML = '<div class="empty" style="padding:20px;">No items added yet</div>'; return; }
+      wrap.innerHTML = demItems.map((it, i) => {
+        // Derive category from current product if not set
+        if (!it.categoryId && it.productId) {
+          const p = DB.product(it.productId);
+          if (p) it.categoryId = p.categoryId;
+        }
+        const p = DB.product(it.productId);
+        // Only items within this line's selected category
+        const catItems = it.categoryId ? allProds.filter(pp => pp.categoryId === it.categoryId) : allProds;
+        return `
+        <div class="row" style="gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+          <select data-i="${i}" class="i_cat" style="flex:1;min-width:160px;border:1px solid var(--border);padding:7px 28px 7px 7px;border-radius:6px;">
+            <option value="">— Category —</option>
+            ${allCats.map(c => `<option value="${c.id}" ${c.id === it.categoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+          <select data-i="${i}" class="i_prod" style="flex:2;min-width:200px;border:1px solid var(--border);padding:7px 28px 7px 7px;border-radius:6px;" ${catItems.length ? '' : 'disabled'}>
+            ${!it.categoryId
+              ? '<option value="">— pick category first —</option>'
+              : catItems.length
+                ? catItems.map(pp => `<option value="${pp.id}" ${pp.id === it.productId ? 'selected' : ''}>${pp.code} — ${escapeHtml(pp.name)}</option>`).join('')
+                : '<option value="">No items in this category</option>'}
+          </select>
+          <input data-i="${i}" class="i_qty" type="number" placeholder="Qty" value="${it.demandedQty || ''}" style="width:100px;border:1px solid var(--border);padding:7px;border-radius:6px;">
+          <span class="text-sm text-mute" style="min-width:30px;">${p?.baseUnit || ''}</span>
+          <button class="btn btn-sm btn-danger" onclick="rmDem(${i})">×</button>
+        </div>
+      `;}).join('');
+      // Wire handlers
+      wrap.querySelectorAll('.i_cat').forEach(el => el.onchange = e => {
+        const i = +e.target.dataset.i;
+        demItems[i].categoryId = e.target.value;
+        // Auto-pick the first item in the new category so the row is usable immediately
+        const firstInCat = allProds.find(pp => pp.categoryId === e.target.value);
+        demItems[i].productId = firstInCat ? firstInCat.id : null;
+        renderDemItems();
+      });
+      wrap.querySelectorAll('.i_prod').forEach(el => el.onchange = e => { demItems[+e.target.dataset.i].productId = e.target.value; renderDemItems(); });
+      wrap.querySelectorAll('.i_qty').forEach(el => el.onchange = e => { demItems[+e.target.dataset.i].demandedQty = Number(e.target.value) || 0; });
+    }
+    window.rmDem = (i) => { demItems.splice(i, 1); renderDemItems(); };
+
+    document.getElementById('newBtn').addEventListener('click', () => {
+      demItems = [{ categoryId: '', productId: null, demandedQty: 0, fulfilledQty: 0, substitutedFor: null }];
+      openModal('Raise New Demand', demandForm(), () => {
+        const demandNo = document.getElementById('f_dno').value.trim();
+        const date = document.getElementById('f_date').value;
+        const shipId = document.getElementById('f_ship').value;
+        const ship = DB.ship(shipId);
+        const sourceChannel = document.querySelector('input[name="f_channel"]:checked')?.value || 'whatsapp';
+        const items = demItems.filter(it => it.productId && it.demandedQty > 0)
+          .map(it => ({ ...it, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }));
+        if (!demandNo || !items.length) { toast('Demand No. + items required', 'danger'); return false; }
+        DB.upsert('demands', {
+          id: DB.uid('d'), demandNo, date,
+          dayOfWeek: DB.dayOfWeek(date),
+          sourceChannel,
+          shipId, raisedBy: ship?.name, items, status: 'pending'
+        });
+        toast('Demand raised', 'ok');
+        refresh();
+      }, 'Submit Demand');
+      setTimeout(() => {
+        renderDemItems();
+        document.getElementById('addItemBtn').onclick = () => { demItems.push({ categoryId: '', productId: null, demandedQty: 0 }); renderDemItems(); };
+        const pre = document.getElementById('prefillBtn');
+        if (pre) pre.onclick = () => {
+          demItems = DB.lowStockItems(my).map(p => ({ productId: p.id, demandedQty: Math.max(p.minStock * 2 - p.currentStock, p.minStock), fulfilledQty: 0 }));
+          renderDemItems();
+        };
+      }, 50);
+    });
+
+    document.getElementById('filter').addEventListener('change', refresh);
+    refresh();
+  </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fulfillment · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .line {
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #fafbfd;
+    }
+    .line.absent { background: #fef2f2; border-color: #fecaca; }
+    .line.subst  { background: #fffbeb; border-color: #fde68a; }
+    .line.exact  { background: #f0fdf4; border-color: #bbf7d0; }
+    .line.over   { background: #eff6ff; border-color: #bfdbfe; }
+    .out-tabs { display:flex; gap:4px; margin:6px 0 8px; }
+    .out-tab {
+      padding: 4px 10px; font-size: 11px; border-radius: 4px;
+      border: 1px solid var(--border); background: #fff; cursor: pointer;
+      font-weight: 500;
+    }
+    .out-tab.active { background: var(--navy-700); color: #fff; border-color: var(--navy-700); }
+    .fifo-hint {
+      background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px;
+      border-radius: 4px; font-size: 11px; color: #166534; margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card">
+      <div class="card-header">
+        <h3>Fulfillment Records <span class="text-sm text-mute" style="font-weight:400;">(in lieu of IAFZ-2096 Issue Voucher)</span></h3>
+        <button class="btn btn-primary" id="newBtn">+ New Fulfillment</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('stock-out', 'Fulfillment', 'Record what is actually issued vs demanded · exact / short / over / absent / substitute');
+
+    function refresh() {
+      const rows = DB.list('stockOut');
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Voucher</th><th>Date</th><th>Ship</th>
+          <th>Vs Demand</th>
+          <th class="text-right">Items</th>
+          <th>Outcomes</th>
+          <th>Recorded By</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.slice().reverse().map(so => {
+            const ship = DB.ship(so.shipId);
+            const recorder = DB.user(so.recordedBy || so.preparedBy);
+            const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+            const totalIssued = so.items.reduce((s, x) => s + x.qty, 0);
+            const totalDemanded = so.items.reduce((s, x) => s + (x.demandedQty || x.qty), 0);
+            const pct = totalDemanded ? Math.round((totalIssued / totalDemanded) * 100) : 100;
+            const cls = pct >= 100 ? '' : pct >= 50 ? 'warn' : 'danger';
+            // Outcome counts
+            const oc = { exact: 0, short: 0, over: 0, absent: 0, substituted: 0 };
+            so.items.forEach(it => { if (it.outcome) oc[it.outcome] = (oc[it.outcome] || 0) + 1; });
+            (so.absent || []).forEach(() => oc.absent++);
+            return `
+            <tr>
+              <td class="bold">${so.voucherNo}</td>
+              <td>${fmtDate(so.date)}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td>${demand ? `<a href="demand.html" class="text-sm bold">${demand.demandNo}</a><br><span class="fulfil-bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></span>${pct}%` : '<span class="text-sm text-mute">Direct</span>'}</td>
+              <td class="text-right">${so.items.length}</td>
+              <td class="text-sm">
+                ${oc.exact ? `<span class="badge ok">${oc.exact} exact</span> ` : ''}
+                ${oc.short ? `<span class="badge warn">${oc.short} short</span> ` : ''}
+                ${oc.over ? `<span class="badge info">${oc.over} over</span> ` : ''}
+                ${oc.absent ? `<span class="badge danger">${oc.absent} absent</span> ` : ''}
+                ${oc.substituted ? `<span class="badge" style="background:#fef3c7;color:#92400e;">${oc.substituted} subst</span>` : ''}
+              </td>
+              <td class="text-sm text-mute">${recorder ? recorder.name : '—'}</td>
+              <td class="text-right"><button class="btn btn-sm" onclick="viewVoucher('${so.id}')">View</button></td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">No issue vouchers yet</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    window.viewVoucher = (id) => {
+      const so = DB.get('stockOut', id);
+      const ship = DB.ship(so.shipId);
+      const recorder = DB.user(so.recordedBy || so.preparedBy);  // back-compat with legacy seed
+      const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+      const absentList = so.absent || [];
+
+      const itemRows = so.items.map(it => {
+        const p = DB.product(it.productId);
+        const dem = it.demandedQty || it.qty;
+        const pct = dem ? Math.round((it.qty / dem) * 100) : 100;
+        const outcome = it.outcome || 'exact';
+        const subOf = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
+        return `<tr>
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td>${dem} ${p?.baseUnit || ''}</td>
+          <td class="bold">${it.qty} ${p?.baseUnit || ''}</td>
+          <td>${pct}%</td>
+          <td>${it.batchNo || '—'}</td>
+          <td><span class="badge ${outcome === 'exact' ? 'ok' : outcome === 'over' ? 'info' : outcome === 'short' ? 'warn' : 'danger'}">${outcome.toUpperCase()}</span></td>
+          ${subOf ? `<td class="text-sm">↔ replaced ${escapeHtml(subOf.name)}</td>` : '<td>—</td>'}
+        </tr>`;
+      }).join('');
+      const absentRows = absentList.map(pid => {
+        const p = DB.product(pid);
+        const demItem = demand?.items.find(it => it.productId === pid);
+        return `<tr style="opacity:0.7;">
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td>${demItem?.demandedQty || 0} ${p?.baseUnit || ''}</td>
+          <td>0</td><td>0%</td><td>—</td>
+          <td><span class="badge danger">ABSENT</span></td>
+          <td>—</td>
+        </tr>`;
+      }).join('');
+
+      openModal(`Fulfillment ${so.voucherNo}`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(so.date)}</div></div>
+            <div><div class="text-sm text-mute">Issued To</div><div class="bold">${ship?.name || '—'}</div></div>
+            <div><div class="text-sm text-mute">Linked Demand</div><div class="bold">${demand ? demand.demandNo : 'Direct issue'}</div></div>
+          </div>
+          <table class="data">
+            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Issued</th><th>%</th><th>Batch</th><th>Outcome</th><th>Note</th></tr></thead>
+            <tbody>${itemRows}${absentRows}</tbody>
+          </table>
+          <div class="text-sm text-mute mt-16" style="border-top:1px solid var(--border); padding-top:12px;">
+            Recorded by ${recorder ? `<strong>${recorder.name}</strong> (${recorder.rank} · ${recorder.designation})` : '—'}
+          </div>
+        </div>
+      `, null, '', 'wide');
+    };
+
+    // outItems shape: { productId, demandedQty, qty, batchNo, mode, substituteProductId, substitutedForProductId }
+    // mode: 'issue' | 'absent' | 'substitute'
+    let outItems = [];
+    let linkedDemand = null;
+
+    const params = new URLSearchParams(location.search);
+    const preDemandId = params.get('demandId');
+
+    function form() {
+      const ships = DB.list('ships');
+      const demands = DB.list('demands').filter(d => ['approved', 'partially_fulfilled'].includes(d.status));
+      return `
+        <div class="form-grid">
+          <div class="form-row-3">
+            <div class="field"><label>Voucher No. <span class="req">*</span></label><input id="f_vno" value="26BIB${Math.floor(Math.random()*90000+10000)}"></div>
+            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
+            <div class="field"><label>Link to Demand (optional)</label>
+              <select id="f_demand">
+                <option value="">— Direct issue —</option>
+                ${demands.map(d => `<option value="${d.id}" ${d.id === linkedDemand?.id ? 'selected' : ''}>${d.demandNo} · ${DB.ship(d.shipId)?.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Issue To Ship <span class="req">*</span></label>
+            <select id="f_ship">${ships.map(s => `<option value="${s.id}" ${s.id === linkedDemand?.shipId ? 'selected' : ''}>${s.name} (${s.code})</option>`).join('')}</select>
+          </div>
+          ${linkedDemand ? `<div class="card" style="background:var(--navy-50); border-color:var(--navy-600);">
+            <div class="text-sm text-mute">Fulfilling demand</div>
+            <div class="bold">${linkedDemand.demandNo}</div>
+            <div class="text-sm">For each line, choose: Issue (with qty) · Mark Absent · Substitute</div>
+          </div>` : ''}
+          <div style="border:1px dashed var(--border); padding:12px; border-radius:8px;">
+            <div class="row-between" style="margin-bottom:10px;">
+              <div class="bold">Items to Issue</div>
+              ${!linkedDemand ? '<button class="btn btn-sm btn-primary" id="addItemBtn">+ Add Item</button>' : ''}
+            </div>
+            <div id="itemList"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderOutItems() {
+      const prods = DB.list('products');
+      const allCats = DB.list('categories');
+      const wrap = document.getElementById('itemList');
+      if (!outItems.length) { wrap.innerHTML = '<div class="empty" style="padding:20px;">No items added</div>'; return; }
+
+      wrap.innerHTML = outItems.map((it, i) => {
+        const p = DB.product(it.productId);
+        const subProd = it.substituteProductId ? DB.product(it.substituteProductId) : null;
+        const mode = it.mode || 'issue';
+        const isOver = mode === 'issue' && it.demandedQty && it.qty > it.demandedQty;
+        const isShort = mode === 'issue' && it.demandedQty && it.qty < it.demandedQty && it.qty > 0;
+        const isExact = mode === 'issue' && it.demandedQty && it.qty === it.demandedQty;
+        const isShortStock = mode === 'issue' && p && it.qty > p.currentStock;
+        const lineClass = mode === 'absent' ? 'absent' : mode === 'substitute' ? 'subst' : isExact ? 'exact' : isOver ? 'over' : '';
+
+        // FIFO hint
+        const batches = mode === 'issue' && p ? DB.fifoBatchesFor(p.id).slice(0, 2) : [];
+
+        return `
+          <div class="line ${lineClass}">
+            <div class="row" style="gap:10px;">
+              <div style="flex:2;">
+                <div class="bold">${p ? escapeHtml(displayName(p)) : '—'}</div>
+                <div class="text-sm text-mute">${p?.code || ''} · Avail: ${p?.currentStock || 0} ${p?.baseUnit || ''}</div>
+                ${it.demandedQty ? `<div class="text-sm">Demanded: <span class="bold">${it.demandedQty} ${p?.baseUnit || ''}</span></div>` : ''}
+              </div>
+              ${linkedDemand ? `
+                <div class="out-tabs">
+                  <button type="button" class="out-tab ${mode==='issue'?'active':''}" onclick="setMode(${i},'issue')">Issue</button>
+                  <button type="button" class="out-tab ${mode==='absent'?'active':''}" onclick="setMode(${i},'absent')">Absent</button>
+                  <button type="button" class="out-tab ${mode==='substitute'?'active':''}" onclick="setMode(${i},'substitute')">Substitute</button>
+                </div>
+              ` : ''}
+            </div>
+
+            ${mode === 'issue' ? `
+              <div class="row" style="gap:8px;margin-top:8px;">
+                <input class="i_qty" data-i="${i}" type="number" placeholder="Issue qty" value="${it.qty || ''}" style="width:120px;border:1px solid var(--border);padding:7px;border-radius:6px;${isShortStock?'border-color:var(--danger);':''}">
+                <span class="text-sm text-mute">${p?.baseUnit || ''}</span>
+                <input class="i_batch" data-i="${i}" placeholder="Batch No." value="${it.batchNo || ''}" style="flex:1;border:1px solid var(--border);padding:7px;border-radius:6px;">
+                ${!linkedDemand ? `<select class="i_prod" data-i="${i}" style="flex:2;border:1px solid var(--border);padding:7px;border-radius:6px;">
+                  ${prods.map(pp => `<option value="${pp.id}" ${pp.id === it.productId ? 'selected' : ''}>${pp.code} — ${escapeHtml(pp.name)}</option>`).join('')}
+                </select>` : ''}
+                <button type="button" class="btn btn-sm btn-danger" onclick="rmOut(${i})">×</button>
+              </div>
+              ${isShortStock ? `<div class="text-sm" style="color:var(--danger);margin-top:6px;">⚠ Only ${p.currentStock} ${p.baseUnit} on hand</div>` : ''}
+              ${isOver ? `<div class="text-sm" style="color:var(--navy-700);margin-top:6px;">ℹ Over-issue by ${it.qty - it.demandedQty} ${p?.baseUnit} — allowed, flagged in report</div>` : ''}
+              ${isShort ? `<div class="text-sm" style="color:var(--warn);margin-top:6px;">⚠ Short by ${it.demandedQty - it.qty} ${p?.baseUnit}</div>` : ''}
+              ${batches.length ? `<div class="fifo-hint">📦 FIFO — oldest available: ${batches.map(b => `${b.batchNo} (exp ${fmtDate(b.expiry)}, ${b.qty} ${p.baseUnit})`).join(' · ')}</div>` : ''}
+            ` : ''}
+
+            ${mode === 'absent' ? `
+              <div class="text-sm" style="color:var(--danger);margin-top:6px;">
+                ✗ Item not available. Will be recorded as <strong>absent</strong> against the demand. Stock not changed.
+              </div>
+            ` : ''}
+
+            ${mode === 'substitute' ? `
+              <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap;">
+                <select class="i_subcat" data-i="${i}" style="flex:1;min-width:160px;border:1px solid var(--border);padding:7px;border-radius:6px;">
+                  <option value="">— Category —</option>
+                  ${allCats.map(c => `<option value="${c.id}" ${c.id === it.substituteCategoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
+                </select>
+                <select class="i_sub" data-i="${i}" style="flex:2;min-width:200px;border:1px solid var(--border);padding:7px;border-radius:6px;" ${!it.substituteCategoryId ? 'disabled' : ''}>
+                  ${!it.substituteCategoryId
+                    ? '<option value="">— pick category first —</option>'
+                    : (() => {
+                        const choices = prods.filter(pp => pp.categoryId === it.substituteCategoryId && pp.id !== p.id && pp.currentStock > 0);
+                        return choices.length
+                          ? '<option value="">— pick substitute —</option>' + choices.map(pp => `<option value="${pp.id}" ${pp.id === it.substituteProductId ? 'selected' : ''}>${pp.code} — ${escapeHtml(pp.name)} (${pp.currentStock} ${pp.baseUnit} avail)</option>`).join('')
+                          : '<option value="">No in-stock items in this category</option>';
+                      })()}
+                </select>
+                <input class="i_subqty" data-i="${i}" type="number" placeholder="Sub qty" value="${it.qty || ''}" style="width:110px;border:1px solid var(--border);padding:7px;border-radius:6px;">
+                <span class="text-sm text-mute">${subProd?.baseUnit || ''}</span>
+              </div>
+              ${subProd ? `<div class="text-sm" style="color:#92400e;margin-top:6px;">↔ Substituting <strong>${escapeHtml(displayName(p))}</strong> with <strong>${escapeHtml(displayName(subProd))}</strong></div>` : ''}
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // wire handlers
+      wrap.querySelectorAll('.i_qty').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].qty = Number(e.target.value) || 0; renderOutItems(); });
+      wrap.querySelectorAll('.i_batch').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].batchNo = e.target.value; });
+      wrap.querySelectorAll('.i_prod').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].productId = e.target.value; renderOutItems(); });
+      wrap.querySelectorAll('.i_subcat').forEach(el => el.onchange = e => {
+        const i = +e.target.dataset.i;
+        outItems[i].substituteCategoryId = e.target.value;
+        outItems[i].substituteProductId = null;  // reset item when category changes
+        renderOutItems();
+      });
+      wrap.querySelectorAll('.i_sub').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].substituteProductId = e.target.value; renderOutItems(); });
+      wrap.querySelectorAll('.i_subqty').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].qty = Number(e.target.value) || 0; renderOutItems(); });
+    }
+    window.rmOut = (i) => { outItems.splice(i, 1); renderOutItems(); };
+    window.setMode = (i, mode) => {
+      outItems[i].mode = mode;
+      if (mode === 'absent') outItems[i].qty = 0;
+      if (mode === 'substitute' && !outItems[i].substituteProductId) outItems[i].qty = outItems[i].demandedQty || 0;
+      renderOutItems();
+    };
+
+    function openNew() {
+      if (!can('create')) return toast('Your role cannot create issue vouchers', 'warn');
+      if (linkedDemand) {
+        outItems = linkedDemand.items.map(it => {
+          const p = DB.product(it.productId);
+          const pending = it.demandedQty - (it.fulfilledQty || 0);
+          const issueQty = Math.min(pending, p?.currentStock || 0);
+          return {
+            productId: it.productId,
+            demandedQty: it.demandedQty,
+            qty: issueQty,
+            batchNo: '',
+            mode: 'issue',
+            substituteProductId: null
+          };
+        });
+      } else {
+        outItems = [{ productId: DB.list('products')[0]?.id, qty: 0, batchNo: '', mode: 'issue' }];
+      }
+
+      openModal(linkedDemand ? `Fulfill ${linkedDemand.demandNo}` : 'New Fulfillment', form(), () => {
+        const voucherNo = document.getElementById('f_vno').value.trim();
+        const date = document.getElementById('f_date').value;
+        const shipId = document.getElementById('f_ship').value;
+        const demandId = document.getElementById('f_demand').value || null;
+        const recordedBy = Session.get()?.id || null;  // auto-capture who saved it (audit)
+        if (!voucherNo) { toast('Voucher No. required', 'danger'); return false; }
+
+        const issuedItems = [];
+        const absentIds = [];
+        outItems.forEach(it => {
+          if (it.mode === 'absent') {
+            absentIds.push(it.productId);
+            return;
+          }
+          if (it.mode === 'substitute') {
+            if (!it.substituteProductId || !it.qty) return;
+            const sp = DB.product(it.substituteProductId);
+            const qty = Math.min(it.qty, sp.currentStock);
+            issuedItems.push({
+              productId: it.substituteProductId,
+              qty,
+              demandedQty: it.demandedQty,
+              batchNo: '',
+              substitutedForProductId: it.productId,
+              outcome: 'substituted'
+            });
+            return;
+          }
+          // regular issue
+          if (!it.productId || !it.qty) return;
+          const p = DB.product(it.productId);
+          const qty = Math.min(it.qty, p.currentStock);  // cap at stock
+          let outcome = 'exact';
+          if (it.demandedQty) {
+            if (qty === it.demandedQty) outcome = 'exact';
+            else if (qty > it.demandedQty) outcome = 'over';
+            else if (qty < it.demandedQty) outcome = 'short';
+          }
+          issuedItems.push({ productId: it.productId, qty, demandedQty: it.demandedQty, batchNo: it.batchNo, outcome });
+        });
+
+        if (!issuedItems.length && !absentIds.length) { toast('Add at least one item or mark something absent', 'danger'); return false; }
+
+        DB.upsert('stockOut', {
+          id: DB.uid('so'), voucherNo, date, shipId, demandId,
+          items: issuedItems,
+          absent: absentIds,
+          recordedBy, status: 'completed'
+        });
+        issuedItems.forEach(it => DB.adjustStock(it.productId, -it.qty));
+        if (demandId) DB.recalcDemandFulfilment(demandId);
+
+        const msg = [
+          issuedItems.length ? `${issuedItems.length} issued` : '',
+          absentIds.length ? `${absentIds.length} absent` : ''
+        ].filter(Boolean).join(' · ');
+        toast('Voucher saved — ' + msg, 'ok');
+        refresh();
+      }, 'Save Fulfillment & Update Inventory', 'wide');
+
+      setTimeout(() => {
+        renderOutItems();
+        const addBtn = document.getElementById('addItemBtn');
+        if (addBtn) addBtn.onclick = () => { outItems.push({ productId: DB.list('products')[0]?.id, qty: 0, batchNo: '', mode: 'issue' }); renderOutItems(); };
+        document.getElementById('f_demand').addEventListener('change', e => {
+          const d = e.target.value ? DB.get('demands', e.target.value) : null;
+          if (d) { linkedDemand = d; closeModal(); openNew(); }
+        });
+      }, 50);
+    }
+
+    document.getElementById('newBtn').addEventListener('click', () => { linkedDemand = null; openNew(); });
+    if (preDemandId) {
+      linkedDemand = DB.get('demands', preDemandId);
+      if (linkedDemand) openNew();
+    }
+    refresh();
+  </script>
+</body>
+</html>

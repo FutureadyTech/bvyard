@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spoilage / Write-off · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16" style="background:#fef9e7;border-color:#fbe5b6;">
+      <div class="bold" style="color:#92400e;">Why this page exists</div>
+      <div class="text-sm" style="color:#92400e;">From the meeting: "You get 100 in, issue 95, 5 is spoilage — without recording it, stock keeps showing the wrong level." Use this page whenever stock is lost to spoilage, damage, expiry, or theft so the system stays reconciled with physical reality.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Stock Write-offs</h3>
+        <button class="btn btn-primary" id="newBtn">+ Record Write-off</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('spoilage', 'Spoilage / Write-off', 'Reconcile inventory with physical losses');
+
+    const REASONS = ['spoilage', 'damage', 'expired', 'theft', 'misc'];
+
+    function refresh() {
+      const rows = DB.list('spoilage');
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Date</th><th>Item</th><th>Category</th><th class="text-right">Qty</th>
+          <th>Reason</th><th>Notes</th><th>Recorded By</th>
+        </tr></thead>
+        <tbody>
+          ${rows.slice().reverse().map(r => {
+            const p = DB.product(r.productId);
+            const cat = p ? DB.category(p.categoryId) : null;
+            const u = DB.user(r.recordedBy);
+            return `<tr>
+              <td>${fmtDate(r.date)}</td>
+              <td class="bold">${p ? escapeHtml(displayName(p)) : '—'}</td>
+              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
+              <td class="text-right" style="color:var(--danger);font-weight:600;">−${r.qty} ${p?.baseUnit || ''}</td>
+              <td><span class="badge ${r.reason === 'theft' ? 'danger' : 'warn'}">${r.reason.toUpperCase()}</span></td>
+              <td class="text-sm text-mute">${escapeHtml(r.notes || '—')}</td>
+              <td class="text-sm">${u ? u.name : '—'}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="7" class="empty">No write-offs recorded — good.</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    function form() {
+      const my = userSections();
+      const prods = DB.productsForUser(my);
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
+            <div class="field"><label>Item <span class="req">*</span></label>
+              <select id="f_product">${prods.map(p => `<option value="${p.id}">${p.code} — ${escapeHtml(p.name)} (${p.currentStock} ${p.baseUnit} avail)</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Quantity <span class="req">*</span></label><input id="f_qty" type="number" min="1"></div>
+            <div class="field"><label>Reason</label>
+              <select id="f_reason">${REASONS.map(r => `<option>${r}</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="field"><label>Notes</label><textarea id="f_notes" rows="2" placeholder="e.g. Crate damaged in transit, fruits browned"></textarea></div>
+        </div>
+      `;
+    }
+
+    document.getElementById('newBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot record write-offs', 'warn');
+      openModal('Record Write-off', form(), () => {
+        const productId = document.getElementById('f_product').value;
+        const qty = Number(document.getElementById('f_qty').value);
+        const p = DB.product(productId);
+        if (!productId || !qty) { toast('Item and qty required', 'danger'); return false; }
+        if (qty > p.currentStock) { toast(`Only ${p.currentStock} ${p.baseUnit} on hand`, 'danger'); return false; }
+        DB.upsert('spoilage', {
+          id: DB.uid('sp'),
+          date: document.getElementById('f_date').value,
+          productId, qty,
+          reason: document.getElementById('f_reason').value,
+          notes: document.getElementById('f_notes').value.trim(),
+          recordedBy: Session.get()?.id
+        });
+        DB.adjustStock(productId, -qty);
+        toast(`Wrote off ${qty} ${p.baseUnit} of ${p.name}`, 'warn');
+        refresh();
+      }, 'Record & Reduce Stock');
+    });
+    refresh();
+  </script>
+</body>
+</html>

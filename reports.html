@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16">
+      <div class="row" style="gap:12px; flex-wrap:wrap;">
+        <div class="field"><label>From</label><input type="date" id="from" style="border:1px solid var(--border);border-radius:6px;padding:7px;font-size:13px;"></div>
+        <div class="field"><label>To</label><input type="date" id="to" style="border:1px solid var(--border);border-radius:6px;padding:7px;font-size:13px;"></div>
+        <div class="field"><label>Category</label>
+          <select id="filterCategory" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <div class="field"><label>Day of week</label>
+          <select id="filterDay" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">Any day</option>
+            ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<option value="${d}">${d}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Channel</label>
+          <select id="filterChannel" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All channels</option>
+            <option value="print">🖨️ Print</option>
+            <option value="email">✉️ Email</option>
+            <option value="whatsapp">💬 WhatsApp</option>
+          </select>
+        </div>
+        <div class="field"><label>&nbsp;</label><button class="btn btn-primary" id="applyBtn">Apply Filters</button></div>
+        <div class="field"><label>&nbsp;</label><button class="btn" onclick="window.print()">🖨 Print Report</button></div>
+      </div>
+    </div>
+
+    <div class="stats-grid" id="stats"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><h3>Top Items Issued</h3></div>
+        <div class="table-wrap"><table class="data" id="topItems"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Ship-wise Demand & Fulfilment</h3></div>
+        <div class="table-wrap"><table class="data" id="shipBreakdown"></table></div>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-header"><h3>Daily Activity (issues per day)</h3></div>
+      <div id="dailyChart" style="padding:10px 4px;"></div>
+    </div>
+
+    <div class="card mt-16">
+      <div class="card-header"><h3>Fulfilment Outcome Breakdown</h3></div>
+      <div id="outcomePanel"></div>
+    </div>
+
+    <div class="grid-2 mt-16">
+      <div class="card">
+        <div class="card-header"><h3>Category-wise Outflow</h3></div>
+        <div class="table-wrap"><table class="data" id="sectionFlow"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Spoilage Summary</h3></div>
+        <div class="table-wrap"><table class="data" id="spoilSummary"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('reports', 'Reports', 'Date-range analytics — demand, fulfilment, tonnage, ships served');
+
+    // Default range: last 30 days (localToday avoids UTC offset shifting the date)
+    document.getElementById('to').value = localToday();
+    const _ma = new Date(); _ma.setDate(_ma.getDate() - 30);
+    const _p = n => String(n).padStart(2,'0');
+    document.getElementById('from').value = `${_ma.getFullYear()}-${_p(_ma.getMonth()+1)}-${_p(_ma.getDate())}`;
+
+    // Populate category filter
+    const cats = DB.list('categories');
+    document.getElementById('filterCategory').innerHTML = '<option value="">All categories</option>' +
+      cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+    function inRange(dateStr, from, to) {
+      const d = new Date(dateStr);
+      return d >= new Date(from) && d <= new Date(to + 'T23:59:59');
+    }
+
+    function render() {
+      const from = document.getElementById('from').value;
+      const to = document.getElementById('to').value;
+      const secFilter = document.getElementById('filterCategory').value;
+      const dayFilter = document.getElementById('filterDay').value;
+      const channelFilter = document.getElementById('filterChannel').value;
+
+      let demands = DB.list('demands').filter(d => inRange(d.date, from, to));
+      if (dayFilter) demands = demands.filter(d => (d.dayOfWeek || DB.dayOfWeek(d.date)) === dayFilter);
+      if (channelFilter) demands = demands.filter(d => d.sourceChannel === channelFilter);
+      let stockOut = DB.list('stockOut').filter(so => inRange(so.date, from, to));
+      let stockIn = DB.list('stockIn').filter(si => inRange(si.date, from, to));
+      let spoils = DB.list('spoilage').filter(s => inRange(s.date, from, to));
+
+      if (secFilter) {
+        const inCat = (productId) => DB.product(productId)?.categoryId === secFilter;
+        stockOut = stockOut.map(so => ({ ...so, items: so.items.filter(it => inCat(it.productId)) })).filter(so => so.items.length);
+        stockIn = stockIn.map(si => ({ ...si, items: si.items.filter(it => inCat(it.productId)) })).filter(si => si.items.length);
+        spoils = spoils.filter(s => inCat(s.productId));
+      }
+
+      // KPIs
+      const totalDemands = demands.length;
+      const shipsServed = new Set(stockOut.map(so => so.shipId)).size;
+      const totalIssued = stockOut.reduce((s, so) => s + so.items.reduce((ss, it) => ss + it.qty, 0), 0);
+      const totalSpoilQty = spoils.reduce((s, x) => s + x.qty, 0);
+      const measurable = demands.filter(d => d.items.some(it => it.fulfilledQty > 0) || d.poId);
+      const avgCompliance = measurable.length
+        ? Math.round(measurable.reduce((s, d) => s + DB.demandFulfilmentPct(d).qtyPct, 0) / measurable.length)
+        : 0;
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card"><div class="label">Demands Processed</div><div class="value">${totalDemands}</div><div class="sub">in range</div></div>
+        <div class="stat-card ok"><div class="label">Ships / Units Served</div><div class="value">${shipsServed}</div><div class="sub">unique customers</div></div>
+        <div class="stat-card"><div class="label">Total Outflow</div><div class="value">${totalIssued.toLocaleString('en-IN')}</div><div class="sub">units issued</div></div>
+        <div class="stat-card ${avgCompliance >= 90 ? 'ok' : avgCompliance >= 70 ? 'warn' : 'danger'}"><div class="label">Avg Compliance</div><div class="value">${avgCompliance}%</div><div class="sub">qty fulfilment</div></div>
+      `;
+
+      // Top items issued
+      const itemTotals = {};
+      stockOut.forEach(so => so.items.forEach(it => {
+        itemTotals[it.productId] = (itemTotals[it.productId] || 0) + it.qty;
+      }));
+      const top = Object.entries(itemTotals).map(([pid, qty]) => ({ p: DB.product(pid), qty }))
+        .filter(x => x.p).sort((a, b) => b.qty - a.qty).slice(0, 10);
+      document.getElementById('topItems').innerHTML = `
+        <thead><tr><th>Item</th><th class="text-right">Qty Issued</th></tr></thead>
+        <tbody>${top.map(t => `<tr><td>${escapeHtml(displayName(t.p))}</td><td class="text-right bold">${t.qty} ${t.p.baseUnit}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">No activity</td></tr>'}</tbody>
+      `;
+
+      // Ship breakdown
+      const ships = DB.list('ships');
+      const shipRows = ships.map(sh => {
+        const myDemands = demands.filter(d => d.shipId === sh.id);
+        const myIssues = stockOut.filter(so => so.shipId === sh.id);
+        const myTonnage = myIssues.reduce((s, so) => s + so.items.reduce((ss, it) => ss + it.qty, 0), 0);
+        const avgComp = myDemands.length
+          ? Math.round(myDemands.reduce((s, d) => s + DB.demandFulfilmentPct(d).qtyPct, 0) / myDemands.length)
+          : 0;
+        return { name: sh.name, demands: myDemands.length, issues: myIssues.length, tonnage: myTonnage, comp: avgComp };
+      }).sort((a, b) => b.tonnage - a.tonnage);
+      document.getElementById('shipBreakdown').innerHTML = `
+        <thead><tr><th>Ship</th><th class="text-right">Demands</th><th class="text-right">Issues</th><th class="text-right">Outflow</th><th>Compliance</th></tr></thead>
+        <tbody>${shipRows.map(s => `<tr>
+          <td class="bold">${s.name}</td>
+          <td class="text-right">${s.demands}</td>
+          <td class="text-right">${s.issues}</td>
+          <td class="text-right">${s.tonnage}</td>
+          <td><span class="fulfil-bar ${s.comp >= 80 ? '' : s.comp >= 50 ? 'warn' : 'danger'}"><span style="width:${s.comp}%"></span></span>${s.comp}%</td>
+        </tr>`).join('')}</tbody>
+      `;
+
+      // Daily chart (simple bars)
+      const byDay = {};
+      stockOut.forEach(so => {
+        const d = so.date;
+        byDay[d] = (byDay[d] || 0) + so.items.reduce((s, it) => s + it.qty, 0);
+      });
+      const days = Object.entries(byDay).sort((a, b) => a[0].localeCompare(b[0]));
+      const maxV = Math.max(...days.map(d => d[1]), 1);
+      document.getElementById('dailyChart').innerHTML = days.length ? `
+        <div style="display:flex;align-items:flex-end;gap:4px;height:120px;border-bottom:1px solid var(--border);padding-bottom:6px;">
+          ${days.map(([d, v]) => `
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div title="${d}: ${v}" style="width:80%;height:${(v/maxV)*100}px;background:linear-gradient(180deg,var(--navy-600),var(--navy-700));border-radius:3px 3px 0 0;"></div>
+              <div class="text-sm text-mute" style="font-size:9px;">${d.slice(5)}</div>
+            </div>
+          `).join('')}
+        </div>
+      ` : '<div class="empty">No issue activity in range</div>';
+
+      // Category flow
+      const sectionFlow = cats.map(c => {
+        const out = stockOut.flatMap(so => so.items.filter(it => DB.product(it.productId)?.categoryId === c.id));
+        const inn = stockIn.flatMap(si => si.items.filter(it => DB.product(it.productId)?.categoryId === c.id));
+        return {
+          name: c.name,
+          inQty: inn.reduce((sum, it) => sum + it.qty, 0),
+          outQty: out.reduce((sum, it) => sum + it.qty, 0)
+        };
+      });
+      document.getElementById('sectionFlow').innerHTML = `
+        <thead><tr><th>Category</th><th class="text-right">In</th><th class="text-right">Out</th><th class="text-right">Net</th></tr></thead>
+        <tbody>${sectionFlow.map(s => `<tr>
+          <td class="bold">${s.name}</td>
+          <td class="text-right" style="color:var(--ok);">+${s.inQty}</td>
+          <td class="text-right" style="color:var(--danger);">−${s.outQty}</td>
+          <td class="text-right bold">${s.inQty - s.outQty >= 0 ? '+' : ''}${s.inQty - s.outQty}</td>
+        </tr>`).join('')}</tbody>
+      `;
+
+      // Outcome breakdown — across all demand items in range
+      const outcomes = { exact: 0, short: 0, over: 0, absent: 0, substituted: 0, pending: 0 };
+      let totalLines = 0;
+      demands.forEach(d => d.items.forEach(it => {
+        const oc = it.outcome || 'pending';
+        outcomes[oc] = (outcomes[oc] || 0) + 1;
+        totalLines++;
+      }));
+      const pctOf = n => totalLines ? Math.round((n / totalLines) * 100) : 0;
+      const ocConfig = [
+        { key: 'exact', label: 'Exact', color: 'var(--ok)', desc: 'Issued = Demanded' },
+        { key: 'short', label: 'Short', color: 'var(--warn)', desc: 'Issued < Demanded' },
+        { key: 'over', label: 'Over', color: 'var(--navy-700)', desc: 'Issued > Demanded' },
+        { key: 'absent', label: 'Absent', color: 'var(--danger)', desc: 'Could not supply' },
+        { key: 'substituted', label: 'Substituted', color: '#92400e', desc: 'Different item issued' },
+        { key: 'pending', label: 'Pending', color: 'var(--text-muted)', desc: 'Not yet issued' }
+      ];
+      document.getElementById('outcomePanel').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;">
+          ${ocConfig.map(o => `
+            <div style="border:1px solid var(--border);border-radius:8px;padding:14px;background:#fafbfd;">
+              <div class="text-sm" style="color:${o.color};font-weight:600;">${o.label}</div>
+              <div style="font-size:22px;font-weight:700;color:var(--navy-900);">${outcomes[o.key] || 0}</div>
+              <div class="text-sm text-mute">${pctOf(outcomes[o.key] || 0)}% of ${totalLines} lines</div>
+              <div class="text-sm text-mute" style="font-size:10px;margin-top:4px;">${o.desc}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="height:14px;background:#f1f5f9;border-radius:7px;overflow:hidden;display:flex;margin-top:14px;">
+          ${ocConfig.map(o => outcomes[o.key] ? `<div title="${o.label}: ${outcomes[o.key]}" style="width:${pctOf(outcomes[o.key])}%;background:${o.color};"></div>` : '').join('')}
+        </div>
+      `;
+
+      // Spoilage summary
+      const spoilBySection = cats.map(c => {
+        const items = spoils.filter(x => DB.product(x.productId)?.categoryId === c.id);
+        const qty = items.reduce((sum, x) => sum + x.qty, 0);
+        return { name: c.name, count: items.length, qty };
+      });
+      document.getElementById('spoilSummary').innerHTML = `
+        <thead><tr><th>Category</th><th class="text-right">Events</th><th class="text-right">Qty Lost</th></tr></thead>
+        <tbody>${spoilBySection.map(s => `<tr>
+          <td>${s.name}</td><td class="text-right">${s.count}</td>
+          <td class="text-right" style="color:${s.qty > 0 ? 'var(--danger)' : 'var(--text-muted)'};font-weight:600;">${s.qty || '—'}</td>
+        </tr>`).join('')}
+        <tr style="background:#fafbfd;"><td class="bold">Total</td><td class="text-right bold">${spoils.length}</td><td class="text-right bold">${totalSpoilQty}</td></tr>
+        </tbody>
+      `;
+    }
+
+    document.getElementById('applyBtn').addEventListener('click', render);
+    document.getElementById('filterDay').addEventListener('change', render);
+    document.getElementById('filterChannel').addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>

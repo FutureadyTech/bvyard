@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent"></div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('dashboard', 'Dashboard', 'Overview of inventory operations');
+
+    const role      = Session.get()?.role;
+    const mySections = userSections();
+    const products  = DB.productsForUser(mySections);
+    const lowStock  = DB.lowStockItems(mySections);
+    const outOfStock = products.filter(p => p.currentStock === 0);
+    const inventoryValue = products.reduce((s, p) => s + (p.currentStock * p.unitPrice), 0);
+
+    // ─────────────────────────────────────────────
+    // DATA ENTRY — Items & Inventory only
+    // ─────────────────────────────────────────────
+    if (role === 'data_entry') {
+      document.getElementById('pageContent').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Items Tracked</div>
+            <div class="value">${products.length}</div>
+            <div class="sub">total SKUs in system</div>
+          </div>
+          <div class="stat-card ok">
+            <div class="label">Inventory Value</div>
+            <div class="value">${fmtMoney(inventoryValue)}</div>
+            <div class="sub">stock on hand</div>
+          </div>
+          <div class="stat-card ${lowStock.length ? 'warn' : 'ok'}">
+            <div class="label">Low Stock</div>
+            <div class="value">${lowStock.length}</div>
+            <div class="sub">below minimum level</div>
+          </div>
+          <div class="stat-card ${outOfStock.length ? 'danger' : 'ok'}">
+            <div class="label">Out of Stock</div>
+            <div class="value">${outOfStock.length}</div>
+            <div class="sub">zero on hand</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-header">
+              <h3>Low Stock Alerts</h3>
+              <a class="btn btn-sm" href="inventory.html">View Inventory →</a>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Item</th><th>Code</th><th>On Hand</th><th>Min Required</th><th>Status</th></tr></thead>
+                <tbody>
+                  ${lowStock.slice(0, 8).map(p => `
+                    <tr>
+                      <td class="bold">${escapeHtml(displayName(p))}</td>
+                      <td class="text-sm text-mute">${p.code}</td>
+                      <td>${p.currentStock} ${p.baseUnit}</td>
+                      <td class="text-mute">${p.minStock} ${p.baseUnit}</td>
+                      <td><span class="badge ${p.currentStock === 0 ? 'danger' : 'warn'}">${p.currentStock === 0 ? 'OUT' : 'LOW'}</span></td>
+                    </tr>
+                  `).join('') || '<tr><td colspan="5" class="empty">All stock above minimum levels</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Category-wise Inventory Value</h3></div>
+            <div id="catBars"></div>
+          </div>
+        </div>
+      `;
+
+      // Section bars
+      renderSectionBars('catBars');
+
+    // ─────────────────────────────────────────────
+    // ALL OTHER ROLES — full operations dashboard
+    // ─────────────────────────────────────────────
+    } else {
+      const demands        = DB.list('demands');
+      const stockIn        = DB.list('stockIn');
+      const stockOut       = DB.list('stockOut');
+      const activeDemands  = demands.filter(d => d.status !== 'fulfilled' && d.status !== 'rejected');
+      const pendingDemands = demands.filter(d => d.status === 'pending');
+      const approvedDemands = demands.filter(d => d.status === 'approved' || d.status === 'partially_fulfilled');
+      const measurable     = demands.filter(d => d.poId || d.items.some(it => it.fulfilledQty > 0));
+      const avgCompliance  = measurable.length
+        ? Math.round(measurable.reduce((s, d) => s + DB.demandFulfilmentPct(d).qtyPct, 0) / measurable.length)
+        : 100;
+
+      document.getElementById('pageContent').innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-card warn">
+            <div class="label">Pending Approval</div>
+            <div class="value">${pendingDemands.length}</div>
+            <div class="sub">demands awaiting reviewer</div>
+          </div>
+          <div class="stat-card ${approvedDemands.length ? 'ok' : ''}">
+            <div class="label">Ready to Fulfill</div>
+            <div class="value">${approvedDemands.length}</div>
+            <div class="sub">approved · awaiting outward</div>
+          </div>
+          <div class="stat-card ${lowStock.length ? 'danger' : 'ok'}">
+            <div class="label">Low Stock Items</div>
+            <div class="value">${lowStock.length}</div>
+            <div class="sub">${mySections.includes('*') ? 'across all categories' : 'in your section'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Avg Compliance %</div>
+            <div class="value">${avgCompliance}%</div>
+            <div class="sub">qty-wise fulfilment</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3>Demand Fulfilment — Active Demands</h3>
+              <a class="btn btn-sm" href="demand.html">View all →</a>
+            </div>
+            <div class="table-wrap"><table class="data" id="fulfilTbl"></table></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Low Stock Alerts</h3>
+              <a class="btn btn-sm" href="low-stock.html">View all →</a>
+            </div>
+            <div class="table-wrap"><table class="data" id="lowStockTbl"></table></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Goods Receipts (from vendors)</h3>
+            </div>
+            <div class="table-wrap"><table class="data" id="recentInTbl"></table></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Recent Fulfillments to Ships</h3>
+              <a class="btn btn-sm" href="stock-out.html">View all →</a>
+            </div>
+            <div class="table-wrap"><table class="data" id="recentOutTbl"></table></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><h3>Category-wise Inventory Value</h3></div>
+          <div id="catBars"></div>
+        </div>
+      `;
+
+      // Demand fulfilment table
+      const statusOrder = { 'approved': 0, 'partially_fulfilled': 1, 'pending': 2 };
+      const sortedActive = activeDemands.slice().sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
+      document.getElementById('fulfilTbl').innerHTML = `
+        <thead><tr><th>Demand</th><th>Ship</th><th>Qty %</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${sortedActive.slice(0, 8).map(d => {
+            const ship = DB.ship(d.shipId);
+            const { qtyPct } = DB.demandFulfilmentPct(d);
+            const cls = qtyPct >= 80 ? '' : qtyPct >= 50 ? 'warn' : 'danger';
+            const statusClass = d.status === 'pending' ? 'warn' : d.status === 'partially_fulfilled' ? 'info' : 'ok';
+            const canFulfill = ['approved','partially_fulfilled'].includes(d.status);
+            return `
+            <tr>
+              <td class="bold">${d.demandNo}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td><span class="fulfil-bar ${cls}"><span style="width:${qtyPct}%"></span></span>${qtyPct}%</td>
+              <td><span class="badge ${statusClass}">${d.status.replace('_', ' ').toUpperCase()}</span></td>
+              <td class="text-right">${canFulfill ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="5" class="empty">No active demands</td></tr>'}
+        </tbody>
+      `;
+
+      // Low stock table
+      document.getElementById('lowStockTbl').innerHTML = `
+        <thead><tr><th>Item</th><th>Current</th><th>Min</th><th>Status</th></tr></thead>
+        <tbody>
+          ${lowStock.slice(0, 6).map(p => `
+            <tr>
+              <td><div class="bold">${displayName(p)}</div></td>
+              <td>${p.currentStock} ${p.baseUnit}</td>
+              <td class="text-mute">${p.minStock} ${p.baseUnit}</td>
+              <td><span class="badge ${p.currentStock === 0 ? 'danger' : 'warn'}">${p.currentStock === 0 ? 'OUT' : 'LOW'}</span></td>
+            </tr>
+          `).join('') || '<tr><td colspan="4" class="empty">All stock above minimum levels</td></tr>'}
+        </tbody>
+      `;
+
+      // Recent goods receipts
+      document.getElementById('recentInTbl').innerHTML = `
+        <thead><tr><th>SRV No.</th><th>Supplier</th><th>Items</th><th>Date</th></tr></thead>
+        <tbody>
+          ${stockIn.slice(-5).reverse().map(si => {
+            const sp = DB.supplier(si.supplierId);
+            return `<tr>
+              <td class="bold">${si.srvNo}</td>
+              <td>${sp ? escapeHtml(sp.name) : '—'}</td>
+              <td>${si.items.length}</td>
+              <td>${fmtDate(si.date)}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="4" class="empty">No receipts yet</td></tr>'}
+        </tbody>
+      `;
+
+      // Recent fulfillments
+      document.getElementById('recentOutTbl').innerHTML = `
+        <thead><tr><th>Voucher</th><th>Ship</th><th>vs Demand</th><th>Date</th></tr></thead>
+        <tbody>
+          ${stockOut.slice(-5).reverse().map(so => {
+            const ship = DB.ship(so.shipId);
+            const totalIssued   = so.items.reduce((s, x) => s + x.qty, 0);
+            const totalDemanded = so.items.reduce((s, x) => s + (x.demandedQty || x.qty), 0);
+            const pct = totalDemanded ? Math.round((totalIssued / totalDemanded) * 100) : 100;
+            return `<tr>
+              <td class="bold">${so.voucherNo}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td>${pct}%</td>
+              <td>${fmtDate(so.date)}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="4" class="empty">No issues yet</td></tr>'}
+        </tbody>
+      `;
+
+      // Section bars
+      renderSectionBars('catBars');
+    }
+
+    // ─── shared helper ───
+    function renderSectionBars(containerId) {
+      const allCats = DB.list('categories');
+      const all = DB.list('products');
+      const catTotals = allCats.map(c => {
+        const items = all.filter(p => p.categoryId === c.id);
+        const value = items.reduce((sum, p) => sum + (p.currentStock * p.unitPrice), 0);
+        return { ...c, items: items.length, value };
+      }).filter(c => c.items > 0);
+      const maxVal = Math.max(...catTotals.map(c => c.value), 1);
+      document.getElementById(containerId).innerHTML = catTotals.map(c => `
+        <div style="margin-bottom:14px;">
+          <div class="row-between" style="margin-bottom:6px;">
+            <div>
+              <span class="bold">${escapeHtml(c.name)}</span>
+              <span class="text-sm text-mute"> · ${c.items} SKUs</span>
+            </div>
+            <div class="text-sm bold">${fmtMoney(c.value)}</div>
+          </div>
+          <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:${(c.value/maxVal)*100}%;background:linear-gradient(90deg,var(--navy-700),var(--navy-600));"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

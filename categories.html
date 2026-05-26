@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Categories & Sections · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16">
+      <div class="card-header">
+        <h3>Inventory Sections (Physical Stores)</h3>
+        <button class="btn btn-primary" id="addSecBtn">+ Add Section</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="secTbl"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Categories within Sections</h3>
+        <button class="btn btn-primary" id="addBtn">+ Add Category</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('categories', 'Categories & Sections', 'Six physical sections — each with its own inventory manager');
+
+    function refresh() {
+      const sections = DB.list('sections');
+      const cats = DB.list('categories');
+      const prods = DB.list('products');
+
+      document.getElementById('secTbl').innerHTML = `
+        <thead><tr>
+          <th>Section</th><th>Code</th><th>In-charge</th>
+          <th class="text-right">SKUs</th><th class="text-right">Stock Value</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${sections.map(s => {
+            const items = prods.filter(p => p.sectionId === s.id);
+            const value = items.reduce((sum, p) => sum + (p.currentStock * p.unitPrice), 0);
+            const incharge = DB.user(s.inCharge);
+            return `<tr>
+              <td class="bold">${escapeHtml(s.name)}</td>
+              <td><span class="badge info">${s.code}</span></td>
+              <td>${incharge ? `${incharge.name} <span class="text-sm text-mute">(${incharge.designation})</span>` : '<span class="text-mute">—</span>'}</td>
+              <td class="text-right">${items.length}</td>
+              <td class="text-right bold">${fmtMoney(value)}</td>
+              <td class="text-right">
+                ${can('update') ? `<button class="btn btn-sm" onclick="editSec('${s.id}')">Edit</button>` : ''}
+                ${can('delete') ? `<button class="btn btn-sm btn-danger" onclick="delSec('${s.id}')">×</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      `;
+
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Category</th><th>Section</th>
+          <th class="text-right">SKUs</th>
+          <th class="text-right">MOQ</th><th>Cadence</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${cats.map(c => {
+            const sec = DB.section(c.sectionId);
+            const items = prods.filter(p => p.categoryId === c.id);
+            return `<tr>
+              <td class="bold">${escapeHtml(c.name)}</td>
+              <td>${sec ? sec.name : '—'}</td>
+              <td class="text-right">${items.length}</td>
+              <td class="text-right">${c.moq ? c.moq + ' ' + (c.moqUnit || 'kg') : '<span class="text-mute">—</span>'}</td>
+              <td><span class="badge ${c.cadence === 'daily' ? 'info' : c.cadence === 'weekly' ? 'warn' : 'muted'}">${(c.cadence || '—').toUpperCase()}</span></td>
+              <td class="text-right">
+                ${can('update') ? `<button class="btn btn-sm" onclick="editCat('${c.id}')">Edit</button>` : ''}
+                ${can('delete') ? `<button class="btn btn-sm btn-danger" onclick="delCat('${c.id}')">×</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      `;
+    }
+
+    function catForm(c = {}) {
+      const sections = DB.list('sections');
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Category Name <span class="req">*</span></label>
+              <input id="f_name" value="${escapeHtml(c.name || '')}" placeholder="e.g. Pulses & Dal">
+            </div>
+            <div class="field"><label>Section <span class="req">*</span></label>
+              <select id="f_section">${sections.map(s => `<option value="${s.id}" ${s.id === c.sectionId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="field"><label>MOQ (Minimum Order Quantity)</label>
+              <input id="f_moq" type="number" value="${c.moq || ''}" placeholder="e.g. 1000">
+            </div>
+            <div class="field"><label>MOQ Unit</label>
+              <select id="f_moqUnit">${['kg','Ltr','Nos'].map(u => `<option ${u === (c.moqUnit || 'kg') ? 'selected' : ''}>${u}</option>`).join('')}</select>
+            </div>
+            <div class="field"><label>Order Cadence</label>
+              <select id="f_cadence">
+                ${['daily','weekly','monthly','quarterly','adhoc'].map(c2 => `<option value="${c2}" ${c2 === c.cadence ? 'selected' : ''}>${c2}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);">
+            e.g. Cereals → MOQ 1000 kg quarterly; Dairy → MOQ 5000 Ltr daily. Used by Smart PO to round order qty up to a sensible bulk.
+          </div>
+        </div>
+      `;
+    }
+
+    function secForm(s = {}) {
+      const users = DB.list('users').filter(u => u.role === 'inventory_manager');
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Section Name <span class="req">*</span></label>
+              <input id="sf_name" value="${escapeHtml(s.name || '')}" placeholder="e.g. Dairy / Cold Store">
+            </div>
+            <div class="field"><label>Short Code <span class="req">*</span></label>
+              <input id="sf_code" value="${escapeHtml(s.code || '')}" placeholder="e.g. DRY" style="text-transform:uppercase;">
+            </div>
+          </div>
+          <div class="field"><label>In-charge (Inventory Manager)</label>
+            <select id="sf_incharge">
+              <option value="">— unassigned —</option>
+              ${users.map(u => `<option value="${u.id}" ${u.id === s.inCharge ? 'selected' : ''}>${u.name} · ${u.rank} (${u.designation})</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+    }
+
+    window.editSec = (id) => {
+      if (!can('update')) return toast('Your role cannot edit sections', 'warn');
+      openModal('Edit Section', secForm(DB.section(id)), () => saveSec(DB.section(id)), 'Save');
+    };
+    window.delSec = (id) => {
+      if (!can('delete')) return;
+      const s = DB.section(id);
+      const hasProducts = DB.list('products').some(p => p.sectionId === id);
+      const hasCats = DB.list('categories').some(c => c.sectionId === id);
+      if (hasProducts || hasCats) return toast('Cannot delete — section has products or categories assigned', 'warn');
+      if (confirm('Delete section "' + s.name + '"?')) { DB.remove('sections', id); refresh(); toast('Deleted'); }
+    };
+    function saveSec(existing = {}) {
+      const rec = {
+        ...existing,
+        name: document.getElementById('sf_name').value.trim(),
+        code: document.getElementById('sf_code').value.trim().toUpperCase(),
+        inCharge: document.getElementById('sf_incharge').value || null
+      };
+      if (!rec.name || !rec.code) { toast('Name and Code required', 'danger'); return false; }
+      DB.upsert('sections', rec);
+      refresh();
+      toast('Saved');
+    }
+    window.editCat = (id) => openModal('Edit Category', catForm(DB.get('categories', id)), () => save(DB.get('categories', id)), 'Save');
+    window.delCat = (id) => {
+      const c = DB.get('categories', id);
+      const has = DB.list('products').some(p => p.categoryId === id);
+      if (has) return toast('Cannot delete — products are assigned', 'warn');
+      if (confirm('Delete category "' + c.name + '"?')) { DB.remove('categories', id); refresh(); toast('Deleted'); }
+    };
+    function save(existing = {}) {
+      const rec = {
+        ...existing,
+        name: document.getElementById('f_name').value.trim(),
+        sectionId: document.getElementById('f_section').value,
+        moq: Number(document.getElementById('f_moq').value) || 0,
+        moqUnit: document.getElementById('f_moqUnit').value,
+        cadence: document.getElementById('f_cadence').value
+      };
+      if (!rec.name) { toast('Name required', 'danger'); return false; }
+      DB.upsert('categories', rec);
+      refresh();
+      toast('Saved');
+    }
+    document.getElementById('addBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot add categories', 'warn');
+      openModal('Add Category', catForm({}), () => save({}), 'Create');
+    });
+    document.getElementById('addSecBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot add sections', 'warn');
+      openModal('Add Section', secForm({}), () => saveSec({}), 'Create');
+    });
+    refresh();
+  </script>
+</body>
+</html>

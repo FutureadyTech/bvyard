@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BV Yard — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="brand">
+        <div class="logo">B</div>
+        <h1>BV Yard</h1>
+        <p class="sub">Inventory Management System · Mumbai · v0.4</p>
+      </div>
+
+      <div>
+        <p style="margin:0 0 12px 0; font-size:13px; font-weight:500;">Select a user to enter the system</p>
+        <div class="role-options" id="userOptions"></div>
+      </div>
+
+      <button class="btn btn-primary" id="loginBtn" style="width:100%; justify-content:center; padding:12px;" disabled>
+        Sign In
+      </button>
+
+      <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border); font-size:11px; color:var(--text-muted); text-align:center;">
+        Prototype build · Demo data pre-loaded
+        <br><a href="#" id="resetBtn" style="color:var(--navy-700);">Reset demo data</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script>
+    DB.load();
+
+    const optionsEl = document.getElementById('userOptions');
+    const users = DB.list('users');
+
+    // Pick one representative user per role
+    const featured = [
+      users.find(u => u.role === 'super_admin'),
+      users.find(u => u.role === 'central_coordinator'),
+      users.find(u => u.role === 'reviewer'),
+      users.find(u => u.role === 'inventory_manager') // Raj K Panjiyara → Dry Store
+    ].filter(Boolean);
+
+    let selected = null;
+
+    featured.forEach(user => {
+      const role = ROLES[user.role];
+      const sections = user.sections.includes('*') ? 'All sections' : user.sections.map(sid => DB.section(sid)?.name).filter(Boolean).join(', ');
+      const el = document.createElement('div');
+      el.className = 'role-option';
+      el.innerHTML = `
+        <div class="icon">${role.icon}</div>
+        <div class="text">
+          <div class="name">${role.label}</div>
+          <div class="desc">${user.rank} ${user.name.replace(user.rank + ' ', '')} · ${user.designation}<br><span style="font-size:11px;">${sections}</span></div>
+        </div>
+      `;
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.role-option').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selected = user;
+        document.getElementById('loginBtn').disabled = false;
+      });
+      optionsEl.appendChild(el);
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      if (!selected) return;
+      Session.set({ ...selected });
+      window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', e => {
+      e.preventDefault();
+      if (confirm('Reset all demo data to defaults? Any changes you made will be lost.')) {
+        DB.reset();
+        location.reload();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Outward (Gate-out) · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16">
+      <div class="bold">Vehicle Gate-out — final check at the exit</div>
+      <div class="text-sm text-mute">Last touchpoint before goods leave BV Yard. Confirm what's on the vehicle, who's driving, and when it left.</div>
+    </div>
+
+    <!-- Awaiting Gate-out panel — fulfillments saved but not yet dispatched -->
+    <div class="card mb-16" id="awaitingCard">
+      <div class="card-header">
+        <h3>Awaiting Gate-out</h3>
+        <button class="btn btn-primary" id="newBtn">+ Record Gate-out</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="awaitingTbl"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Dispatch Log</h3></div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('dispatch', 'Outward (Gate-out)', 'Final step in the demand cycle — vehicle, driver, time-out, time-in');
+
+    function fulfillmentSummary(so) {
+      // Compact one-line summary of what's going out
+      const issued = so.items.length;
+      const absent = (so.absent || []).length;
+      const totalQty = so.items.reduce((s, x) => s + x.qty, 0);
+      return `${issued} item${issued !== 1 ? 's' : ''} · ${totalQty} units` + (absent ? ` · ${absent} absent` : '');
+    }
+
+    function refresh() {
+      const stockOut = DB.list('stockOut').filter(so => so.status === 'completed');
+      const dispatches = DB.list('dispatch');
+      const dispatchedIds = new Set(dispatches.map(d => d.stockOutId));
+      const awaiting = stockOut.filter(so => !dispatchedIds.has(so.id));
+
+      // Awaiting Gate-out (vouchers ready but not yet on a vehicle)
+      document.getElementById('awaitingTbl').innerHTML = `
+        <thead><tr>
+          <th>Voucher</th><th>Date</th><th>Ship</th><th>Items Going Out</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${awaiting.slice().reverse().map(so => {
+            const ship = DB.ship(so.shipId);
+            return `<tr>
+              <td class="bold">${so.voucherNo}</td>
+              <td>${fmtDate(so.date)}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td class="text-sm text-mute">${fulfillmentSummary(so)}</td>
+              <td class="text-right">
+                <button class="btn btn-sm" onclick="viewItems('${so.id}')">View Items</button>
+                <button class="btn btn-sm btn-gold" onclick="openGateOutFor('${so.id}')">Send Out →</button>
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="5" class="empty">All fulfilled vouchers have left the yard.</td></tr>'}
+        </tbody>
+      `;
+
+      // Dispatch log (already gate-out'd)
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Vehicle</th><th>Voucher</th><th>Ship</th><th>Items</th>
+          <th>Driver</th><th>Gate Out</th><th>Gate In</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${dispatches.slice().reverse().map(d => {
+            const so = DB.get('stockOut', d.stockOutId);
+            const ship = so ? DB.ship(so.shipId) : null;
+            return `<tr>
+              <td class="bold">${escapeHtml(d.vehicleNo)}</td>
+              <td>${so ? `<a class="text-sm bold" href="#" onclick="viewItems('${so.id}'); return false;">${so.voucherNo}</a>` : '—'}</td>
+              <td>${ship ? ship.name : '—'} <span class="text-sm text-mute">${d.destination ? '→ ' + escapeHtml(d.destination) : ''}</span></td>
+              <td class="text-sm text-mute">${so ? fulfillmentSummary(so) : '—'}</td>
+              <td>${escapeHtml(d.driver || '—')}</td>
+              <td>${fmtDateTime(d.gateOutTime)}</td>
+              <td>${d.gateInTime ? fmtDateTime(d.gateInTime) : '<span class="badge warn">VEHICLE OUT</span>'}</td>
+              <td class="text-right">
+                ${so ? `<button class="btn btn-sm" onclick="viewItems('${so.id}')">Items</button>` : ''}
+                ${!d.gateInTime ? `<button class="btn btn-sm btn-primary" onclick="closeDispatch('${d.id}')">Close (Gate-in)</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">No vehicles have left yet</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    // Items-going-out modal — used both before gate-out and to review past dispatches
+    window.viewItems = (stockOutId) => {
+      const so = DB.get('stockOut', stockOutId);
+      if (!so) return;
+      const ship = DB.ship(so.shipId);
+      const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+      const rows = so.items.map(it => {
+        const p = DB.product(it.productId);
+        const subOf = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
+        const outcome = it.outcome || 'exact';
+        return `<tr>
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td>${it.demandedQty || '—'} ${p?.baseUnit || ''}</td>
+          <td class="bold">${it.qty} ${p?.baseUnit || ''}</td>
+          <td><span class="badge ${outcome === 'exact' ? 'ok' : outcome === 'over' ? 'info' : outcome === 'short' ? 'warn' : outcome === 'substituted' ? 'muted' : 'danger'}">${outcome.toUpperCase()}</span></td>
+          <td class="text-sm">${subOf ? `↔ replaced ${escapeHtml(subOf.name)}` : '—'}</td>
+        </tr>`;
+      }).join('');
+      const absentRows = (so.absent || []).map(pid => {
+        const p = DB.product(pid);
+        const demItem = demand?.items.find(it => it.productId === pid);
+        return `<tr style="opacity:0.7;">
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td>${demItem?.demandedQty || 0} ${p?.baseUnit || ''}</td>
+          <td>0</td>
+          <td><span class="badge danger">ABSENT</span></td>
+          <td>—</td>
+        </tr>`;
+      }).join('');
+      openModal(`Items Going Out — ${so.voucherNo}`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Ship</div><div class="bold">${ship?.name || '—'}</div></div>
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(so.date)}</div></div>
+            <div><div class="text-sm text-mute">From Demand</div><div class="bold">${demand ? demand.demandNo : 'Direct'}</div></div>
+          </div>
+          <table class="data">
+            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Going Out</th><th>Outcome</th><th>Note</th></tr></thead>
+            <tbody>${rows}${absentRows}</tbody>
+          </table>
+        </div>
+      `, null, '', 'wide');
+    };
+
+    function form(prefilledStockOutId) {
+      const completed = DB.list('stockOut').filter(so => so.status === 'completed');
+      const dispatched = new Set(DB.list('dispatch').map(d => d.stockOutId));
+      const available = completed.filter(so => !dispatched.has(so.id) || so.id === prefilledStockOutId);
+      const selected = prefilledStockOutId ? DB.get('stockOut', prefilledStockOutId) : null;
+
+      return `
+        <div class="form-grid">
+          <div class="field"><label>Fulfillment Record <span class="req">*</span></label>
+            <select id="f_so">
+              <option value="">— pick a voucher —</option>
+              ${available.map(so => `<option value="${so.id}" ${so.id === prefilledStockOutId ? 'selected' : ''}>${so.voucherNo} · ${DB.ship(so.shipId)?.name || ''} · ${fulfillmentSummary(so)}</option>`).join('')}
+            </select>
+          </div>
+          <div id="itemsPreview" style="display:${selected ? 'block' : 'none'};border:1px solid var(--border);padding:12px;border-radius:6px;background:#fafbfd;">
+            <div class="bold" style="margin-bottom:8px;">📦 Items on this vehicle</div>
+            <div id="itemsList"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Vehicle No. <span class="req">*</span></label><input id="f_veh" placeholder="MH03CV8631"></div>
+            <div class="field"><label>Driver Name</label><input id="f_drv"></div>
+          </div>
+          <div class="field"><label>Destination</label><input id="f_dest" placeholder="e.g. S2 — Dock 2" value="${selected ? (DB.ship(selected.shipId)?.name || '') : ''}"></div>
+          <div class="field"><label>Gate-out Time</label><input id="f_out" type="datetime-local" value="${localNow()}"></div>
+        </div>
+      `;
+    }
+
+    function renderItemsPreview(stockOutId) {
+      const so = stockOutId ? DB.get('stockOut', stockOutId) : null;
+      const preview = document.getElementById('itemsPreview');
+      const list = document.getElementById('itemsList');
+      if (!so) { preview.style.display = 'none'; return; }
+      preview.style.display = 'block';
+      const itemLines = so.items.map(it => {
+        const p = DB.product(it.productId);
+        const sub = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
+        const outBadge = it.outcome === 'substituted'
+          ? `<span class="badge" style="background:#fef3c7;color:#92400e;font-size:9px;">SUBST</span>`
+          : it.outcome === 'over'
+            ? `<span class="badge info" style="font-size:9px;">OVER</span>`
+            : it.outcome === 'short'
+              ? `<span class="badge warn" style="font-size:9px;">SHORT</span>`
+              : '';
+        return `<div class="text-sm" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
+          <strong>${escapeHtml(p?.name || '—')}</strong> — ${it.qty} ${p?.baseUnit || ''} ${outBadge}
+          ${sub ? `<div class="text-mute" style="margin-left:12px;font-size:11px;">↔ replacing ${escapeHtml(sub.name)}</div>` : ''}
+        </div>`;
+      }).join('');
+      const absentLines = (so.absent || []).map(pid => {
+        const p = DB.product(pid);
+        return `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
+          <strong>${escapeHtml(p?.name || '—')}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
+        </div>`;
+      }).join('');
+      list.innerHTML = itemLines + absentLines || '<div class="empty">Nothing on the manifest</div>';
+    }
+
+    window.closeDispatch = (id) => {
+      const d = DB.get('dispatch', id);
+      d.gateInTime = localNow();
+      DB.upsert('dispatch', d);
+      toast('Gate-in recorded — vehicle returned', 'ok');
+      refresh();
+    };
+
+    function openGateOut(prefilledStockOutId) {
+      if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
+      openModal('Record Gate-out', form(prefilledStockOutId), () => {
+        const stockOutId = document.getElementById('f_so').value;
+        const vehicleNo = document.getElementById('f_veh').value.trim();
+        if (!stockOutId || !vehicleNo) { toast('Voucher and Vehicle No. required', 'danger'); return false; }
+        DB.upsert('dispatch', {
+          id: DB.uid('dp'),
+          stockOutId, vehicleNo,
+          driver: document.getElementById('f_drv').value.trim(),
+          destination: document.getElementById('f_dest').value.trim(),
+          gateOutTime: document.getElementById('f_out').value,
+          gateInTime: null
+        });
+        toast('Gate-out recorded — vehicle is on its way', 'ok');
+        refresh();
+      }, 'Record Gate-out');
+      setTimeout(() => {
+        renderItemsPreview(prefilledStockOutId);
+        document.getElementById('f_so').addEventListener('change', e => {
+          renderItemsPreview(e.target.value);
+          // also auto-fill destination if empty
+          const so = e.target.value ? DB.get('stockOut', e.target.value) : null;
+          const destEl = document.getElementById('f_dest');
+          if (so && !destEl.value) destEl.value = DB.ship(so.shipId)?.name || '';
+        });
+      }, 50);
+    }
+    window.openGateOutFor = (stockOutId) => openGateOut(stockOutId);
+
+    document.getElementById('newBtn').addEventListener('click', () => openGateOut(null));
+
+    refresh();
+  </script>
+</body>
+</html>

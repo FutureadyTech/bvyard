@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Low Stock Alerts · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="stats-grid" id="stats"></div>
+    <div class="card">
+      <div class="card-header">
+        <h3 id="pageTitle">Items Below Minimum Stock</h3>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('low-stock', 'Low Stock Alerts', 'Items needing replenishment');
+
+    // Set heading after userSections() is available
+    const _my = userSections();
+    document.getElementById('pageTitle').textContent =
+      'Items Below Minimum Stock' + (_my.includes('*') ? '' : ' — your category');
+
+    function refresh() {
+      const my = userSections();
+      const all = DB.productsForUser(my);
+      const low = all.filter(p => p.currentStock < p.minStock);
+      const out = all.filter(p => p.currentStock === 0);
+      const totalShortfall = low.reduce((s, p) => s + (p.minStock - p.currentStock), 0);
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat-card danger"><div class="label">Out of Stock</div><div class="value">${out.length}</div><div class="sub">items at zero</div></div>
+        <div class="stat-card warn"><div class="label">Below Minimum</div><div class="value">${low.length}</div><div class="sub">of ${all.length} total SKUs</div></div>
+        <div class="stat-card"><div class="label">Total Shortfall</div><div class="value">${totalShortfall.toLocaleString('en-IN')}</div><div class="sub">units below min</div></div>
+        <div class="stat-card ok"><div class="label">Healthy Stock</div><div class="value">${all.length - low.length}</div><div class="sub">at or above min</div></div>
+      `;
+
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Code</th><th>Item</th><th>Category</th>
+          <th class="text-right">Current</th><th class="text-right">Min</th>
+          <th class="text-right">Shortfall</th>
+          <th class="text-right">Suggested Reorder</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${low.map(p => {
+            const cat = DB.category(p.categoryId);
+            const shortfall = p.minStock - p.currentStock;
+            const suggested = Math.max(p.minStock * 2 - p.currentStock, p.minStock);
+            return `
+            <tr>
+              <td class="text-sm text-mute">${p.code}</td>
+              <td class="bold">${escapeHtml(displayName(p))}</td>
+              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
+              <td class="text-right">${p.currentStock} ${p.baseUnit}</td>
+              <td class="text-right text-mute">${p.minStock} ${p.baseUnit}</td>
+              <td class="text-right" style="color:var(--danger);font-weight:600;">${shortfall} ${p.baseUnit}</td>
+              <td class="text-right bold">${suggested} ${p.baseUnit}</td>
+              <td><span class="badge ${p.currentStock === 0 ? 'danger' : 'warn'}">${p.currentStock === 0 ? 'OUT' : 'LOW'}</span></td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">🟢 All items above minimum threshold</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    refresh();
+  </script>
+</body>
+</html>

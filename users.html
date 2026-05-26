@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Users & Roles · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16">
+      <div class="card-header"><h3>Role Permissions Matrix</h3></div>
+      <div class="table-wrap"><table class="data" id="permTbl"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Users (assigned to sections)</h3>
+        <button class="btn btn-primary" id="addBtn">+ Add User</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+
+    <div class="card mt-16" style="background:#fef9e7; border-color:#fbe5b6;">
+      <div class="bold" style="color:#92400e;">⚠ Prototype Note</div>
+      <div class="text-sm" style="color:#92400e;">In production: auth via Active Directory / hashed PostgreSQL users + full audit trail.</div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('users', 'Users & Roles', 'Five role types · section-scoped permissions');
+
+    const perms = [
+      { key: 'View dashboard',          test: r => true },
+      { key: 'Raise demand',            test: r => r.can.create },
+      { key: 'Approve demand → PO',     test: r => r.can.approve },
+      { key: 'Receive stock (SRV)',     test: r => r.can.create },
+      { key: 'Record spoilage / write-off', test: r => r.can.create },
+      { key: 'Issue stock to ships',    test: r => r.can.create },
+      { key: 'View all sections',       test: r => r.can.viewAllSections },
+      { key: 'Delete records',          test: r => r.can.delete },
+      { key: 'Manage users',            test: r => r.can.manageUsers }
+    ];
+    document.getElementById('permTbl').innerHTML = `
+      <thead><tr><th>Capability</th>${Object.values(ROLES).map(r => `<th class="text-center">${r.label}</th>`).join('')}</tr></thead>
+      <tbody>
+        ${perms.map(p => `
+          <tr>
+            <td>${p.key}</td>
+            ${Object.values(ROLES).map(r => `<td class="text-center" style="color:${p.test(r) ? 'var(--ok)' : 'var(--text-muted)'};font-weight:600;">${p.test(r) ? '✓' : '—'}</td>`).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+
+    function refresh() {
+      const users = DB.list('users');
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr><th>Name</th><th>Rank</th><th>Designation</th><th>Role</th><th>Sections</th><th></th></tr></thead>
+        <tbody>
+          ${users.map(u => {
+            const sections = u.sections.includes('*') ? 'All sections' : u.sections.map(sid => DB.section(sid)?.name).filter(Boolean).join(', ');
+            return `<tr>
+              <td class="bold">${escapeHtml(u.name)}</td>
+              <td>${u.rank}</td>
+              <td>${u.designation}</td>
+              <td><span class="badge info">${ROLES[u.role]?.label || u.role}</span></td>
+              <td class="text-sm">${sections}</td>
+              <td class="text-right">
+                ${can('manageUsers') ? `<button class="btn btn-sm" onclick="editUser('${u.id}')">Edit</button>` : ''}
+                ${can('manageUsers') ? `<button class="btn btn-sm btn-danger" onclick="delUser('${u.id}')">×</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      `;
+    }
+
+    function userForm(u = {}) {
+      const sections = DB.list('sections');
+      const selected = new Set(u.sections || []);
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field"><label>Full Name <span class="req">*</span></label><input id="f_name" value="${escapeHtml(u.name || '')}"></div>
+            <div class="field"><label>Email</label><input id="f_email" value="${escapeHtml(u.email || '')}"></div>
+          </div>
+          <div class="form-row-3">
+            <div class="field"><label>Rank</label>
+              <select id="f_rank">${['Capt', 'Cdr', 'Lt Cdr', 'LtCdr', 'Lt', 'SS', 'SSS', 'AVR'].map(r => `<option ${r === u.rank ? 'selected' : ''}>${r}</option>`).join('')}</select>
+            </div>
+            <div class="field"><label>Designation</label><input id="f_des" value="${escapeHtml(u.designation || '')}"></div>
+            <div class="field"><label>Role</label>
+              <select id="f_role">${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${k === u.role ? 'selected' : ''}>${r.label}</option>`).join('')}</select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Sections (leave empty for All)</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <label class="row" style="gap:6px;background:#fafbfd;padding:6px 10px;border-radius:6px;">
+                <input type="checkbox" id="f_all" ${selected.has('*') ? 'checked' : ''}> All sections
+              </label>
+              ${sections.map(s => `<label class="row sec_chk" style="gap:6px;background:#fafbfd;padding:6px 10px;border-radius:6px;">
+                <input type="checkbox" value="${s.id}" ${selected.has(s.id) ? 'checked' : ''}> ${s.name}
+              </label>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    window.editUser = (id) => { if (!can('manageUsers')) return; const u = DB.user(id); openModal('Edit User', userForm(u), () => save(u), 'Save'); };
+    window.delUser = (id) => {
+      if (!can('manageUsers')) return;
+      const u = DB.user(id);
+      if (confirm('Delete user "' + u.name + '"?')) { DB.remove('users', id); refresh(); toast('Deleted'); }
+    };
+    function save(existing = {}) {
+      const sections = document.getElementById('f_all').checked
+        ? ['*']
+        : Array.from(document.querySelectorAll('.sec_chk input:checked')).map(x => x.value);
+      const rec = {
+        ...existing,
+        name: document.getElementById('f_name').value.trim(),
+        email: document.getElementById('f_email').value.trim(),
+        rank: document.getElementById('f_rank').value,
+        designation: document.getElementById('f_des').value.trim(),
+        role: document.getElementById('f_role').value,
+        sections: sections.length ? sections : ['*']
+      };
+      if (!rec.name) { toast('Name required', 'danger'); return false; }
+      DB.upsert('users', rec);
+      refresh();
+      toast('Saved');
+    }
+    document.getElementById('addBtn').addEventListener('click', () => { if (!can('manageUsers')) return toast('Only Super Admin', 'warn'); openModal('Add User', userForm({}), () => save({}), 'Create'); });
+    refresh();
+  </script>
+</body>
+</html>
