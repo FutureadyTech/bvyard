@@ -15,7 +15,13 @@
       <div class="card-header">
         <div class="row" style="gap:12px; flex-wrap:wrap;">
           <h3 style="margin:0;">Inventory On Hand</h3>
-          <input id="search" placeholder="Search by name or code..." style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;width:240px;">
+          <input id="search" placeholder="Search by name or code..." style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;width:200px;">
+          <select id="filterGroup" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All groups</option>
+            <option value="BASIC">Basic</option>
+            <option value="FRESH">Fresh</option>
+            <option value="NECCESARY">Neccesary</option>
+          </select>
           <select id="filterCategory" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
             <option value="">All categories</option>
           </select>
@@ -40,15 +46,20 @@
     renderShell('inventory', 'Inventory', 'Live stock on hand · last received · last issued · days of cover');
 
     const my = userSections();
-    const search = document.getElementById('search');
+    const search         = document.getElementById('search');
+    const filterGroup    = document.getElementById('filterGroup');
     const filterCategory = document.getElementById('filterCategory');
-    const filterStatus = document.getElementById('filterStatus');
+    const filterStatus   = document.getElementById('filterStatus');
 
-    // Populate category filter
     const sections = DB.list('sections').filter(s => my.includes('*') || my.includes(s.id));
-    const allCats = DB.list('categories').filter(c => my.includes('*') || sections.some(s => s.id === c.sectionId));
-    filterCategory.innerHTML = '<option value="">All categories</option>' +
-      allCats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    const allCats  = DB.list('categories').filter(c => my.includes('*') || sections.some(s => s.id === c.sectionId));
+
+    function populateCategoryDropdown(groupFilter) {
+      const visible = groupFilter ? allCats.filter(c => c.group === groupFilter) : allCats;
+      filterCategory.innerHTML = '<option value="">All categories</option>' +
+        visible.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    }
+    populateCategoryDropdown('');
 
     // Pre-compute last-in / last-out / 30-day consumption per product
     function buildActivityMap() {
@@ -70,9 +81,10 @@
       const activity = buildActivityMap();
       let prods = DB.productsForUser(my);
       const q = search.value.toLowerCase();
-      if (q) prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
+      if (q)                   prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
+      if (filterGroup.value)   prods = prods.filter(p => p.group === filterGroup.value);
       if (filterCategory.value) prods = prods.filter(p => p.categoryId === filterCategory.value);
-      if (filterStatus.value) prods = prods.filter(p => DB.productStockStatus(p) === filterStatus.value);
+      if (filterStatus.value)  prods = prods.filter(p => DB.productStockStatus(p) === filterStatus.value);
 
       // Stats
       const totalSkus = prods.length;
@@ -109,7 +121,7 @@
             <tr style="cursor:pointer;" onclick="showHistory('${p.id}')">
               <td class="text-sm text-mute">${p.code}</td>
               <td class="bold">${escapeHtml(displayName(p))}${p.freshItem ? ' <span class="badge muted" style="font-size:9px;">FRESH</span>' : ''}</td>
-              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
+              <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}<div class="text-mute" style="font-size:10px;">${p.group || ''}</div></td>
               <td class="text-right">
                 <div class="bold">${p.currentStock.toLocaleString('en-IN')} ${p.baseUnit}</div>
               </td>
@@ -164,6 +176,11 @@
     };
 
     search.addEventListener('input', refresh);
+    filterGroup.addEventListener('change', () => {
+      populateCategoryDropdown(filterGroup.value);
+      filterCategory.value = '';
+      refresh();
+    });
     filterCategory.addEventListener('change', refresh);
     filterStatus.addEventListener('change', refresh);
     refresh();
