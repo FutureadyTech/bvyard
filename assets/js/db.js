@@ -1,6 +1,6 @@
-// v0.5 — Real BVY inventory: 323 items across 24 categories
-const DB_KEY = 'bvyard_db_v6';   // bumped to force re-seed: real inventory from BVY Inventory List 1.xlsx
-const SESSION_KEY = 'bvyard_session_v6';
+// v0.6 — Correct category-item mapping, stock 100 for all items
+const DB_KEY = 'bvyard_db_v7';   // bumped: fixed category mapping + stock=100
+const SESSION_KEY = 'bvyard_session_v7';
 const PREFS_KEY = 'bvyard_prefs_v1';
 
 const DB = {
@@ -16,7 +16,7 @@ const DB = {
     localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(PREFS_KEY);
     // also clear older versions
-    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5'].forEach(k => localStorage.removeItem(k));
+    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6'].forEach(k => localStorage.removeItem(k));
     this.seed();
   },
 

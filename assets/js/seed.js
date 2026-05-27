@@ -1,9 +1,9 @@
-// v0.5 — Real BVY inventory list (323 items, 24 categories)
+// v0.6 — Real BVY inventory (323 items, 24 categories) — correct mapping, stock 100
 // Generated from BVY Inventory List 1.xlsx
 
 window.SEED_DATA = {
   sections: [
-    { id: 'sec_dry',    name: 'Dry / Necessary Store',  code: 'NG',  inCharge: 'u4', skuCount: 85 },
+    { id: 'sec_dry',    name: 'Dry / Necessary Store',  code: 'NG',  inCharge: 'u4' },
     { id: 'sec_basic',  name: 'Basic / Rice Store',     code: 'BG',  inCharge: 'u3' },
     { id: 'sec_dal',    name: 'Dal Store',               code: 'DAL', inCharge: 'u6' },
     { id: 'sec_masala', name: 'Masala Store',            code: 'MS',  inCharge: 'u7' },
@@ -12,16 +12,16 @@ window.SEED_DATA = {
   ],
 
   users: [
-    { id: 'u1',  name: 'Capt Ravindra Kumar',    rank: 'Capt',   role: 'super_admin',         designation: 'BVO',                  email: 'r.kumar@navy.mil.in',       sections: ['*'] },
-    { id: 'u2',  name: 'Cdr Pawan Kumar Ojha',   rank: 'Cdr',    role: 'central_coordinator', designation: 'OICNG',                email: 'p.ojha@navy.mil.in',        sections: ['*'] },
-    { id: 'u3',  name: 'Lt Cdr Mukil Hariharan', rank: 'Lt Cdr', role: 'reviewer',            designation: 'Logistics Officer',    email: 'm.hariharan@navy.mil.in',   sections: ['*'] },
-    { id: 'u4',  name: 'Raj K Panjiyara',        rank: 'SSS',    role: 'inventory_manager',   designation: 'ICBG / Dry Store',     email: 'r.panjiyara@navy.mil.in',   sections: ['sec_dry'] },
-    { id: 'u5',  name: 'Vinodh K Vijay',         rank: 'LtCdr',  role: 'reviewer',            designation: 'OICBG',                email: 'v.vijay@navy.mil.in',       sections: ['*'] },
-    { id: 'u6',  name: 'Suresh G',               rank: 'SS',     role: 'inventory_manager',   designation: 'Dal Store I/C',        email: 's.suresh@navy.mil.in',      sections: ['sec_dal'] },
-    { id: 'u7',  name: 'Aravind CH',             rank: 'AVR',    role: 'inventory_manager',   designation: 'Masala Store I/C',     email: 'aravind@navy.mil.in',       sections: ['sec_masala'] },
-    { id: 'u8',  name: 'Raju K G',               rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',      email: 'raju.kg@navy.mil.in',       sections: ['sec_fresh'] },
-    { id: 'u9',  name: 'Bibul Halder',           rank: 'AVR',    role: 'inventory_manager',   designation: 'Basic Store I/C',      email: 'b.halder@navy.mil.in',      sections: ['sec_basic'] },
-    { id: 'u10', name: 'Data Entry Op 1',        rank: 'SS',     role: 'data_entry',          designation: 'Central Hub Op',       email: 'op1@navy.mil.in',           sections: ['*'] }
+    { id: 'u1',  name: 'Capt Ravindra Kumar',    rank: 'Capt',   role: 'super_admin',         designation: 'BVO',               email: 'r.kumar@navy.mil.in',     sections: ['*'] },
+    { id: 'u2',  name: 'Cdr Pawan Kumar Ojha',   rank: 'Cdr',    role: 'central_coordinator', designation: 'OICNG',             email: 'p.ojha@navy.mil.in',      sections: ['*'] },
+    { id: 'u3',  name: 'Lt Cdr Mukil Hariharan', rank: 'Lt Cdr', role: 'reviewer',            designation: 'Logistics Officer', email: 'm.hariharan@navy.mil.in', sections: ['*'] },
+    { id: 'u4',  name: 'Raj K Panjiyara',        rank: 'SSS',    role: 'inventory_manager',   designation: 'ICBG / Dry Store',  email: 'r.panjiyara@navy.mil.in', sections: ['sec_dry'] },
+    { id: 'u5',  name: 'Vinodh K Vijay',         rank: 'LtCdr',  role: 'reviewer',            designation: 'OICBG',             email: 'v.vijay@navy.mil.in',     sections: ['*'] },
+    { id: 'u6',  name: 'Suresh G',               rank: 'SS',     role: 'inventory_manager',   designation: 'Dal Store I/C',     email: 's.suresh@navy.mil.in',    sections: ['sec_dal'] },
+    { id: 'u7',  name: 'Aravind CH',             rank: 'AVR',    role: 'inventory_manager',   designation: 'Masala Store I/C',  email: 'aravind@navy.mil.in',     sections: ['sec_masala'] },
+    { id: 'u8',  name: 'Raju K G',               rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',   email: 'raju.kg@navy.mil.in',     sections: ['sec_fresh'] },
+    { id: 'u9',  name: 'Bibul Halder',           rank: 'AVR',    role: 'inventory_manager',   designation: 'Meat Store I/C',    email: 'b.halder@navy.mil.in',    sections: ['sec_meat'] },
+    { id: 'u10', name: 'Data Entry Op 1',        rank: 'SS',     role: 'data_entry',          designation: 'Central Hub Op',    email: 'op1@navy.mil.in',         sections: ['*'] }
   ],
 
   categories: [
@@ -91,17 +91,17 @@ window.SEED_DATA = {
     },
     {
         "id": "c_dy",
-        "name": "Dairy",
+        "name": "Dairy & Bread",
         "sectionId": "sec_fresh",
-        "moq": 5000,
+        "moq": 50,
         "cadence": "daily",
-        "moqUnit": "Ltr"
+        "moqUnit": "kg"
     },
     {
         "id": "c_mt",
-        "name": "Meat & Frozen",
+        "name": "Meat & Fish",
         "sectionId": "sec_meat",
-        "moq": 200,
+        "moq": 100,
         "cadence": "weekly",
         "moqUnit": "kg"
     },
@@ -117,7 +117,7 @@ window.SEED_DATA = {
         "id": "c_drf",
         "name": "Dry Fruits & Nuts",
         "sectionId": "sec_dry",
-        "moq": 200,
+        "moq": 100,
         "cadence": "monthly",
         "moqUnit": "kg"
     },
@@ -163,9 +163,9 @@ window.SEED_DATA = {
     },
     {
         "id": "c_cof",
-        "name": "Tea & Coffee",
+        "name": "Coffee",
         "sectionId": "sec_dry",
-        "moq": 100,
+        "moq": 50,
         "cadence": "monthly",
         "moqUnit": "kg"
     },
@@ -197,7 +197,7 @@ window.SEED_DATA = {
         "id": "c_oil",
         "name": "Oils & Fats",
         "sectionId": "sec_dry",
-        "moq": 100,
+        "moq": 200,
         "cadence": "monthly",
         "moqUnit": "Ltr"
     },
@@ -230,9 +230,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_2",
@@ -244,9 +245,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_3",
@@ -258,9 +260,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_4",
@@ -272,9 +275,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 360,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_5",
@@ -286,9 +290,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 400,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_6",
@@ -300,23 +305,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 440,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_7",
         "code": "CNVICT-BGMLT007",
-        "name": "Proso Millet (Chenna/Barri)",
+        "name": "Proso Millet (Chenna/barri)",
         "categoryId": "c_mlt",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 480,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_8",
@@ -328,23 +335,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 240,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_9",
         "code": "CNVICT-BGMLT009",
-        "name": "Amaranth (Ramdana/Rajgira)",
+        "name": "Amaranth (Ramdana/rajgira)",
         "categoryId": "c_mlt",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_10",
@@ -356,9 +365,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
+        "currentStock": 100,
         "minStock": 200,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_11",
@@ -370,9 +380,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_12",
@@ -384,9 +395,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_13",
@@ -398,13 +410,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_14",
-        "code": "CNVICT-MSPMM001",
+        "code": "CNVICT-BGPMM001",
         "name": "Chana Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -412,13 +425,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_15",
-        "code": "CNVICT-MSPMM002",
+        "code": "CNVICT-BGPMM002",
         "name": "Chat Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -426,13 +440,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_16",
-        "code": "CNVICT-MSPMM003",
+        "code": "CNVICT-BGPMM003",
         "name": "Chole Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -440,13 +455,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_17",
-        "code": "CNVICT-MSPMM004",
+        "code": "CNVICT-BGPMM004",
         "name": "Chicken Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -454,13 +470,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_18",
-        "code": "CNVICT-MSPMM005",
+        "code": "CNVICT-BGPMM005",
         "name": "Garam Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -468,13 +485,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_19",
-        "code": "CNVICT-MSPMM006",
+        "code": "CNVICT-BGPMM006",
         "name": "Meat Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -482,13 +500,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_20",
-        "code": "CNVICT-MSPMM007",
+        "code": "CNVICT-BGPMM007",
         "name": "Pav Bhaji Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -496,13 +515,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_21",
-        "code": "CNVICT-MSPMM008",
+        "code": "CNVICT-BGPMM008",
         "name": "Paneer Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -510,13 +530,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_22",
-        "code": "CNVICT-MSPMM009",
+        "code": "CNVICT-BGPMM009",
         "name": "Sambar Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -524,13 +545,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_23",
-        "code": "CNVICT-MSPMM010",
+        "code": "CNVICT-BGPMM010",
         "name": "Sabji Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -538,13 +560,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_24",
-        "code": "CNVICT-MSPMM011",
+        "code": "CNVICT-BGPMM011",
         "name": "Biryani Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -552,13 +575,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_25",
-        "code": "CNVICT-MSPMM012",
+        "code": "CNVICT-BGPMM012",
         "name": "Fish Masala",
         "categoryId": "c_pmm",
         "sectionId": "sec_masala",
@@ -566,13 +590,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_26",
-        "code": "CNVICT-MSCGM001",
+        "code": "CNVICT-BGCGM001",
         "name": "Ajwain",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -580,13 +605,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_27",
-        "code": "CNVICT-MSCGM002",
+        "code": "CNVICT-BGCGM002",
         "name": "Amchur",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -594,13 +620,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_28",
-        "code": "CNVICT-MSCGM003",
+        "code": "CNVICT-BGCGM003",
         "name": "Aniseed",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -608,13 +635,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_29",
-        "code": "CNVICT-MSCGM004",
+        "code": "CNVICT-BGCGM004",
         "name": "Asafoetida",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -622,13 +650,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_30",
-        "code": "CNVICT-MSCGM005",
+        "code": "CNVICT-BGCGM005",
         "name": "Bayleaf",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -636,13 +665,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_31",
-        "code": "CNVICT-MSCGM006",
+        "code": "CNVICT-BGCGM006",
         "name": "Black Pepper Whole",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -650,13 +680,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_32",
-        "code": "CNVICT-MSCGM007",
+        "code": "CNVICT-BGCGM007",
         "name": "Cardamon Large",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -664,13 +695,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_33",
-        "code": "CNVICT-MSCGM008",
+        "code": "CNVICT-BGCGM008",
         "name": "Chilly Kashmiri",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -678,41 +710,44 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_34",
-        "code": "CNVICT-MSCGM009",
-        "name": "Chilly Pdr 1 Kg",
+        "code": "CNVICT-BGCGM009",
+        "name": "Chilly PDR 1 KG",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_35",
-        "code": "CNVICT-MSCGM010",
-        "name": "Chilly Pdr 100 Gm",
+        "code": "CNVICT-BGCGM010",
+        "name": "Chilly PDR 100 GM",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_36",
-        "code": "CNVICT-MSCGM011",
+        "code": "CNVICT-BGCGM011",
         "name": "Cinamon Stick",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -720,13 +755,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_37",
-        "code": "CNVICT-MSCGM012",
+        "code": "CNVICT-BGCGM012",
         "name": "Cloves",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -734,41 +770,44 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_38",
-        "code": "CNVICT-MSCGM013",
-        "name": "Corriander Pdr 1 Kg",
+        "code": "CNVICT-BGCGM013",
+        "name": "Corriander PDR 1 KG",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_39",
-        "code": "CNVICT-MSCGM014",
-        "name": "Corriander Pdr 100 Gm",
+        "code": "CNVICT-BGCGM014",
+        "name": "Corriander PDR 100 GM",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_40",
-        "code": "CNVICT-MSCGM015",
+        "code": "CNVICT-BGCGM015",
         "name": "Corriander Whole",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -776,41 +815,44 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_41",
-        "code": "CNVICT-MSCGM016",
-        "name": "Cumminseed 100 Gm",
+        "code": "CNVICT-BGCGM016",
+        "name": "Cumminseed 100 GM",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_42",
-        "code": "CNVICT-MSCGM017",
-        "name": "Cumminseed 1 Kg",
+        "code": "CNVICT-BGCGM017",
+        "name": "Cumminseed 1 KG",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_43",
-        "code": "CNVICT-MSCGM018",
+        "code": "CNVICT-BGCGM018",
         "name": "Fenugreek",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -818,13 +860,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_44",
-        "code": "CNVICT-MSCGM019",
+        "code": "CNVICT-BGCGM019",
         "name": "Garlic",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -832,13 +875,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_45",
-        "code": "CNVICT-MSCGM020",
+        "code": "CNVICT-BGCGM020",
         "name": "Mustard Whole",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -846,13 +890,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_46",
-        "code": "CNVICT-MSCGM021",
+        "code": "CNVICT-BGCGM021",
         "name": "Nutmeg",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -860,41 +905,44 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_47",
-        "code": "CNVICT-MSCGM022",
-        "name": "Turmeric Pdr 1 Kg",
+        "code": "CNVICT-BGCGM022",
+        "name": "Turmeric PDR 1 KG",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_48",
-        "code": "CNVICT-MSCGM023",
-        "name": "Turmeric Pdr 100 Gm",
+        "code": "CNVICT-BGCGM023",
+        "name": "Turmeric PDR 100 GM",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_49",
-        "code": "CNVICT-MSCGM024",
+        "code": "CNVICT-BGCGM024",
         "name": "Tamarind",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -902,13 +950,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_50",
-        "code": "CNVICT-MSCGM025",
+        "code": "CNVICT-BGCGM025",
         "name": "Poppy Seed",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -916,13 +965,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_51",
-        "code": "CNVICT-MSCGM026",
+        "code": "CNVICT-BGCGM026",
         "name": "Rosemary",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -930,13 +980,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_52",
-        "code": "CNVICT-MSCGM027",
+        "code": "CNVICT-BGCGM027",
         "name": "Til",
         "categoryId": "c_cgm",
         "sectionId": "sec_masala",
@@ -944,27 +995,29 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_53",
-        "code": "CNVICT-DALDAL001",
-        "name": "Besan 25 Kg Bag",
+        "code": "CNVICT-BGDAL001",
+        "name": "Besan 25 KG Bag",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 360,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_54",
-        "code": "CNVICT-DALDAL002",
+        "code": "CNVICT-BGDAL002",
         "name": "Beans Dried",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -972,13 +1025,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 400,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_55",
-        "code": "CNVICT-DALDAL003",
+        "code": "CNVICT-BGDAL003",
         "name": "Dal Arhar",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -986,13 +1040,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_56",
-        "code": "CNVICT-DALDAL004",
+        "code": "CNVICT-BGDAL004",
         "name": "Dal Chana",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1000,13 +1055,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 480,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_57",
-        "code": "CNVICT-DALDAL005",
+        "code": "CNVICT-BGDAL005",
         "name": "Dal Masoor Split",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1014,13 +1070,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 240,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_58",
-        "code": "CNVICT-DALDAL006",
+        "code": "CNVICT-BGDAL006",
         "name": "Dal Masoor Whole",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1028,13 +1085,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_59",
-        "code": "CNVICT-DALDAL007",
+        "code": "CNVICT-BGDAL007",
         "name": "Dal Moong Split",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1042,13 +1100,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_60",
-        "code": "CNVICT-DALDAL008",
+        "code": "CNVICT-BGDAL008",
         "name": "Dal Moong W/O/S",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1056,13 +1115,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 360,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_61",
-        "code": "CNVICT-DALDAL009",
+        "code": "CNVICT-BGDAL009",
         "name": "Dal Moong Whole",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1070,13 +1130,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 400,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_62",
-        "code": "CNVICT-DALDAL010",
+        "code": "CNVICT-BGDAL010",
         "name": "Peas Dried",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1084,13 +1145,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 440,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_63",
-        "code": "CNVICT-DALDAL011",
+        "code": "CNVICT-BGDAL011",
         "name": "Dal Urd Split",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1098,13 +1160,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 480,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_64",
-        "code": "CNVICT-DALDAL012",
+        "code": "CNVICT-BGDAL012",
         "name": "Dal Urd W/O/S",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1112,13 +1175,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_65",
-        "code": "CNVICT-DALDAL013",
+        "code": "CNVICT-BGDAL013",
         "name": "Dal Urd Whole",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1126,13 +1190,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_66",
-        "code": "CNVICT-DALDAL014",
+        "code": "CNVICT-BGDAL014",
         "name": "Gram Whole",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1140,13 +1205,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_67",
-        "code": "CNVICT-DALDAL015",
+        "code": "CNVICT-BGDAL015",
         "name": "Kabuli Chana",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1154,13 +1220,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 360,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_68",
-        "code": "CNVICT-DALDAL016",
+        "code": "CNVICT-BGDAL016",
         "name": "Lobiya",
         "categoryId": "c_dal",
         "sectionId": "sec_dal",
@@ -1168,65 +1235,70 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 400,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 300,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_69",
         "code": "CNVICT-BGBAS001",
-        "name": "Atta 5 Kg Bag",
+        "name": "Atta 5 KG Bag",
         "categoryId": "c_bas",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 440,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_70",
         "code": "CNVICT-BGBAS002",
-        "name": "Atta 10 Kg",
+        "name": "Atta 10 KG",
         "categoryId": "c_bas",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 480,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_71",
         "code": "CNVICT-BGBAS003",
-        "name": "Rice Sharbati 5Kg",
+        "name": "Rice Sharbati 5kg",
         "categoryId": "c_bas",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 240,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_72",
         "code": "CNVICT-BGBAS004",
-        "name": "Rice Sharbati 25Kg",
+        "name": "Rice Sharbati 25kg",
         "categoryId": "c_bas",
         "sectionId": "sec_basic",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_73",
@@ -1238,9 +1310,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_74",
@@ -1252,9 +1325,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 360,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_75",
@@ -1266,9 +1340,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 400,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_76",
@@ -1280,9 +1355,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 440,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_77",
@@ -1294,9 +1370,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 480,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_78",
@@ -1308,9 +1385,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 240,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_79",
@@ -1322,9 +1400,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 280,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_80",
@@ -1336,9 +1415,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
-        "minStock": 200,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 500,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_81",
@@ -1350,8 +1430,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1365,8 +1445,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1380,8 +1460,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1395,8 +1475,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1410,8 +1490,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1425,8 +1505,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1440,8 +1520,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1455,8 +1535,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1470,8 +1550,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1485,8 +1565,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1500,8 +1580,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1515,8 +1595,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1530,8 +1610,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1545,8 +1625,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1560,8 +1640,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1575,8 +1655,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1590,8 +1670,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1605,8 +1685,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1620,8 +1700,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1635,8 +1715,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1650,8 +1730,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1665,8 +1745,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1680,8 +1760,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1695,8 +1775,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1710,8 +1790,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1725,8 +1805,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1740,8 +1820,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1755,8 +1835,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1770,8 +1850,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1785,8 +1865,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1800,8 +1880,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1815,8 +1895,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1830,8 +1910,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1845,23 +1925,23 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_115",
         "code": "CNVICT-FGVGT035",
-        "name": "Paneer 200 Gms",
+        "name": "Paneer 200 GMS",
         "categoryId": "c_vgt",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1875,8 +1955,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1890,23 +1970,23 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_118",
         "code": "CNVICT-FGVGT038",
-        "name": "Peas Frozen (01 Kg)",
+        "name": "Peas Frozen (01 KG)",
         "categoryId": "c_vgt",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1920,8 +2000,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1935,8 +2015,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1950,23 +2030,23 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_122",
         "code": "CNVICT-FGVGT042",
-        "name": "Radish(C)",
+        "name": "Radish(c)",
         "categoryId": "c_vgt",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1980,8 +2060,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -1995,8 +2075,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2010,8 +2090,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2025,8 +2105,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2040,8 +2120,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2055,8 +2135,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2070,8 +2150,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2085,8 +2165,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2100,8 +2180,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2115,8 +2195,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2130,8 +2210,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2145,8 +2225,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2160,8 +2240,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2175,8 +2255,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2190,8 +2270,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2205,8 +2285,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2220,8 +2300,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2235,8 +2315,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2250,8 +2330,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2265,8 +2345,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2280,8 +2360,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2295,8 +2375,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2310,8 +2390,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2325,8 +2405,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2340,8 +2420,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2355,8 +2435,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2370,23 +2450,23 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_150",
         "code": "CNVICT-FGFRT016",
-        "name": "Grapes Black S/L",
+        "name": "Grapes Black S/l",
         "categoryId": "c_frt",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2400,8 +2480,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2415,8 +2495,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2430,8 +2510,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2445,8 +2525,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2460,8 +2540,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2475,8 +2555,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2490,8 +2570,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2505,8 +2585,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2520,8 +2600,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2535,8 +2615,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2550,8 +2630,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2565,8 +2645,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2580,8 +2660,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2595,8 +2675,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2610,8 +2690,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2625,8 +2705,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2640,8 +2720,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2655,8 +2735,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2670,8 +2750,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 220,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2685,8 +2765,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2700,8 +2780,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2715,8 +2795,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2730,8 +2810,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
-        "minStock": 100,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2745,8 +2825,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2760,8 +2840,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 350,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2775,8 +2855,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 230,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2790,8 +2870,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 260,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2805,38 +2885,38 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_179",
         "code": "CNVICT-FGDY006",
-        "name": "Butter Fresh 100G",
+        "name": "Butter Fresh 100g",
         "categoryId": "c_dy",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 320,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_180",
         "code": "CNVICT-FGDY007",
-        "name": "Butter Fresh 500G",
+        "name": "Butter Fresh 500g",
         "categoryId": "c_dy",
         "sectionId": "sec_fresh",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 350,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -2850,14 +2930,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 180,
-        "minStock": 200,
+        "currentStock": 100,
+        "minStock": 50,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_182",
-        "code": "CNVICT-MTMT001",
+        "code": "CNVICT-FGMT001",
         "name": "Egg Trays",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2865,14 +2945,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 160,
+        "currentStock": 100,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_183",
-        "code": "CNVICT-MTMT002",
+        "code": "CNVICT-FGMT002",
         "name": "Eggs",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2880,14 +2960,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 190,
+        "currentStock": 100,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_184",
-        "code": "CNVICT-MTMT003",
+        "code": "CNVICT-FGMT003",
         "name": "Fish",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2895,14 +2975,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_185",
-        "code": "CNVICT-MTMT004",
+        "code": "CNVICT-FGMT004",
         "name": "Fish Baiki",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2910,14 +2990,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_186",
-        "code": "CNVICT-MTMT005",
+        "code": "CNVICT-FGMT005",
         "name": "Fish Baiki Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2925,14 +3005,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_187",
-        "code": "CNVICT-MTMT006",
+        "code": "CNVICT-FGMT006",
         "name": "Fish Basa Fillet",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2940,14 +3020,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_188",
-        "code": "CNVICT-MTMT007",
+        "code": "CNVICT-FGMT007",
         "name": "Fish Basa Fillet",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2955,14 +3035,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_189",
-        "code": "CNVICT-MTMT008",
+        "code": "CNVICT-FGMT008",
         "name": "Fish Katla",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2970,14 +3050,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_190",
-        "code": "CNVICT-MTMT009",
+        "code": "CNVICT-FGMT009",
         "name": "Fish Mackerel",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -2985,14 +3065,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_191",
-        "code": "CNVICT-MTMT010",
+        "code": "CNVICT-FGMT010",
         "name": "Fish Mackerel Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3000,14 +3080,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_192",
-        "code": "CNVICT-MTMT011",
+        "code": "CNVICT-FGMT011",
         "name": "Fish Mackerel Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3015,14 +3095,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_193",
-        "code": "CNVICT-MTMT012",
+        "code": "CNVICT-FGMT012",
         "name": "Fish Pomphret",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3030,14 +3110,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_194",
-        "code": "CNVICT-MTMT013",
+        "code": "CNVICT-FGMT013",
         "name": "Fish Pomphret Black Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3045,14 +3125,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_195",
-        "code": "CNVICT-MTMT014",
+        "code": "CNVICT-FGMT014",
         "name": "Fish Pomphret Black Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3060,14 +3140,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_196",
-        "code": "CNVICT-MTMT015",
+        "code": "CNVICT-FGMT015",
         "name": "Fish Pomphret Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3075,14 +3155,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_197",
-        "code": "CNVICT-MTMT016",
+        "code": "CNVICT-FGMT016",
         "name": "Fish Pomphret White",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3090,14 +3170,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_198",
-        "code": "CNVICT-MTMT017",
+        "code": "CNVICT-FGMT017",
         "name": "Fish Pomphret White Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3105,14 +3185,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_199",
-        "code": "CNVICT-MTMT018",
+        "code": "CNVICT-FGMT018",
         "name": "Fish Pomphret White Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3120,14 +3200,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_200",
-        "code": "CNVICT-MTMT019",
+        "code": "CNVICT-FGMT019",
         "name": "Fish Rawas",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3135,14 +3215,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_201",
-        "code": "CNVICT-MTMT020",
+        "code": "CNVICT-FGMT020",
         "name": "Fish Rawas Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3150,14 +3230,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_202",
-        "code": "CNVICT-MTMT021",
+        "code": "CNVICT-FGMT021",
         "name": "Fish Red Snapper Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3165,14 +3245,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_203",
-        "code": "CNVICT-MTMT022",
+        "code": "CNVICT-FGMT022",
         "name": "Fish Red Sniper",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3180,14 +3260,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_204",
-        "code": "CNVICT-MTMT023",
+        "code": "CNVICT-FGMT023",
         "name": "Fish Red Sniper Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3195,14 +3275,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_205",
-        "code": "CNVICT-MTMT024",
+        "code": "CNVICT-FGMT024",
         "name": "Fish Rohu",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3210,14 +3290,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_206",
-        "code": "CNVICT-MTMT025",
+        "code": "CNVICT-FGMT025",
         "name": "Fish Rohu Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3225,14 +3305,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_207",
-        "code": "CNVICT-MTMT026",
+        "code": "CNVICT-FGMT026",
         "name": "Fish Surmai",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3240,14 +3320,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_208",
-        "code": "CNVICT-MTMT027",
+        "code": "CNVICT-FGMT027",
         "name": "Fish Surmai Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3255,14 +3335,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_209",
-        "code": "CNVICT-MTMT028",
+        "code": "CNVICT-FGMT028",
         "name": "Fish Surmai Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3270,14 +3350,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_210",
-        "code": "CNVICT-MTMT029",
+        "code": "CNVICT-FGMT029",
         "name": "Fish Tuna Frozen",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3285,14 +3365,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_211",
-        "code": "CNVICT-MTMT030",
+        "code": "CNVICT-FGMT030",
         "name": "Fish Tuna Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3300,29 +3380,29 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_212",
-        "code": "CNVICT-MTMT031",
-        "name": "Frozen Chicken Pre-Cut",
+        "code": "CNVICT-FGMT031",
+        "name": "Frozen Chicken Pre-cut",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_213",
-        "code": "CNVICT-MTMT032",
+        "code": "CNVICT-FGMT032",
         "name": "Frozen Chicken Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3330,44 +3410,44 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_214",
-        "code": "CNVICT-MTMT033",
-        "name": "Fz Chicken Pre-Cut",
+        "code": "CNVICT-FGMT033",
+        "name": "FZ Chicken Pre-cut",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_215",
-        "code": "CNVICT-MTMT034",
-        "name": "Fz Chicken Whole",
+        "code": "CNVICT-FGMT034",
+        "name": "FZ Chicken Whole",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_216",
-        "code": "CNVICT-MTMT035",
+        "code": "CNVICT-FGMT035",
         "name": "Ham",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3375,14 +3455,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_217",
-        "code": "CNVICT-MTMT036",
+        "code": "CNVICT-FGMT036",
         "name": "Meat Frozen Boneless",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3390,14 +3470,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_218",
-        "code": "CNVICT-MTMT037",
+        "code": "CNVICT-FGMT037",
         "name": "Meat Frozen Without Bones",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3405,14 +3485,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_219",
-        "code": "CNVICT-MTMT038",
+        "code": "CNVICT-FGMT038",
         "name": "Meat Pre Cut 'Chilled'",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3420,14 +3500,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_220",
-        "code": "CNVICT-MTMT039",
+        "code": "CNVICT-FGMT039",
         "name": "Meat Pre Cut 'Fresh'",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3435,14 +3515,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_221",
-        "code": "CNVICT-MTMT040",
+        "code": "CNVICT-FGMT040",
         "name": "Meat Pre Cut 'Frozen'",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3450,14 +3530,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_222",
-        "code": "CNVICT-MTMT041",
+        "code": "CNVICT-FGMT041",
         "name": "Meat Tinned",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3465,14 +3545,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 110,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_223",
-        "code": "CNVICT-MTMT042",
+        "code": "CNVICT-FGMT042",
         "name": "Meat Without Bones",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3480,14 +3560,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 140,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_224",
-        "code": "CNVICT-MTMT043",
+        "code": "CNVICT-FGMT043",
         "name": "Rawas (Indian Salmon Whole)",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3495,14 +3575,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_225",
-        "code": "CNVICT-MTMT044",
+        "code": "CNVICT-FGMT044",
         "name": "Sausages",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3510,14 +3590,14 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 200,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
     {
         "id": "p_226",
-        "code": "CNVICT-MTMT045",
+        "code": "CNVICT-FGMT045",
         "name": "Sausages (Chicken)",
         "categoryId": "c_mt",
         "sectionId": "sec_meat",
@@ -3525,8 +3605,8 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
+        "currentStock": 100,
+        "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
     },
@@ -3540,9 +3620,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_228",
@@ -3554,23 +3635,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_229",
         "code": "CNVICT-NGFJAJ040",
-        "name": "Apple Juice 1 Ltr",
+        "name": "Apple Juice 1 LTR",
         "categoryId": "c_jus",
         "sectionId": "sec_dry",
         "baseUnit": "Ltr",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_230",
@@ -3582,9 +3665,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_231",
@@ -3596,9 +3680,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_232",
@@ -3610,9 +3695,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_233",
@@ -3624,9 +3710,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_234",
@@ -3638,9 +3725,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_235",
@@ -3652,9 +3740,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_236",
@@ -3666,9 +3755,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_237",
@@ -3680,9 +3770,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 340,
-        "minStock": 100,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 50,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_238",
@@ -3694,9 +3785,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_239",
@@ -3708,23 +3800,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_240",
         "code": "CNVICT-NGDRCS026",
-        "name": "Cheese Slice 200Gm",
+        "name": "Cheese Slice 200gm",
         "categoryId": "c_chs",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_241",
@@ -3736,9 +3830,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_242",
@@ -3750,9 +3845,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_243",
@@ -3764,9 +3860,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_244",
@@ -3778,9 +3875,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_245",
@@ -3792,37 +3890,40 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_246",
         "code": "CNVICT-NGCFE056",
-        "name": "Coffee 200 Gms",
+        "name": "Coffee 200 GMS",
         "categoryId": "c_cof",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_247",
         "code": "CNVICT-NGCFE055",
-        "name": "Coffee 50 Gms",
+        "name": "Coffee 50 GMS",
         "categoryId": "c_cof",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_248",
@@ -3834,9 +3935,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_249",
@@ -3848,9 +3950,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_250",
@@ -3862,9 +3965,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_251",
@@ -3876,23 +3980,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_252",
         "code": "CNVICT-NGCP076",
-        "name": "Custard Powder 100Gm",
+        "name": "Custard Powder 100gm",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_253",
@@ -3904,9 +4010,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 50,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_254",
@@ -3918,23 +4025,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_255",
         "code": "CNVICT-NGFJ050",
-        "name": "Fruit Juice 1 Ltr",
+        "name": "Fruit Juice 1 LTR",
         "categoryId": "c_jus",
         "sectionId": "sec_dry",
         "baseUnit": "Ltr",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_256",
@@ -3946,9 +4055,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_257",
@@ -3960,79 +4070,85 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_258",
         "code": "CNVICT-NGFTC022",
-        "name": "Fruit Td Cherry",
+        "name": "Fruit TD Cherry",
         "categoryId": "c_ftd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_259",
         "code": "CNVICT-NGFTC020",
-        "name": "Fruit Td Cocktail",
+        "name": "Fruit TD Cocktail",
         "categoryId": "c_ftd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_260",
         "code": "CNVICT-NGFRTL026",
-        "name": "Fruit Td Litchi",
+        "name": "Fruit TD Litchi",
         "categoryId": "c_ftd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_261",
         "code": "CNVICT-NGFTM023",
-        "name": "Fruit Td Mango",
+        "name": "Fruit TD Mango",
         "categoryId": "c_ftd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_262",
         "code": "CNVICT-NGFRTP024",
-        "name": "Fruit Td Pinapple",
+        "name": "Fruit TD Pinapple",
         "categoryId": "c_ftd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_263",
@@ -4044,9 +4160,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_264",
@@ -4058,23 +4175,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_265",
         "code": "CNVICT-NGFJGJ043",
-        "name": "Guava Juice 1 Ltr",
+        "name": "Guava Juice 1 LTR",
         "categoryId": "c_jus",
         "sectionId": "sec_dry",
         "baseUnit": "Ltr",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_266",
@@ -4086,9 +4205,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_267",
@@ -4100,23 +4220,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_268",
         "code": "CNVICT-NGHR068",
-        "name": "Horlicks 500G",
+        "name": "Horlicks 500g",
         "categoryId": "c_dvr",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_269",
@@ -4128,9 +4250,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_270",
@@ -4142,9 +4265,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_271",
@@ -4156,9 +4280,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_272",
@@ -4170,9 +4295,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_273",
@@ -4184,9 +4310,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_274",
@@ -4198,9 +4325,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_275",
@@ -4212,9 +4340,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_276",
@@ -4226,9 +4355,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_277",
@@ -4240,9 +4370,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_278",
@@ -4254,23 +4385,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 300,
-        "minStock": 100,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 50,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_279",
         "code": "CNVICT-NGMT100",
-        "name": "Meat Td",
+        "name": "Meat TD",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_280",
@@ -4282,23 +4415,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_281",
         "code": "CNVICT-NGDRMT017",
-        "name": "Milk Td",
+        "name": "Milk TD",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_282",
@@ -4310,23 +4445,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_283",
         "code": "CNVICT-NGFJMX046",
-        "name": "Mixed Fruit Juice 1 Ltr",
+        "name": "Mixed Fruit Juice 1 LTR",
         "categoryId": "c_jus",
         "sectionId": "sec_dry",
         "baseUnit": "Ltr",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_284",
@@ -4338,9 +4475,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_285",
@@ -4352,9 +4490,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_286",
@@ -4366,51 +4505,55 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_287",
         "code": "CNVICT-NGMREM065",
-        "name": "Mre For Marcos",
+        "name": "MRE For Marcos",
         "categoryId": "c_mre",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_288",
         "code": "CNVICT-NGMRENV066",
-        "name": "Mre Non Vegetarian",
+        "name": "MRE Non Vegetarian",
         "categoryId": "c_mre",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_289",
         "code": "CNVICT-NGMRV064",
-        "name": "Mre Vegetarian",
+        "name": "MRE Vegetarian",
         "categoryId": "c_mre",
         "sectionId": "sec_dry",
         "baseUnit": "Nos",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 80,
-        "minStock": 100,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 50,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_290",
@@ -4422,9 +4565,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_291",
@@ -4436,9 +4580,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_292",
@@ -4450,9 +4595,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_293",
@@ -4464,9 +4610,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_294",
@@ -4478,37 +4625,40 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_295",
         "code": "CNVICT-NGOR037",
-        "name": "Oil Refined  (910 Gms/1Ltr)",
+        "name": "Oil Refined (910 Gms/1ltr)",
         "categoryId": "c_oil",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_296",
         "code": "CNVICT-NGOR040",
-        "name": "Oil Refined 1 Ltr",
+        "name": "Oil Refined 1 LTR",
         "categoryId": "c_oil",
         "sectionId": "sec_dry",
         "baseUnit": "Ltr",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_297",
@@ -4520,9 +4670,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_298",
@@ -4534,23 +4685,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_299",
         "code": "CNVICT-NGOND083",
-        "name": "Onion De-Hydrated",
+        "name": "Onion De-hydrated",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_300",
@@ -4562,9 +4715,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_301",
@@ -4576,9 +4730,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_302",
@@ -4590,23 +4745,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_303",
         "code": "CNVICT-NGPTD084",
-        "name": "Potato De-Hydrated",
+        "name": "Potato De-hydrated",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_304",
@@ -4618,9 +4775,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_305",
@@ -4632,9 +4790,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_306",
@@ -4646,9 +4805,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 200,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_307",
@@ -4660,51 +4820,55 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_308",
         "code": "CNVICT-NGSM086",
-        "name": "Samolina 200G",
+        "name": "Samolina 200g",
         "categoryId": "c_nmx",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_309",
         "code": "CNVICT-NGTEA053",
-        "name": "Tea 1 Kg",
+        "name": "Tea 1 KG",
         "categoryId": "c_tea",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_310",
         "code": "CNVICT-NGTEA054",
-        "name": "Tea 250 Gms",
+        "name": "Tea 250 GMS",
         "categoryId": "c_tea",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_311",
@@ -4716,9 +4880,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_312",
@@ -4730,9 +4895,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_313",
@@ -4744,9 +4910,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_314",
@@ -4758,107 +4925,115 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_315",
         "code": "CNVICT-NGVTBCD017",
-        "name": "Veg Td Babycorn (Drained Wt)",
+        "name": "Veg TD Babycorn (Drained Wt)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_316",
         "code": "CNVICT-NGVTBBD011",
-        "name": "Veg Td Baked Beans (Drained Wt.)",
+        "name": "Veg TD Baked Beans (Drained Wt.)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 30,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_317",
         "code": "CNVICT-NGVTCD013",
-        "name": "Veg Td Carrot (Drained Wt.)",
+        "name": "Veg TD Carrot (Drained Wt.)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 130,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_318",
         "code": "CNVICT-NGVTCD012",
-        "name": "Veg Td Corn (Drained Wt.)",
+        "name": "Veg TD Corn (Drained Wt.)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 170,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_319",
         "code": "CNVICT-NGVTMSD016",
-        "name": "Veg Td Mushroom (Drained Wt)",
+        "name": "Veg TD Mushroom (Drained Wt)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 210,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_320",
         "code": "CNVICT-NGVTSGD010",
-        "name": "Veg Td Sarson Ka Saag (Drained Wt.)",
+        "name": "Veg TD Sarson Ka Saag (Drained Wt.)",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 250,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_321",
         "code": "CNVICT-NGVTTP005",
-        "name": "Veg Td Tomato Puree",
+        "name": "Veg TD Tomato Puree",
         "categoryId": "c_vtd",
         "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 290,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_322",
@@ -4870,9 +5045,10 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 330,
+        "currentStock": 100,
         "minStock": 50,
-        "unitPrice": 0
+        "unitPrice": 0,
+        "freshItem": false
     },
     {
         "id": "p_323",
@@ -4884,24 +5060,25 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 90,
-        "minStock": 50,
-        "unitPrice": 0
+        "currentStock": 100,
+        "minStock": 100,
+        "unitPrice": 0,
+        "freshItem": false
     }
 ],
 
   ships: [
-    { id: 's1', name: 'S1', code: 'S1', class: 'Frigate',          cof: 447 },
-    { id: 's2', name: 'S2', code: 'S2', class: 'ASW Corvette',     cof: 410 },
+    { id: 's1', name: 'S1', code: 'S1', class: 'Frigate',             cof: 447 },
+    { id: 's2', name: 'S2', code: 'S2', class: 'ASW Corvette',        cof: 410 },
     { id: 's3', name: 'S3', code: 'S3', class: 'Base / Shore Estab.', cof: 280 },
-    { id: 's4', name: 'S4', code: 'S4', class: 'Hospital Ship',    cof: 195 },
-    { id: 's5', name: 'S5', code: 'S5', class: 'Destroyer',        cof: 520 },
-    { id: 's6', name: 'S6', code: 'S6', class: 'Patrol Vessel',    cof: 145 }
+    { id: 's4', name: 'S4', code: 'S4', class: 'Hospital Ship',       cof: 195 },
+    { id: 's5', name: 'S5', code: 'S5', class: 'Destroyer',           cof: 520 },
+    { id: 's6', name: 'S6', code: 'S6', class: 'Patrol Vessel',       cof: 145 }
   ],
 
   suppliers: [
-    { id: 'sp1', name: 'Trident Creation',   code: 'T0005K', gst: '27AAEPD8880H1ZN', address: 'Next to P&G Plaza, Cardinal Gracious Road, Mumbai Suburban, Mumbai - 400099, Maharashtra', contact: 'sales@tridentcreation.in',  whatsapp: '+919876543210' },
-    { id: 'sp2', name: 'Rupal Syndicates',   code: 'R0024B', gst: '27AAEPD8860H1ZA', address: '26/104, Shakti Krupa Shopping Centre, Mundra Nagar, Ghatkopar (East), Mumbai - 400077, Maharashtra', contact: 'rupalsyndicates@gmail.com', whatsapp: '+919876543220' }
+    { id: 'sp1', name: 'Trident Creation',  code: 'T0005K', gst: '27AAEPD8880H1ZN', address: 'Next to P&G Plaza, Cardinal Gracious Road, Mumbai - 400099', contact: 'sales@tridentcreation.in',  whatsapp: '+919876543210' },
+    { id: 'sp2', name: 'Rupal Syndicates',  code: 'R0024B', gst: '27AAEPD8860H1ZA', address: '26/104, Shakti Krupa Shopping Centre, Ghatkopar (East), Mumbai - 400077', contact: 'rupalsyndicates@gmail.com', whatsapp: '+919876543220' }
   ],
 
   demands: [
@@ -4909,16 +5086,16 @@ window.SEED_DATA = {
       id: 'd1', demandNo: '26R1067', date: '2026-05-13', dayOfWeek: 'Wed',
       shipId: 's1', status: 'pending', raisedBy: 'S1', sourceChannel: 'whatsapp',
       items: [
-        { productId: 'p_1', demandedQty: 100, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
-        { productId: 'p_51', demandedQty: 50,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
+        { productId: 'p_1',  demandedQty: 100, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
+        { productId: 'p_11', demandedQty: 50,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
       ]
     },
     {
       id: 'd2', demandNo: '26R1068', date: '2026-05-20', dayOfWeek: 'Wed',
       shipId: 's2', status: 'approved', raisedBy: 'S2', sourceChannel: 'email',
       items: [
-        { productId: 'p_151', demandedQty: 80, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
-        { productId: 'p_251', demandedQty: 60, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
+        { productId: 'p_82',  demandedQty: 80, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
+        { productId: 'p_136', demandedQty: 60, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
       ],
       poId: null
     }
