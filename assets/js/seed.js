@@ -35,10 +35,10 @@ window.SEED_DATA = {
         "moqUnit": "kg"
     },
     {
-        "id": "c_bmx",
-        "name": "Miscellaneous (Basic)",
-        "group": "BASIC",
-        "sectionId": "sec_basic",
+        "id": "c_nmx",
+        "name": "Miscellaneous",
+        "group": "",
+        "sectionId": "sec_dry",
         "moq": 50,
         "cadence": "monthly",
         "moqUnit": "kg"
@@ -113,15 +113,6 @@ window.SEED_DATA = {
         "sectionId": "sec_meat",
         "moq": 100,
         "cadence": "weekly",
-        "moqUnit": "kg"
-    },
-    {
-        "id": "c_nmx",
-        "name": "Miscellaneous (NG)",
-        "group": "NECCESARY",
-        "sectionId": "sec_dry",
-        "moq": 50,
-        "cadence": "monthly",
         "moqUnit": "kg"
     },
     {
@@ -246,7 +237,7 @@ window.SEED_DATA = {
   products: [
     {
         "id": "p_1",
-        "code": "CNVICT-BGMLT001",
+        "code": "",
         "name": "Pearl Millet (Bajra Flour)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -262,7 +253,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_2",
-        "code": "CNVICT-BGMLT002",
+        "code": "",
         "name": "Sorghum (Jowar Flour)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -278,7 +269,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_3",
-        "code": "CNVICT-BGMLT003",
+        "code": "",
         "name": "Finger Millet (Ragi Flour)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -294,7 +285,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_4",
-        "code": "CNVICT-BGMLT004",
+        "code": "",
         "name": "Kodo Millets (Kodon)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -310,7 +301,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_5",
-        "code": "CNVICT-BGMLT005",
+        "code": "",
         "name": "Barnyard Millet (Sanwa)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -326,7 +317,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_6",
-        "code": "CNVICT-BGMLT006",
+        "code": "",
         "name": "Foxtail Millet (Kakum)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -342,7 +333,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_7",
-        "code": "CNVICT-BGMLT007",
+        "code": "",
         "name": "Proso Millet (Chenna/barri)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -358,7 +349,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_8",
-        "code": "CNVICT-BGMLT008",
+        "code": "",
         "name": "Little Millet (Kutki/ Shavan)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -374,7 +365,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_9",
-        "code": "CNVICT-BGMLT009",
+        "code": "",
         "name": "Amaranth (Ramdana/rajgira)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -390,7 +381,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_10",
-        "code": "CNVICT-BGMLT010",
+        "code": "",
         "name": "Buckwheat (Kuttu)",
         "group": "BASIC",
         "categoryId": "c_mlt",
@@ -406,11 +397,11 @@ window.SEED_DATA = {
     },
     {
         "id": "p_11",
-        "code": "CNVICT-BGMIS001",
+        "code": "",
         "name": "Ground Nut",
         "group": "BASIC",
-        "categoryId": "c_bmx",
-        "sectionId": "sec_basic",
+        "categoryId": "c_nmx",
+        "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
@@ -422,11 +413,11 @@ window.SEED_DATA = {
     },
     {
         "id": "p_12",
-        "code": "CNVICT-BGMIS002",
+        "code": "",
         "name": "Papad",
         "group": "BASIC",
-        "categoryId": "c_bmx",
-        "sectionId": "sec_basic",
+        "categoryId": "c_nmx",
+        "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
@@ -438,11 +429,11 @@ window.SEED_DATA = {
     },
     {
         "id": "p_13",
-        "code": "CNVICT-BGMIS003",
+        "code": "",
         "name": "Daliya",
         "group": "BASIC",
-        "categoryId": "c_bmx",
-        "sectionId": "sec_basic",
+        "categoryId": "c_nmx",
+        "sectionId": "sec_dry",
         "baseUnit": "kg",
         "packSize": 1,
         "packUnit": "unit",
@@ -454,7 +445,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_14",
-        "code": "CNVICT-BGPMM001",
+        "code": "",
         "name": "Chana Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -470,7 +461,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_15",
-        "code": "CNVICT-BGPMM002",
+        "code": "",
         "name": "Chat Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -486,7 +477,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_16",
-        "code": "CNVICT-BGPMM003",
+        "code": "",
         "name": "Chole Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -502,7 +493,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_17",
-        "code": "CNVICT-BGPMM004",
+        "code": "",
         "name": "Chicken Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -518,7 +509,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_18",
-        "code": "CNVICT-BGPMM005",
+        "code": "",
         "name": "Garam Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -534,7 +525,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_19",
-        "code": "CNVICT-BGPMM006",
+        "code": "",
         "name": "Meat Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -550,7 +541,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_20",
-        "code": "CNVICT-BGPMM007",
+        "code": "",
         "name": "Pav Bhaji Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -566,7 +557,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_21",
-        "code": "CNVICT-BGPMM008",
+        "code": "",
         "name": "Paneer Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -582,7 +573,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_22",
-        "code": "CNVICT-BGPMM009",
+        "code": "",
         "name": "Sambar Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -598,7 +589,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_23",
-        "code": "CNVICT-BGPMM010",
+        "code": "",
         "name": "Sabji Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -614,7 +605,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_24",
-        "code": "CNVICT-BGPMM011",
+        "code": "",
         "name": "Biryani Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -630,7 +621,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_25",
-        "code": "CNVICT-BGPMM012",
+        "code": "",
         "name": "Fish Masala",
         "group": "BASIC",
         "categoryId": "c_pmm",
@@ -646,7 +637,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_26",
-        "code": "CNVICT-BGCGM001",
+        "code": "",
         "name": "Ajwain",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -662,7 +653,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_27",
-        "code": "CNVICT-BGCGM002",
+        "code": "",
         "name": "Amchur",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -678,7 +669,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_28",
-        "code": "CNVICT-BGCGM003",
+        "code": "",
         "name": "Aniseed",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -694,7 +685,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_29",
-        "code": "CNVICT-BGCGM004",
+        "code": "",
         "name": "Asafoetida",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -710,7 +701,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_30",
-        "code": "CNVICT-BGCGM005",
+        "code": "",
         "name": "Bayleaf",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -726,7 +717,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_31",
-        "code": "CNVICT-BGCGM006",
+        "code": "",
         "name": "Black Pepper Whole",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -742,7 +733,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_32",
-        "code": "CNVICT-BGCGM007",
+        "code": "",
         "name": "Cardamon Large",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -758,7 +749,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_33",
-        "code": "CNVICT-BGCGM008",
+        "code": "",
         "name": "Chilly Kashmiri",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -774,7 +765,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_34",
-        "code": "CNVICT-BGCGM009",
+        "code": "",
         "name": "Chilly PDR 1 KG",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -790,7 +781,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_35",
-        "code": "CNVICT-BGCGM010",
+        "code": "",
         "name": "Chilly PDR 100 GM",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -806,7 +797,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_36",
-        "code": "CNVICT-BGCGM011",
+        "code": "",
         "name": "Cinamon Stick",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -822,7 +813,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_37",
-        "code": "CNVICT-BGCGM012",
+        "code": "",
         "name": "Cloves",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -838,7 +829,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_38",
-        "code": "CNVICT-BGCGM013",
+        "code": "",
         "name": "Corriander PDR 1 KG",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -854,7 +845,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_39",
-        "code": "CNVICT-BGCGM014",
+        "code": "",
         "name": "Corriander PDR 100 GM",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -870,7 +861,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_40",
-        "code": "CNVICT-BGCGM015",
+        "code": "",
         "name": "Corriander Whole",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -886,7 +877,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_41",
-        "code": "CNVICT-BGCGM016",
+        "code": "",
         "name": "Cumminseed 100 GM",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -902,7 +893,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_42",
-        "code": "CNVICT-BGCGM017",
+        "code": "",
         "name": "Cumminseed 1 KG",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -918,7 +909,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_43",
-        "code": "CNVICT-BGCGM018",
+        "code": "",
         "name": "Fenugreek",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -934,7 +925,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_44",
-        "code": "CNVICT-BGCGM019",
+        "code": "",
         "name": "Garlic",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -950,7 +941,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_45",
-        "code": "CNVICT-BGCGM020",
+        "code": "",
         "name": "Mustard Whole",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -966,7 +957,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_46",
-        "code": "CNVICT-BGCGM021",
+        "code": "",
         "name": "Nutmeg",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -982,7 +973,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_47",
-        "code": "CNVICT-BGCGM022",
+        "code": "",
         "name": "Turmeric PDR 1 KG",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -998,7 +989,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_48",
-        "code": "CNVICT-BGCGM023",
+        "code": "",
         "name": "Turmeric PDR 100 GM",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -1014,7 +1005,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_49",
-        "code": "CNVICT-BGCGM024",
+        "code": "",
         "name": "Tamarind",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -1030,7 +1021,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_50",
-        "code": "CNVICT-BGCGM025",
+        "code": "",
         "name": "Poppy Seed",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -1046,7 +1037,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_51",
-        "code": "CNVICT-BGCGM026",
+        "code": "",
         "name": "Rosemary",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -1062,7 +1053,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_52",
-        "code": "CNVICT-BGCGM027",
+        "code": "",
         "name": "Til",
         "group": "BASIC",
         "categoryId": "c_cgm",
@@ -1078,7 +1069,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_53",
-        "code": "CNVICT-BGDAL001",
+        "code": "",
         "name": "Besan 25 KG Bag",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1094,7 +1085,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_54",
-        "code": "CNVICT-BGDAL002",
+        "code": "",
         "name": "Beans Dried",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1110,7 +1101,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_55",
-        "code": "CNVICT-BGDAL003",
+        "code": "",
         "name": "Dal Arhar",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1126,7 +1117,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_56",
-        "code": "CNVICT-BGDAL004",
+        "code": "",
         "name": "Dal Chana",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1142,7 +1133,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_57",
-        "code": "CNVICT-BGDAL005",
+        "code": "",
         "name": "Dal Masoor Split",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1158,7 +1149,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_58",
-        "code": "CNVICT-BGDAL006",
+        "code": "",
         "name": "Dal Masoor Whole",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1174,7 +1165,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_59",
-        "code": "CNVICT-BGDAL007",
+        "code": "",
         "name": "Dal Moong Split",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1190,7 +1181,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_60",
-        "code": "CNVICT-BGDAL008",
+        "code": "",
         "name": "Dal Moong W/O/S",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1206,7 +1197,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_61",
-        "code": "CNVICT-BGDAL009",
+        "code": "",
         "name": "Dal Moong Whole",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1222,7 +1213,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_62",
-        "code": "CNVICT-BGDAL010",
+        "code": "",
         "name": "Peas Dried",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1238,7 +1229,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_63",
-        "code": "CNVICT-BGDAL011",
+        "code": "",
         "name": "Dal Urd Split",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1254,7 +1245,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_64",
-        "code": "CNVICT-BGDAL012",
+        "code": "",
         "name": "Dal Urd W/O/S",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1270,7 +1261,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_65",
-        "code": "CNVICT-BGDAL013",
+        "code": "",
         "name": "Dal Urd Whole",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1286,7 +1277,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_66",
-        "code": "CNVICT-BGDAL014",
+        "code": "",
         "name": "Gram Whole",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1302,7 +1293,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_67",
-        "code": "CNVICT-BGDAL015",
+        "code": "",
         "name": "Kabuli Chana",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1318,7 +1309,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_68",
-        "code": "CNVICT-BGDAL016",
+        "code": "",
         "name": "Lobiya",
         "group": "BASIC",
         "categoryId": "c_dal",
@@ -1334,7 +1325,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_69",
-        "code": "CNVICT-BGBAS001",
+        "code": "",
         "name": "Atta 5 KG Bag",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1350,7 +1341,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_70",
-        "code": "CNVICT-BGBAS002",
+        "code": "",
         "name": "Atta 10 KG",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1366,7 +1357,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_71",
-        "code": "CNVICT-BGBAS003",
+        "code": "",
         "name": "Rice Sharbati 5kg",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1382,7 +1373,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_72",
-        "code": "CNVICT-BGBAS004",
+        "code": "",
         "name": "Rice Sharbati 25kg",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1398,7 +1389,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_73",
-        "code": "CNVICT-BGBAS005",
+        "code": "",
         "name": "Salt",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1414,7 +1405,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_74",
-        "code": "CNVICT-BGBAS006",
+        "code": "",
         "name": "Sugar",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1430,7 +1421,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_75",
-        "code": "CNVICT-BGBAS007",
+        "code": "",
         "name": "Suji 25 Kgs",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1446,7 +1437,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_76",
-        "code": "CNVICT-BGBAS008",
+        "code": "",
         "name": "Flour 25 Kgs",
         "group": "BASIC",
         "categoryId": "c_bas",
@@ -1526,7 +1517,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_81",
-        "code": "CNVICT-FGVGT001",
+        "code": "",
         "name": "Arvi",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1542,7 +1533,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_82",
-        "code": "CNVICT-FGVGT002",
+        "code": "",
         "name": "Asparagus",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1558,7 +1549,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_83",
-        "code": "CNVICT-FGVGT003",
+        "code": "",
         "name": "Beans (Broad)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1574,7 +1565,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_84",
-        "code": "CNVICT-FGVGT004",
+        "code": "",
         "name": "Beans (Cluster)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1590,7 +1581,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_85",
-        "code": "CNVICT-FGVGT005",
+        "code": "",
         "name": "Beans (French)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1606,7 +1597,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_86",
-        "code": "CNVICT-FGVGT006",
+        "code": "",
         "name": "Beans Long",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1622,7 +1613,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_87",
-        "code": "CNVICT-FGVGT007",
+        "code": "",
         "name": "Beet Root",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1638,7 +1629,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_88",
-        "code": "CNVICT-FGVGT008",
+        "code": "",
         "name": "Bitter Gourd",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1654,7 +1645,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_89",
-        "code": "CNVICT-FGVGT009",
+        "code": "",
         "name": "Bottle Guard",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1670,7 +1661,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_90",
-        "code": "CNVICT-FGVGT010",
+        "code": "",
         "name": "Brinjal",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1686,7 +1677,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_91",
-        "code": "CNVICT-FGVGT011",
+        "code": "",
         "name": "Broccoli",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1702,7 +1693,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_92",
-        "code": "CNVICT-FGVGT012",
+        "code": "",
         "name": "Cabbage",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1718,7 +1709,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_93",
-        "code": "CNVICT-FGVGT013",
+        "code": "",
         "name": "Capsicum",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1734,7 +1725,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_94",
-        "code": "CNVICT-FGVGT014",
+        "code": "",
         "name": "Carrot (C)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1750,7 +1741,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_95",
-        "code": "CNVICT-FGVGT015",
+        "code": "",
         "name": "Carrot (E)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1766,7 +1757,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_96",
-        "code": "CNVICT-FGVGT016",
+        "code": "",
         "name": "Cauliflower",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1782,7 +1773,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_97",
-        "code": "CNVICT-FGVGT017",
+        "code": "",
         "name": "Chilly Green",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1798,7 +1789,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_98",
-        "code": "CNVICT-FGVGT018",
+        "code": "",
         "name": "Coconut (W)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1814,7 +1805,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_99",
-        "code": "CNVICT-FGVGT019",
+        "code": "",
         "name": "Corriander",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1830,7 +1821,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_100",
-        "code": "CNVICT-FGVGT020",
+        "code": "",
         "name": "Cucumber",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1846,7 +1837,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_101",
-        "code": "CNVICT-FGVGT021",
+        "code": "",
         "name": "Curry Leaves",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1862,7 +1853,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_102",
-        "code": "CNVICT-FGVGT022",
+        "code": "",
         "name": "Drumstick",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1878,7 +1869,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_103",
-        "code": "CNVICT-FGVGT023",
+        "code": "",
         "name": "Frozen Beans French",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1894,7 +1885,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_104",
-        "code": "CNVICT-FGVGT024",
+        "code": "",
         "name": "Frozen Carrot",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1910,7 +1901,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_105",
-        "code": "CNVICT-FGVGT025",
+        "code": "",
         "name": "Frozen Cauliflower",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1926,7 +1917,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_106",
-        "code": "CNVICT-FGVGT026",
+        "code": "",
         "name": "Frozen Corn",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1942,7 +1933,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_107",
-        "code": "CNVICT-FGVGT027",
+        "code": "",
         "name": "Frozen Mixed Vegetables(01",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1958,7 +1949,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_108",
-        "code": "CNVICT-FGVGT028",
+        "code": "",
         "name": "Frozen Sweet Corn",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1974,7 +1965,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_109",
-        "code": "CNVICT-FGVGT029",
+        "code": "",
         "name": "Ginger (G)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -1990,7 +1981,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_110",
-        "code": "CNVICT-FGVGT030",
+        "code": "",
         "name": "Lady Finger",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2006,7 +1997,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_111",
-        "code": "CNVICT-FGVGT031",
+        "code": "",
         "name": "Litchi",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2022,7 +2013,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_112",
-        "code": "CNVICT-FGVGT032",
+        "code": "",
         "name": "Methi",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2038,7 +2029,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_113",
-        "code": "CNVICT-FGVGT033",
+        "code": "",
         "name": "Mint (G)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2054,7 +2045,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_114",
-        "code": "CNVICT-FGVGT034",
+        "code": "",
         "name": "Mushrom",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2070,7 +2061,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_115",
-        "code": "CNVICT-FGVGT035",
+        "code": "",
         "name": "Paneer 200 GMS",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2086,7 +2077,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_116",
-        "code": "CNVICT-FGVGT036",
+        "code": "",
         "name": "Parval",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2102,7 +2093,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_117",
-        "code": "CNVICT-FGVGT037",
+        "code": "",
         "name": "Peas Frozen",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2118,7 +2109,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_118",
-        "code": "CNVICT-FGVGT038",
+        "code": "",
         "name": "Peas Frozen (01 KG)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2134,7 +2125,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_119",
-        "code": "CNVICT-FGVGT039",
+        "code": "",
         "name": "Peas Green",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2150,7 +2141,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_120",
-        "code": "CNVICT-FGVGT040",
+        "code": "",
         "name": "Plantain Curry",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2166,7 +2157,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_121",
-        "code": "CNVICT-FGVGT041",
+        "code": "",
         "name": "Pumpkin",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2182,7 +2173,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_122",
-        "code": "CNVICT-FGVGT042",
+        "code": "",
         "name": "Radish(c)",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2198,7 +2189,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_123",
-        "code": "CNVICT-FGVGT043",
+        "code": "",
         "name": "Red Capsicum",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2214,7 +2205,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_124",
-        "code": "CNVICT-FGVGT044",
+        "code": "",
         "name": "Ribbed Gourd",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2230,7 +2221,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_125",
-        "code": "CNVICT-FGVGT045",
+        "code": "",
         "name": "Snake Gaurd",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2246,7 +2237,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_126",
-        "code": "CNVICT-FGVGT046",
+        "code": "",
         "name": "Sour Lime",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2262,7 +2253,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_127",
-        "code": "CNVICT-FGVGT047",
+        "code": "",
         "name": "Spinach",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2278,7 +2269,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_128",
-        "code": "CNVICT-FGVGT048",
+        "code": "",
         "name": "Spring Onion",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2294,7 +2285,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_129",
-        "code": "CNVICT-FGVGT049",
+        "code": "",
         "name": "Tendli",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2310,7 +2301,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_130",
-        "code": "CNVICT-FGVGT050",
+        "code": "",
         "name": "Tinda",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2326,7 +2317,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_131",
-        "code": "CNVICT-FGVGT051",
+        "code": "",
         "name": "Tomato Ripe",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2342,7 +2333,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_132",
-        "code": "CNVICT-FGVGT052",
+        "code": "",
         "name": "Water Melon",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2358,7 +2349,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_133",
-        "code": "CNVICT-FGVGT053",
+        "code": "",
         "name": "Yellow Capsicum",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2374,7 +2365,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_134",
-        "code": "CNVICT-FGVGT054",
+        "code": "",
         "name": "Zimikand",
         "group": "FRESH",
         "categoryId": "c_vgt",
@@ -2390,7 +2381,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_135",
-        "code": "CNVICT-FGFRT001",
+        "code": "",
         "name": "Anar",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2406,7 +2397,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_136",
-        "code": "CNVICT-FGFRT002",
+        "code": "",
         "name": "Apple Ber",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2422,7 +2413,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_137",
-        "code": "CNVICT-FGFRT003",
+        "code": "",
         "name": "Apple Delicious",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2438,7 +2429,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_138",
-        "code": "CNVICT-FGFRT004",
+        "code": "",
         "name": "Apple Golden",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2454,7 +2445,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_139",
-        "code": "CNVICT-FGFRT005",
+        "code": "",
         "name": "Apple Maharaja",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2470,7 +2461,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_140",
-        "code": "CNVICT-FGFRT006",
+        "code": "",
         "name": "Apple Royal",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2486,7 +2477,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_141",
-        "code": "CNVICT-FGFRT007",
+        "code": "",
         "name": "Apple Shimla",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2502,7 +2493,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_142",
-        "code": "CNVICT-FGFRT008",
+        "code": "",
         "name": "Apricot",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2518,7 +2509,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_143",
-        "code": "CNVICT-FGFRT009",
+        "code": "",
         "name": "Banana Elaichi",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2534,7 +2525,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_144",
-        "code": "CNVICT-FGFRT010",
+        "code": "",
         "name": "Banana Green",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2550,7 +2541,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_145",
-        "code": "CNVICT-FGFRT011",
+        "code": "",
         "name": "Banana Yellow",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2566,7 +2557,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_146",
-        "code": "CNVICT-FGFRT012",
+        "code": "",
         "name": "Cherry",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2582,7 +2573,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_147",
-        "code": "CNVICT-FGFRT013",
+        "code": "",
         "name": "Chickoo",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2598,7 +2589,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_148",
-        "code": "CNVICT-FGFRT014",
+        "code": "",
         "name": "Custard Apple",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2614,7 +2605,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_149",
-        "code": "CNVICT-FGFRT015",
+        "code": "",
         "name": "Dragon Fruit",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2630,7 +2621,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_150",
-        "code": "CNVICT-FGFRT016",
+        "code": "",
         "name": "Grapes Black S/l",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2646,7 +2637,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_151",
-        "code": "CNVICT-FGFRT017",
+        "code": "",
         "name": "Grapes Green Seedless",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2662,7 +2653,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_152",
-        "code": "CNVICT-FGFRT018",
+        "code": "",
         "name": "Grapes Red",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2678,7 +2669,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_153",
-        "code": "CNVICT-FGFRT019",
+        "code": "",
         "name": "Grapes Seedless",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2694,7 +2685,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_154",
-        "code": "CNVICT-FGFRT020",
+        "code": "",
         "name": "Guava",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2710,7 +2701,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_155",
-        "code": "CNVICT-FGFRT021",
+        "code": "",
         "name": "Kinoo",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2726,7 +2717,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_156",
-        "code": "CNVICT-FGFRT022",
+        "code": "",
         "name": "Kiwi",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2742,7 +2733,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_157",
-        "code": "CNVICT-FGFRT023",
+        "code": "",
         "name": "Mango Alphonso",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2758,7 +2749,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_158",
-        "code": "CNVICT-FGFRT024",
+        "code": "",
         "name": "Mango Baingan Palli",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2774,7 +2765,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_159",
-        "code": "CNVICT-FGFRT025",
+        "code": "",
         "name": "Mango Chausa",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2790,7 +2781,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_160",
-        "code": "CNVICT-FGFRT026",
+        "code": "",
         "name": "Mango Dussari",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2806,7 +2797,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_161",
-        "code": "CNVICT-FGFRT027",
+        "code": "",
         "name": "Mango Kesar",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2822,7 +2813,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_162",
-        "code": "CNVICT-FGFRT028",
+        "code": "",
         "name": "Mango Langra",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2838,7 +2829,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_163",
-        "code": "CNVICT-FGFRT029",
+        "code": "",
         "name": "Mango Neelam",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2854,7 +2845,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_164",
-        "code": "CNVICT-FGFRT030",
+        "code": "",
         "name": "Musambies",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2870,7 +2861,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_165",
-        "code": "CNVICT-FGFRT031",
+        "code": "",
         "name": "Muskmelon",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2886,7 +2877,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_166",
-        "code": "CNVICT-FGFRT032",
+        "code": "",
         "name": "Orange Nagpuri",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2902,7 +2893,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_167",
-        "code": "CNVICT-FGFRT033",
+        "code": "",
         "name": "Papaya",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2918,7 +2909,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_168",
-        "code": "CNVICT-FGFRT034",
+        "code": "",
         "name": "Pears (Hard)",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2934,7 +2925,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_169",
-        "code": "CNVICT-FGFRT035",
+        "code": "",
         "name": "Pears Soft",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2950,7 +2941,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_170",
-        "code": "CNVICT-FGFRT036",
+        "code": "",
         "name": "Pineapple",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2966,7 +2957,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_171",
-        "code": "CNVICT-FGFRT037",
+        "code": "",
         "name": "Plum",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2982,7 +2973,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_172",
-        "code": "CNVICT-FGFRT038",
+        "code": "",
         "name": "Strawberry",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -2998,7 +2989,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_173",
-        "code": "CNVICT-FGFRT039",
+        "code": "",
         "name": "Water Melon",
         "group": "FRESH",
         "categoryId": "c_frt",
@@ -3014,7 +3005,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_174",
-        "code": "CNVICT-FGDRY001",
+        "code": "",
         "name": "Milk Tetra",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3030,7 +3021,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_175",
-        "code": "CNVICT-FGDRY002",
+        "code": "",
         "name": "Bread",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3046,7 +3037,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_176",
-        "code": "CNVICT-FGDRY003",
+        "code": "",
         "name": "Bread Whole Wheat",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3062,7 +3053,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_177",
-        "code": "CNVICT-FGDRY004",
+        "code": "",
         "name": "Brown Bread",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3078,7 +3069,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_178",
-        "code": "CNVICT-FGDRY005",
+        "code": "",
         "name": "Butter Fresh",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3094,7 +3085,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_179",
-        "code": "CNVICT-FGDRY006",
+        "code": "",
         "name": "Butter Fresh 100g",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3110,7 +3101,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_180",
-        "code": "CNVICT-FGDRY007",
+        "code": "",
         "name": "Butter Fresh 500g",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3126,7 +3117,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_181",
-        "code": "CNVICT-FGDRY008",
+        "code": "",
         "name": "Milk Fresh",
         "group": "FRESH",
         "categoryId": "c_dy",
@@ -3142,7 +3133,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_182",
-        "code": "CNVICT-FGMT001",
+        "code": "",
         "name": "Egg Trays",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3158,7 +3149,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_183",
-        "code": "CNVICT-FGMT002",
+        "code": "",
         "name": "Eggs",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3174,7 +3165,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_184",
-        "code": "CNVICT-FGMT003",
+        "code": "",
         "name": "Fish",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3190,7 +3181,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_185",
-        "code": "CNVICT-FGMT004",
+        "code": "",
         "name": "Fish Baiki",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3206,7 +3197,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_186",
-        "code": "CNVICT-FGMT005",
+        "code": "",
         "name": "Fish Baiki Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3222,7 +3213,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_187",
-        "code": "CNVICT-FGMT006",
+        "code": "",
         "name": "Fish Basa Fillet",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3238,7 +3229,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_188",
-        "code": "CNVICT-FGMT007",
+        "code": "",
         "name": "Fish Basa Fillet",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3254,7 +3245,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_189",
-        "code": "CNVICT-FGMT008",
+        "code": "",
         "name": "Fish Katla",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3270,7 +3261,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_190",
-        "code": "CNVICT-FGMT009",
+        "code": "",
         "name": "Fish Mackerel",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3286,7 +3277,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_191",
-        "code": "CNVICT-FGMT010",
+        "code": "",
         "name": "Fish Mackerel Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3302,7 +3293,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_192",
-        "code": "CNVICT-FGMT011",
+        "code": "",
         "name": "Fish Mackerel Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3318,7 +3309,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_193",
-        "code": "CNVICT-FGMT012",
+        "code": "",
         "name": "Fish Pomphret",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3334,7 +3325,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_194",
-        "code": "CNVICT-FGMT013",
+        "code": "",
         "name": "Fish Pomphret Black Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3350,7 +3341,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_195",
-        "code": "CNVICT-FGMT014",
+        "code": "",
         "name": "Fish Pomphret Black Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3366,7 +3357,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_196",
-        "code": "CNVICT-FGMT015",
+        "code": "",
         "name": "Fish Pomphret Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3382,7 +3373,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_197",
-        "code": "CNVICT-FGMT016",
+        "code": "",
         "name": "Fish Pomphret White",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3398,7 +3389,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_198",
-        "code": "CNVICT-FGMT017",
+        "code": "",
         "name": "Fish Pomphret White Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3414,7 +3405,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_199",
-        "code": "CNVICT-FGMT018",
+        "code": "",
         "name": "Fish Pomphret White Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3430,7 +3421,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_200",
-        "code": "CNVICT-FGMT019",
+        "code": "",
         "name": "Fish Rawas",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3446,7 +3437,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_201",
-        "code": "CNVICT-FGMT020",
+        "code": "",
         "name": "Fish Rawas Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3462,7 +3453,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_202",
-        "code": "CNVICT-FGMT021",
+        "code": "",
         "name": "Fish Red Snapper Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3478,7 +3469,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_203",
-        "code": "CNVICT-FGMT022",
+        "code": "",
         "name": "Fish Red Sniper",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3494,7 +3485,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_204",
-        "code": "CNVICT-FGMT023",
+        "code": "",
         "name": "Fish Red Sniper Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3510,7 +3501,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_205",
-        "code": "CNVICT-FGMT024",
+        "code": "",
         "name": "Fish Rohu",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3526,7 +3517,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_206",
-        "code": "CNVICT-FGMT025",
+        "code": "",
         "name": "Fish Rohu Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3542,7 +3533,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_207",
-        "code": "CNVICT-FGMT026",
+        "code": "",
         "name": "Fish Surmai",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3558,7 +3549,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_208",
-        "code": "CNVICT-FGMT027",
+        "code": "",
         "name": "Fish Surmai Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3574,7 +3565,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_209",
-        "code": "CNVICT-FGMT028",
+        "code": "",
         "name": "Fish Surmai Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3590,7 +3581,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_210",
-        "code": "CNVICT-FGMT029",
+        "code": "",
         "name": "Fish Tuna Frozen",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3606,7 +3597,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_211",
-        "code": "CNVICT-FGMT030",
+        "code": "",
         "name": "Fish Tuna Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3622,7 +3613,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_212",
-        "code": "CNVICT-FGMT031",
+        "code": "",
         "name": "Frozen Chicken Pre-cut",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3638,7 +3629,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_213",
-        "code": "CNVICT-FGMT032",
+        "code": "",
         "name": "Frozen Chicken Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3654,7 +3645,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_214",
-        "code": "CNVICT-FGMT033",
+        "code": "",
         "name": "FZ Chicken Pre-cut",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3670,7 +3661,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_215",
-        "code": "CNVICT-FGMT034",
+        "code": "",
         "name": "FZ Chicken Whole",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3686,7 +3677,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_216",
-        "code": "CNVICT-FGMT035",
+        "code": "",
         "name": "Ham",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3702,7 +3693,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_217",
-        "code": "CNVICT-FGMT036",
+        "code": "",
         "name": "Meat Frozen Boneless",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3718,7 +3709,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_218",
-        "code": "CNVICT-FGMT037",
+        "code": "",
         "name": "Meat Frozen Without Bones",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3734,7 +3725,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_219",
-        "code": "CNVICT-FGMT038",
+        "code": "",
         "name": "Meat Pre Cut 'Chilled'",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3750,7 +3741,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_220",
-        "code": "CNVICT-FGMT039",
+        "code": "",
         "name": "Meat Pre Cut 'Fresh'",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3766,7 +3757,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_221",
-        "code": "CNVICT-FGMT040",
+        "code": "",
         "name": "Meat Pre Cut 'Frozen'",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3782,7 +3773,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_222",
-        "code": "CNVICT-FGMT041",
+        "code": "",
         "name": "Meat Tinned",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3798,7 +3789,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_223",
-        "code": "CNVICT-FGMT042",
+        "code": "",
         "name": "Meat Without Bones",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3814,7 +3805,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_224",
-        "code": "CNVICT-FGMT043",
+        "code": "",
         "name": "Rawas (Indian Salmon Whole)",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3830,7 +3821,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_225",
-        "code": "CNVICT-FGMT044",
+        "code": "",
         "name": "Sausages",
         "group": "FRESH",
         "categoryId": "c_mt",
@@ -3846,7 +3837,7 @@ window.SEED_DATA = {
     },
     {
         "id": "p_226",
-        "code": "CNVICT-FGMT045",
+        "code": "",
         "name": "Sausages (Chicken)",
         "group": "FRESH",
         "categoryId": "c_mt",

@@ -55,7 +55,8 @@
     const allCats  = DB.list('categories').filter(c => my.includes('*') || sections.some(s => s.id === c.sectionId));
 
     function populateCategoryDropdown(groupFilter) {
-      const visible = groupFilter ? allCats.filter(c => c.group === groupFilter) : allCats;
+      // Show categories that match the group, plus any that span multiple groups (group === '')
+      const visible = groupFilter ? allCats.filter(c => c.group === groupFilter || c.group === '') : allCats;
       filterCategory.innerHTML = '<option value="">All categories</option>' +
         visible.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     }
