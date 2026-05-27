@@ -12,16 +12,16 @@ window.SEED_DATA = {
   ],
 
   users: [
-    { id: 'u1',  name: 'Capt Ravindra Kumar',    rank: 'Capt',   role: 'super_admin',         designation: 'BVO',               email: 'r.kumar@navy.mil.in',     sections: ['*'] },
-    { id: 'u2',  name: 'Cdr Pawan Kumar Ojha',   rank: 'Cdr',    role: 'central_coordinator', designation: 'OICNG',             email: 'p.ojha@navy.mil.in',      sections: ['*'] },
-    { id: 'u3',  name: 'Lt Cdr Mukil Hariharan', rank: 'Lt Cdr', role: 'reviewer',            designation: 'Logistics Officer', email: 'm.hariharan@navy.mil.in', sections: ['*'] },
-    { id: 'u4',  name: 'Raj K Panjiyara',        rank: 'SSS',    role: 'inventory_manager',   designation: 'ICBG / Dry Store',  email: 'r.panjiyara@navy.mil.in', sections: ['sec_dry'] },
-    { id: 'u5',  name: 'Vinodh K Vijay',         rank: 'LtCdr',  role: 'reviewer',            designation: 'OICBG',             email: 'v.vijay@navy.mil.in',     sections: ['*'] },
-    { id: 'u6',  name: 'Suresh G',               rank: 'SS',     role: 'inventory_manager',   designation: 'Dal Store I/C',     email: 's.suresh@navy.mil.in',    sections: ['sec_dal'] },
-    { id: 'u7',  name: 'Aravind CH',             rank: 'AVR',    role: 'inventory_manager',   designation: 'Masala Store I/C',  email: 'aravind@navy.mil.in',     sections: ['sec_masala'] },
-    { id: 'u8',  name: 'Raju K G',               rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',   email: 'raju.kg@navy.mil.in',     sections: ['sec_fresh'] },
-    { id: 'u9',  name: 'Bibul Halder',           rank: 'AVR',    role: 'inventory_manager',   designation: 'Meat Store I/C',    email: 'b.halder@navy.mil.in',    sections: ['sec_meat'] },
-    { id: 'u10', name: 'Data Entry Op 1',        rank: 'SS',     role: 'data_entry',          designation: 'Central Hub Op',    email: 'op1@navy.mil.in',         sections: ['*'] }
+    { id: 'u1',  name: 'BVO',                rank: 'Capt',   role: 'super_admin',         designation: 'BVO',               email: 'bvo@navy.mil.in',         sections: ['*'] },
+    { id: 'u2',  name: 'OICNG',              rank: 'Cdr',    role: 'central_coordinator', designation: 'OICNG',             email: 'oicng@navy.mil.in',       sections: ['*'] },
+    { id: 'u3',  name: 'Logistics Officer',  rank: 'Lt Cdr', role: 'reviewer',            designation: 'Logistics Officer', email: 'logo@navy.mil.in',        sections: ['*'] },
+    { id: 'u4',  name: 'Dry Store I/C',      rank: 'SSS',    role: 'inventory_manager',   designation: 'ICBG / Dry Store',  email: 'dry.ic@navy.mil.in',      sections: ['sec_dry'] },
+    { id: 'u5',  name: 'OICBG',             rank: 'LtCdr',  role: 'reviewer',            designation: 'OICBG',             email: 'oicbg@navy.mil.in',       sections: ['*'] },
+    { id: 'u6',  name: 'Dal Store I/C',      rank: 'SS',     role: 'inventory_manager',   designation: 'Dal Store I/C',     email: 'dal.ic@navy.mil.in',      sections: ['sec_dal'] },
+    { id: 'u7',  name: 'Masala Store I/C',   rank: 'AVR',    role: 'inventory_manager',   designation: 'Masala Store I/C',  email: 'masala.ic@navy.mil.in',   sections: ['sec_masala'] },
+    { id: 'u8',  name: 'Fresh Store I/C',    rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',   email: 'fresh.ic@navy.mil.in',    sections: ['sec_fresh'] },
+    { id: 'u9',  name: 'Meat Store I/C',     rank: 'AVR',    role: 'inventory_manager',   designation: 'Meat Store I/C',    email: 'meat.ic@navy.mil.in',     sections: ['sec_meat'] },
+    { id: 'u10', name: 'Data Entry Operator', rank: 'SS',    role: 'data_entry',          designation: 'Central Hub Op',    email: 'dataop@navy.mil.in',      sections: ['*'] }
   ],
 
   categories: [
