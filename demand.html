@@ -50,7 +50,7 @@
       const f = document.getElementById('filter').value;
       let rows = DB.list('demands').filter(relevantToMe);
       if (f) rows = rows.filter(d => d.status === f);
-      const channelIcon = { print: '🖨️', email: '✉️', whatsapp: '💬' };
+      const channelIcon = { print: '⎙', email: '✉', whatsapp: WA_ICON };
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
           <th>Demand</th><th>Date · Day</th><th>Via</th><th>From Ship</th>
@@ -197,7 +197,7 @@
           </div>
           <div class="field"><label>Received via</label>
             <div class="row" style="gap:8px;">
-              ${[['print','🖨️ Print'],['email','✉️ Email'],['whatsapp','💬 WhatsApp']].map(([v,l]) => `
+              ${[['print','⎙ Print'],['email','✉ Email'],['whatsapp',WA_ICON + ' WhatsApp']].map(([v,l]) => `
                 <label class="row" style="gap:6px;background:#fafbfd;padding:6px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;">
                   <input type="radio" name="f_channel" value="${v}" ${v === 'whatsapp' ? 'checked' : ''} style="margin:0;">
                   ${l}

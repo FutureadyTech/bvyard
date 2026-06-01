@@ -51,7 +51,7 @@
               <td class="text-sm">${escapeHtml(s.contact || '—')}</td>
               <td class="text-sm">
                 ${s.whatsapp
-                  ? `<a href="https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--navy-700);">📱 ${escapeHtml(s.whatsapp)}</a>`
+                  ? `<a href="https://wa.me/${s.whatsapp.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--navy-700);">${WA_ICON}${escapeHtml(s.whatsapp)}</a>`
                   : '—'}
               </td>
               <td class="text-right">${poCount}</td>

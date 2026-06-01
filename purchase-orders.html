@@ -23,7 +23,7 @@
         </div>
         <div class="row" style="gap:8px;">
           <button class="btn btn-primary" id="newBtn">+ New PO</button>
-          <button class="btn btn-gold" id="smartBtn">⚡ Smart PO</button>
+          <button class="btn btn-gold" id="smartBtn">★ Smart PO</button>
         </div>
       </div>
       <div class="table-wrap"><table class="data" id="tbl"></table></div>
@@ -59,11 +59,11 @@
               <td class="text-right">${po.items.length}</td>
               <td class="text-right bold">${fmtMoney(po.totalValue)}</td>
               <td><span class="badge ${statusClass}">${po.status.toUpperCase()}</span></td>
-              <td class="text-sm">${dem ? `Demand ${dem.demandNo}` : po.source === 'smart' ? '⚡ Smart' : 'Manual'}</td>
+              <td class="text-sm">${dem ? `Demand ${dem.demandNo}` : po.source === 'smart' ? '★ Smart' : 'Manual'}</td>
               <td class="text-right">
                 <button class="btn btn-sm" onclick="viewPO('${po.id}')">View</button>
                 ${po.status === 'draft' && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="issuePO('${po.id}')">Issue PO</button>` : ''}
-                <button class="btn btn-sm" onclick="shareViaWhatsApp('${po.id}')">📱</button>
+                <button class="btn btn-sm" onclick="shareViaWhatsApp('${po.id}')" title="Send via WhatsApp">${WA_ICON}</button>
               </td>
             </tr>`;
           }).join('') || '<tr><td colspan="8" class="empty">No purchase orders yet</td></tr>'}
@@ -104,8 +104,8 @@
             <tfoot><tr><td colspan="4" class="text-right bold">Total</td><td class="text-right bold">${fmtMoney(po.totalValue)}</td></tr></tfoot>
           </table>
           <div class="row no-print" style="gap:10px;justify-content:flex-end;">
-            <button class="btn" onclick="window.print()">🖨 Print / Save PDF</button>
-            <button class="btn btn-primary" onclick="shareViaWhatsApp('${po.id}')">📱 Send via WhatsApp</button>
+            <button class="btn" onclick="window.print()">⎙ Print / Save PDF</button>
+            <button class="btn btn-primary" onclick="shareViaWhatsApp('${po.id}')">${WA_ICON} Send via WhatsApp</button>
           </div>
         </div>
       `, null, '', 'wide');

@@ -6,6 +6,7 @@
   <title>Dashboard · BV Yard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/dashboard-v2.css">
 </head>
 <body>
   <div id="pageContent"></div>
@@ -14,258 +15,435 @@
   <script src="assets/js/db.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
-    renderShell('dashboard', 'Dashboard', 'Overview of inventory operations');
+    renderShell('dashboard', 'Dashboard', '');
+    document.body.classList.add('page-dashboard-v2');
 
-    const role      = Session.get()?.role;
-    const mySections = userSections();
-    const products  = DB.productsForUser(mySections);
-    const lowStock  = DB.lowStockItems(mySections);
-    const outOfStock = products.filter(p => p.currentStock === 0);
+    // ── Core data ──────────────────────────────────────────────────
+    const role         = Session.get()?.role;
+    const mySections   = userSections();
+    const products     = DB.productsForUser(mySections);
+    const demands      = DB.list('demands');
+    const stockIn      = DB.list('stockIn');
+    const stockOut     = DB.list('stockOut');
+    const lowStock     = DB.lowStockItems(mySections);
+    const outOfStock   = products.filter(p => p.currentStock === 0);
     const inventoryValue = products.reduce((s, p) => s + (p.currentStock * p.unitPrice), 0);
 
-    // ─────────────────────────────────────────────
-    // DATA ENTRY — Items & Inventory only
-    // ─────────────────────────────────────────────
-    if (role === 'data_entry') {
-      document.getElementById('pageContent').innerHTML = `
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="label">Items Tracked</div>
-            <div class="value">${products.length}</div>
-            <div class="sub">total SKUs in system</div>
-          </div>
-          <div class="stat-card ok">
-            <div class="label">Inventory Value</div>
-            <div class="value">${fmtMoney(inventoryValue)}</div>
-            <div class="sub">stock on hand</div>
-          </div>
-          <div class="stat-card ${lowStock.length ? 'warn' : 'ok'}">
-            <div class="label">Low Stock</div>
-            <div class="value">${lowStock.length}</div>
-            <div class="sub">below minimum level</div>
-          </div>
-          <div class="stat-card ${outOfStock.length ? 'danger' : 'ok'}">
-            <div class="label">Out of Stock</div>
-            <div class="value">${outOfStock.length}</div>
-            <div class="sub">zero on hand</div>
-          </div>
-        </div>
+    const pendingDemands  = demands.filter(d => d.status === 'pending');
+    const approvedDemands = demands.filter(d => ['approved','partially_fulfilled'].includes(d.status));
+    const activeDemands   = demands.filter(d => !['fulfilled','rejected'].includes(d.status));
+    const measurable      = demands.filter(d => d.items.some(it => it.fulfilledQty > 0));
+    const avgCompliance   = measurable.length
+      ? Math.round(measurable.reduce((s, d) => s + DB.demandFulfilmentPct(d).qtyPct, 0) / measurable.length)
+      : 100;
 
-        <div class="grid-2" style="margin-top:16px;">
-          <div class="card">
-            <div class="card-header">
-              <h3>Low Stock Alerts</h3>
-              <a class="btn btn-sm" href="inventory.html">View Inventory →</a>
+    // ── Stock status counts ────────────────────────────────────────
+    const statusCounts = { ok: 0, warn: 0, low: 0, out: 0 };
+    products.forEach(p => { statusCounts[DB.productStockStatus(p)]++; });
+    const totalProds = products.length || 1;
+
+    // ── Synthetic monthly demand data for line chart ───────────────
+    const months      = ['Jan','Feb','Mar','Apr','May'];
+    const demandData  = [8, 12, 10, 15, Math.max(demands.filter(d => d.date >= '2026-05-01').length, 2)];
+    const fulfilData  = [7, 10,  9, 13, demands.filter(d => d.status === 'fulfilled' && d.date >= '2026-05-01').length];
+    const stockInData = [5,  9,  7, 11, Math.max(stockIn.length, 1)];
+
+    // ── SVG helpers ────────────────────────────────────────────────
+    function smoothPath(pts) {
+      if (!pts.length) return '';
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const dx = (pts[i + 1].x - pts[i].x) / 2.5;
+        d += ` C ${pts[i].x + dx},${pts[i].y} ${pts[i + 1].x - dx},${pts[i + 1].y} ${pts[i + 1].x},${pts[i + 1].y}`;
+      }
+      return d;
+    }
+
+    function buildLineChart(datasets) {
+      const W = 460, H = 138, pL = 28, pR = 10, pT = 10, pB = 28;
+      const cW = W - pL - pR, cH = H - pT - pB;
+      const maxVal = Math.max(...datasets.flatMap(d => d.values), 1);
+      const xStep  = cW / (months.length - 1);
+
+      function toPoints(values) {
+        return values.map((v, i) => ({
+          x: pL + i * xStep,
+          y: pT + cH - (v / maxVal) * cH
+        }));
+      }
+
+      const gridY = [0, 0.25, 0.5, 0.75, 1];
+      const grids = gridY.map(pct => {
+        const y = pT + cH * (1 - pct);
+        return `<line x1="${pL}" y1="${y.toFixed(1)}" x2="${W - pR}" y2="${y.toFixed(1)}" stroke="#f1f5f9" stroke-width="1"/>
+                <text x="${pL - 4}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="#cbd5e1">${Math.round(maxVal * pct)}</text>`;
+      }).join('');
+
+      const xLabels = months.map((m, i) => {
+        const x = (pL + i * xStep).toFixed(1);
+        return `<text x="${x}" y="${H - 6}" text-anchor="middle" font-size="8.5" fill="#94a3b8">${m}</text>`;
+      }).join('');
+
+      const lines = datasets.map(ds => {
+        const pts = toPoints(ds.values);
+        const linePath = smoothPath(pts);
+        const areaPath = linePath + ` L ${pts[pts.length-1].x.toFixed(1)},${(pT + cH).toFixed(1)} L ${pts[0].x.toFixed(1)},${(pT + cH).toFixed(1)} Z`;
+        const dots = pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${ds.color}" stroke="#fff" stroke-width="1.5"/>`).join('');
+        return `<path d="${areaPath}" fill="${ds.color}" fill-opacity="0.07"/>
+                <path d="${linePath}" fill="none" stroke="${ds.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                ${dots}`;
+      }).join('');
+
+      return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:148px;">${grids}${lines}${xLabels}</svg>`;
+    }
+
+    // ── Donut SVG ──────────────────────────────────────────────────
+    function donutSVG(segments) {
+      const total = segments.reduce((s, x) => s + x.v, 0);
+      if (!total) return '<svg viewBox="0 0 80 80" width="80" height="80"><circle cx="40" cy="40" r="28" fill="#f1f5f9"/></svg>';
+      const R = 32, r = 20, cx = 40, cy = 40;
+      let angle = -90;
+      const paths = segments.map(seg => {
+        const sweep = (seg.v / total) * 360;
+        const a1 = angle * Math.PI / 180;
+        const a2 = (angle + sweep) * Math.PI / 180;
+        const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+        const x2 = cx + R * Math.cos(a2), y2 = cy + R * Math.sin(a2);
+        const ix1 = cx + r * Math.cos(a2), iy1 = cy + r * Math.sin(a2);
+        const ix2 = cx + r * Math.cos(a1), iy2 = cy + r * Math.sin(a1);
+        const large = sweep > 180 ? 1 : 0;
+        angle += sweep;
+        return `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${ix1.toFixed(2)},${iy1.toFixed(2)} A${r},${r} 0 ${large},0 ${ix2.toFixed(2)},${iy2.toFixed(2)}Z" fill="${seg.color}"/>`;
+      });
+      return `<svg viewBox="0 0 80 80" width="80" height="80" style="flex-shrink:0;">${paths.join('')}</svg>`;
+    }
+
+    // ── Chart datasets for each tab ────────────────────────────────
+    const chartTabs = {
+      demand: [
+        { label: 'Demands Raised', color: '#1a3a6c', values: demandData },
+        { label: 'Fulfilled',      color: '#c9a14a', values: fulfilData }
+      ],
+      stockin: [
+        { label: 'Goods Received', color: '#166534', values: stockInData }
+      ]
+    };
+    let activeTab = 'demand';
+
+    function renderChart() {
+      document.getElementById('dv2-linechart').innerHTML = buildLineChart(chartTabs[activeTab]);
+    }
+
+    // ── Section bars ───────────────────────────────────────────────
+    function buildSectionBars() {
+      const sections = DB.list('sections').filter(s => mySections.includes('*') || mySections.includes(s.id));
+      const allProds = DB.list('products');
+      return sections.map(s => {
+        const secProds = allProds.filter(p => p.sectionId === s.id);
+        if (!secProds.length) return '';
+        const okCount = secProds.filter(p => DB.productStockStatus(p) === 'ok').length;
+        const pct     = Math.round((okCount / secProds.length) * 100);
+        const cls     = pct >= 75 ? 'ok' : pct >= 50 ? 'warn' : 'danger';
+        const shortName = s.name.replace(' (Off-site)','').replace(' Store','').replace(' / ','/ ');
+        return `
+          <div class="dv2-bar-item">
+            <div class="dv2-bar-row">
+              <span>${escapeHtml(shortName)}</span>
+              <span class="dv2-bar-pct">${okCount}/${secProds.length} OK</span>
             </div>
-            <div class="table-wrap">
-              <table class="data">
-                <thead><tr><th>Item</th><th>Code</th><th>On Hand</th><th>Min Required</th><th>Status</th></tr></thead>
-                <tbody>
-                  ${lowStock.slice(0, 8).map(p => `
-                    <tr>
-                      <td class="bold">${escapeHtml(displayName(p))}</td>
-                      <td class="text-sm text-mute">${p.code}</td>
-                      <td>${p.currentStock} ${p.baseUnit}</td>
-                      <td class="text-mute">${p.minStock} ${p.baseUnit}</td>
-                      <td><span class="badge ${p.currentStock === 0 ? 'danger' : 'warn'}">${p.currentStock === 0 ? 'OUT' : 'LOW'}</span></td>
-                    </tr>
-                  `).join('') || '<tr><td colspan="5" class="empty">All stock above minimum levels</td></tr>'}
-                </tbody>
+            <div class="dv2-bar-track"><div class="dv2-bar-fill ${cls}" style="width:${pct}%"></div></div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Active demands table ───────────────────────────────────────
+    function buildDemandTable() {
+      if (!activeDemands.length) {
+        return `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px 0;font-size:12px;">No active demands</td></tr>`;
+      }
+      const sorted = activeDemands.slice().sort((a, b) => {
+        const o = { approved: 0, partially_fulfilled: 1, pending: 2 };
+        return (o[a.status] ?? 9) - (o[b.status] ?? 9);
+      });
+      return sorted.slice(0, 6).map(d => {
+        const ship = DB.ship(d.shipId);
+        const { qtyPct } = DB.demandFulfilmentPct(d);
+        const progCls   = qtyPct >= 80 ? '' : qtyPct >= 40 ? 'warn' : 'danger';
+        const statusCls = d.status === 'pending' ? 'warn' : d.status === 'partially_fulfilled' ? 'info' : 'ok';
+        const canFulfil = ['approved','partially_fulfilled'].includes(d.status) && can('create');
+        return `
+          <tr>
+            <td class="bold">${d.demandNo}</td>
+            <td>${ship ? ship.name : '—'}<br><span style="font-size:10px;color:#94a3b8;">${d.date}</span></td>
+            <td>
+              <div class="dv2-prog">
+                <div class="dv2-prog-track"><div class="dv2-prog-fill ${progCls}" style="width:${qtyPct}%"></div></div>
+                <span>${qtyPct}%</span>
+              </div>
+            </td>
+            <td><span class="badge ${statusCls}">${d.status.replace('_',' ').toUpperCase()}</span></td>
+            <td style="text-align:right;">${canFulfil ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ── Right panel helpers ────────────────────────────────────────
+    function buildAlerts() {
+      const items = lowStock.slice(0, 5);
+      if (!items.length) {
+        return `<div class="dv2-alert-item">
+          <div class="dv2-alert-icon ok">✔</div>
+          <div class="dv2-alert-body">
+            <div class="dv2-alert-msg">All stock above minimum</div>
+            <div class="dv2-alert-meta">No items need reordering</div>
+          </div></div>`;
+      }
+      return items.map(p => {
+        const isOut = p.currentStock === 0;
+        const cls   = isOut ? 'danger' : 'warn';
+        const icon  = isOut ? '!' : '↓';
+        const cat   = DB.category(p.categoryId);
+        return `
+          <div class="dv2-alert-item">
+            <div class="dv2-alert-icon ${cls}">${icon}</div>
+            <div class="dv2-alert-body">
+              <div class="dv2-alert-msg" title="${escapeHtml(displayName(p))}">${escapeHtml(displayName(p))}</div>
+              <div class="dv2-alert-meta">${cat ? escapeHtml(cat.name) : '—'} · ${p.currentStock}/${p.minStock} ${p.baseUnit}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function buildActivity() {
+      const events = [];
+      stockIn.slice(-3).reverse().forEach(si => {
+        const sp = DB.supplier(si.supplierId);
+        events.push({ color: '#166534', text: `SRV ${si.srvNo} from ${sp ? sp.name : '—'}`, date: si.date });
+      });
+      stockOut.slice(-3).reverse().forEach(so => {
+        const ship = DB.ship(so.shipId);
+        events.push({ color: '#1a3a6c', text: `Issued ${so.voucherNo} to ${ship ? ship.name : '—'}`, date: so.date });
+      });
+      demands.slice(-3).reverse().forEach(d => {
+        events.push({ color: '#d97706', text: `Demand ${d.demandNo} — ${d.status.replace('_',' ')}`, date: d.date });
+      });
+      events.sort((a, b) => b.date.localeCompare(a.date));
+      if (!events.length) return `<div style="font-size:12px;color:#94a3b8;">No activity yet</div>`;
+      return events.slice(0, 6).map(e => `
+        <div class="dv2-act-item">
+          <div class="dv2-act-dot" style="background:${e.color};"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(e.text)}</div>
+            <div style="font-size:10px;color:#94a3b8;">${fmtDate(e.date)}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function buildQuickActions() {
+      const userRole = Session.get()?.role;
+      const nav = ROLES[userRole]?.nav || [];
+      return [
+        { href: 'demand.html',          icon: '✎', label: 'New Demand',         show: can('create') },
+        { href: 'stock-out.html',       icon: '✔', label: 'Issue Voucher',       show: can('create') },
+        { href: 'purchase-orders.html', icon: '◧', label: 'New Purchase Order',  show: can('create') },
+        { href: 'low-stock.html',       icon: '!', label: 'View Low Stock',       show: nav.includes('low-stock') },
+        { href: 'inventory.html',       icon: '◻', label: 'Inventory Ledger',    show: nav.includes('inventory') },
+        { href: 'reports.html',         icon: '≡', label: 'Reports',             show: nav.includes('reports') }
+      ].filter(l => l.show).map(l => `
+        <a class="dv2-qa-btn" href="${l.href}">
+          <div class="dv2-qa-icon">${l.icon}</div>
+          ${escapeHtml(l.label)}
+        </a>`).join('');
+    }
+
+    // ── Donut segments ─────────────────────────────────────────────
+    const donutSegs = [
+      { label: 'Healthy',   v: statusCounts.ok,   color: '#166534' },
+      { label: 'Near Min',  v: statusCounts.warn,  color: '#d97706' },
+      { label: 'Below Min', v: statusCounts.low,   color: '#dc2626' },
+      { label: 'Out',       v: statusCounts.out,   color: '#7f1d1d' }
+    ].filter(s => s.v > 0);
+    const donutTotal = donutSegs.reduce((s, x) => s + x.v, 0) || 1;
+
+    const todayLabel      = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const complianceCls   = avgCompliance >= 90 ? 'up' : avgCompliance >= 70 ? 'flat' : 'down';
+    const complianceTrend = avgCompliance >= 90 ? '↑ On target' : avgCompliance >= 70 ? '~ Watch' : '↓ Needs attention';
+
+    // ─────────────────────────────────────────────────────────────
+    // Render
+    // ─────────────────────────────────────────────────────────────
+    document.getElementById('pageContent').innerHTML = `
+      <div class="dv2-wrap">
+
+        <!-- ── Main content ──────────────────────────────────── -->
+        <div class="dv2-main">
+
+          <div class="dv2-page-hdr">
+            <h2>Overview</h2>
+            <span class="dv2-date-pill">${todayLabel}</span>
+          </div>
+
+          <!-- KPI cards -->
+          <div class="dv2-kpi-grid">
+            <div class="dv2-kpi warn">
+              <div class="dv2-kpi-label">Pending Approval</div>
+              <div class="dv2-kpi-row">
+                <div class="dv2-kpi-val">${pendingDemands.length}</div>
+                <span class="dv2-badge ${pendingDemands.length > 0 ? 'down' : 'up'}">${pendingDemands.length > 0 ? '↑ Needs review' : '✔ Clear'}</span>
+              </div>
+              <div class="dv2-kpi-sub">demands awaiting reviewer action</div>
+            </div>
+            <div class="dv2-kpi ok">
+              <div class="dv2-kpi-label">Ready to Fulfill</div>
+              <div class="dv2-kpi-row">
+                <div class="dv2-kpi-val">${approvedDemands.length}</div>
+                <span class="dv2-badge ${approvedDemands.length > 0 ? 'gold' : 'flat'}">${approvedDemands.length > 0 ? '→ Action needed' : '— None'}</span>
+              </div>
+              <div class="dv2-kpi-sub">approved · awaiting outward issue</div>
+            </div>
+            <div class="dv2-kpi ${lowStock.length ? 'danger' : 'ok'}">
+              <div class="dv2-kpi-label">Low Stock Items</div>
+              <div class="dv2-kpi-row">
+                <div class="dv2-kpi-val">${lowStock.length}</div>
+                <span class="dv2-badge ${lowStock.length > 0 ? 'down' : 'up'}">${lowStock.length > 0 ? '↓ Below min' : '✔ All OK'}</span>
+              </div>
+              <div class="dv2-kpi-sub">${outOfStock.length} out of stock · ${mySections.includes('*') ? 'all sections' : 'your section'}</div>
+            </div>
+            <div class="dv2-kpi neutral">
+              <div class="dv2-kpi-label">Avg Compliance</div>
+              <div class="dv2-kpi-row">
+                <div class="dv2-kpi-val">${avgCompliance}<span style="font-size:18px;font-weight:500;">%</span></div>
+                <span class="dv2-badge ${complianceCls}">${complianceTrend}</span>
+              </div>
+              <div class="dv2-kpi-sub">quantity-wise fulfilment rate</div>
+            </div>
+          </div>
+
+          <!-- Row 1: Line chart + Section health bars -->
+          <div class="dv2-row">
+            <div class="dv2-card grow">
+              <div class="dv2-card-hdr">
+                <div class="dv2-card-title">Demand Activity</div>
+                <a class="dv2-view-link" href="demand.html">View all →</a>
+              </div>
+              <div class="dv2-tabs">
+                <div class="dv2-tab active" data-tab="demand">Demand vs Fulfilled</div>
+                <div class="dv2-tab" data-tab="stockin">Goods Received</div>
+              </div>
+              <div class="dv2-legend" id="dv2-legend">
+                <span><span class="dv2-legend-dot" style="background:#1a3a6c;"></span>Demands Raised</span>
+                <span id="dv2-leg2"><span class="dv2-legend-dot" style="background:#c9a14a;"></span>Fulfilled</span>
+              </div>
+              <div id="dv2-linechart"></div>
+            </div>
+            <div class="dv2-card w260">
+              <div class="dv2-card-hdr">
+                <div class="dv2-card-title">Stock Health by Section</div>
+              </div>
+              <div class="dv2-card-sub">% of items at or above minimum stock</div>
+              ${buildSectionBars()}
+            </div>
+          </div>
+
+          <!-- Row 2: Active demands + Stock status donut -->
+          <div class="dv2-row">
+            <div class="dv2-card grow">
+              <div class="dv2-card-hdr">
+                <div class="dv2-card-title">Active Demands</div>
+                <a class="dv2-view-link" href="demand.html">View all →</a>
+              </div>
+              <div class="dv2-card-sub">${activeDemands.length} demand${activeDemands.length !== 1 ? 's' : ''} in progress</div>
+              <table class="dv2-tbl">
+                <thead><tr>
+                  <th>Demand No.</th><th>Ship · Date</th>
+                  <th>Fulfilment</th><th>Status</th><th></th>
+                </tr></thead>
+                <tbody>${buildDemandTable()}</tbody>
               </table>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header"><h3>Category-wise Inventory Value</h3></div>
-            <div id="catBars"></div>
-          </div>
-        </div>
-      `;
-
-      // Section bars
-      renderSectionBars('catBars');
-
-    // ─────────────────────────────────────────────
-    // ALL OTHER ROLES — full operations dashboard
-    // ─────────────────────────────────────────────
-    } else {
-      const demands        = DB.list('demands');
-      const stockIn        = DB.list('stockIn');
-      const stockOut       = DB.list('stockOut');
-      const activeDemands  = demands.filter(d => d.status !== 'fulfilled' && d.status !== 'rejected');
-      const pendingDemands = demands.filter(d => d.status === 'pending');
-      const approvedDemands = demands.filter(d => d.status === 'approved' || d.status === 'partially_fulfilled');
-      const measurable     = demands.filter(d => d.poId || d.items.some(it => it.fulfilledQty > 0));
-      const avgCompliance  = measurable.length
-        ? Math.round(measurable.reduce((s, d) => s + DB.demandFulfilmentPct(d).qtyPct, 0) / measurable.length)
-        : 100;
-
-      document.getElementById('pageContent').innerHTML = `
-        <div class="stats-grid">
-          <div class="stat-card warn">
-            <div class="label">Pending Approval</div>
-            <div class="value">${pendingDemands.length}</div>
-            <div class="sub">demands awaiting reviewer</div>
-          </div>
-          <div class="stat-card ${approvedDemands.length ? 'ok' : ''}">
-            <div class="label">Ready to Fulfill</div>
-            <div class="value">${approvedDemands.length}</div>
-            <div class="sub">approved · awaiting outward</div>
-          </div>
-          <div class="stat-card ${lowStock.length ? 'danger' : 'ok'}">
-            <div class="label">Low Stock Items</div>
-            <div class="value">${lowStock.length}</div>
-            <div class="sub">${mySections.includes('*') ? 'across all categories' : 'in your section'}</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Avg Compliance %</div>
-            <div class="value">${avgCompliance}%</div>
-            <div class="sub">qty-wise fulfilment</div>
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header">
-              <h3>Demand Fulfilment — Active Demands</h3>
-              <a class="btn btn-sm" href="demand.html">View all →</a>
+            <div class="dv2-card w260">
+              <div class="dv2-card-hdr">
+                <div class="dv2-card-title">Stock Status</div>
+              </div>
+              <div class="dv2-card-sub">${products.length} items across all sections</div>
+              <div class="dv2-donut-wrap">
+                ${donutSVG(donutSegs)}
+                <div class="dv2-donut-legend">
+                  ${donutSegs.map(s => `
+                    <div class="dv2-leg-row">
+                      <div class="dv2-leg-left">
+                        <div class="dv2-leg-dot" style="background:${s.color};"></div>
+                        <span>${s.label}</span>
+                      </div>
+                      <span class="dv2-leg-pct">${Math.round((s.v / donutTotal) * 100)}%</span>
+                    </div>`).join('')}
+                </div>
+              </div>
+              <div style="margin-top:16px;display:flex;gap:8px;">
+                ${[
+                  { label:'OK',       val: statusCounts.ok,   c:'#ecfdf5', tc:'#166534' },
+                  { label:'Near Min', val: statusCounts.warn,  c:'#fff7ed', tc:'#d97706' },
+                  { label:'Low',      val: statusCounts.low,   c:'#fef2f2', tc:'#dc2626' },
+                  { label:'Out',      val: statusCounts.out,   c:'#fff1f2', tc:'#9f1239' }
+                ].map(s => `
+                  <div style="flex:1;text-align:center;background:${s.c};border-radius:8px;padding:8px 4px;">
+                    <div style="font-size:17px;font-weight:700;color:${s.tc};">${s.val}</div>
+                    <div style="font-size:10px;color:#94a3b8;">${s.label}</div>
+                  </div>`).join('')}
+              </div>
             </div>
-            <div class="table-wrap"><table class="data" id="fulfilTbl"></table></div>
           </div>
-          <div class="card">
-            <div class="card-header">
-              <h3>Low Stock Alerts</h3>
-              <a class="btn btn-sm" href="low-stock.html">View all →</a>
+
+        </div><!-- /dv2-main -->
+
+        <!-- ── Right panel ──────────────────────────────────── -->
+        <div class="dv2-right">
+
+          <div>
+            <div class="dv2-rp-title">
+              Stock Alerts
+              <span style="font-size:11px;font-weight:400;color:#94a3b8;margin-left:4px;">${lowStock.length} item${lowStock.length !== 1 ? 's' : ''}</span>
             </div>
-            <div class="table-wrap"><table class="data" id="lowStockTbl"></table></div>
+            ${buildAlerts()}
+            ${lowStock.length > 5 ? `<a href="low-stock.html" class="dv2-view-link" style="font-size:11px;display:block;margin-top:10px;">View all ${lowStock.length} →</a>` : ''}
           </div>
-        </div>
 
-        <div class="grid-2" style="margin-top:16px;">
-          <div class="card">
-            <div class="card-header">
-              <h3>Recent Goods Receipts (from vendors)</h3>
-            </div>
-            <div class="table-wrap"><table class="data" id="recentInTbl"></table></div>
+          <div>
+            <div class="dv2-rp-title">Recent Activity</div>
+            ${buildActivity()}
           </div>
-          <div class="card">
-            <div class="card-header">
-              <h3>Recent Fulfillments to Ships</h3>
-              <a class="btn btn-sm" href="stock-out.html">View all →</a>
-            </div>
-            <div class="table-wrap"><table class="data" id="recentOutTbl"></table></div>
+
+          <div>
+            <div class="dv2-rp-title">Quick Access</div>
+            ${buildQuickActions()}
           </div>
-        </div>
 
-        <div class="card" style="margin-top:16px;">
-          <div class="card-header"><h3>Category-wise Inventory Value</h3></div>
-          <div id="catBars"></div>
-        </div>
-      `;
+        </div><!-- /dv2-right -->
 
-      // Demand fulfilment table
-      const statusOrder = { 'approved': 0, 'partially_fulfilled': 1, 'pending': 2 };
-      const sortedActive = activeDemands.slice().sort((a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9));
-      document.getElementById('fulfilTbl').innerHTML = `
-        <thead><tr><th>Demand</th><th>Ship</th><th>Qty %</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          ${sortedActive.slice(0, 8).map(d => {
-            const ship = DB.ship(d.shipId);
-            const { qtyPct } = DB.demandFulfilmentPct(d);
-            const cls = qtyPct >= 80 ? '' : qtyPct >= 50 ? 'warn' : 'danger';
-            const statusClass = d.status === 'pending' ? 'warn' : d.status === 'partially_fulfilled' ? 'info' : 'ok';
-            const canFulfill = ['approved','partially_fulfilled'].includes(d.status);
-            return `
-            <tr>
-              <td class="bold">${d.demandNo}</td>
-              <td>${ship ? ship.name : '—'}</td>
-              <td><span class="fulfil-bar ${cls}"><span style="width:${qtyPct}%"></span></span>${qtyPct}%</td>
-              <td><span class="badge ${statusClass}">${d.status.replace('_', ' ').toUpperCase()}</span></td>
-              <td class="text-right">${canFulfill ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}</td>
-            </tr>`;
-          }).join('') || '<tr><td colspan="5" class="empty">No active demands</td></tr>'}
-        </tbody>
-      `;
+      </div><!-- /dv2-wrap -->
+    `;
 
-      // Low stock table
-      document.getElementById('lowStockTbl').innerHTML = `
-        <thead><tr><th>Item</th><th>Current</th><th>Min</th><th>Status</th></tr></thead>
-        <tbody>
-          ${lowStock.slice(0, 6).map(p => `
-            <tr>
-              <td><div class="bold">${displayName(p)}</div></td>
-              <td>${p.currentStock} ${p.baseUnit}</td>
-              <td class="text-mute">${p.minStock} ${p.baseUnit}</td>
-              <td><span class="badge ${p.currentStock === 0 ? 'danger' : 'warn'}">${p.currentStock === 0 ? 'OUT' : 'LOW'}</span></td>
-            </tr>
-          `).join('') || '<tr><td colspan="4" class="empty">All stock above minimum levels</td></tr>'}
-        </tbody>
-      `;
+    // ── Render initial chart ───────────────────────────────────────
+    renderChart();
 
-      // Recent goods receipts
-      document.getElementById('recentInTbl').innerHTML = `
-        <thead><tr><th>SRV No.</th><th>Supplier</th><th>Items</th><th>Date</th></tr></thead>
-        <tbody>
-          ${stockIn.slice(-5).reverse().map(si => {
-            const sp = DB.supplier(si.supplierId);
-            return `<tr>
-              <td class="bold">${si.srvNo}</td>
-              <td>${sp ? escapeHtml(sp.name) : '—'}</td>
-              <td>${si.items.length}</td>
-              <td>${fmtDate(si.date)}</td>
-            </tr>`;
-          }).join('') || '<tr><td colspan="4" class="empty">No receipts yet</td></tr>'}
-        </tbody>
-      `;
-
-      // Recent fulfillments
-      document.getElementById('recentOutTbl').innerHTML = `
-        <thead><tr><th>Voucher</th><th>Ship</th><th>vs Demand</th><th>Date</th></tr></thead>
-        <tbody>
-          ${stockOut.slice(-5).reverse().map(so => {
-            const ship = DB.ship(so.shipId);
-            const totalIssued   = so.items.reduce((s, x) => s + x.qty, 0);
-            const totalDemanded = so.items.reduce((s, x) => s + (x.demandedQty || x.qty), 0);
-            const pct = totalDemanded ? Math.round((totalIssued / totalDemanded) * 100) : 100;
-            return `<tr>
-              <td class="bold">${so.voucherNo}</td>
-              <td>${ship ? ship.name : '—'}</td>
-              <td>${pct}%</td>
-              <td>${fmtDate(so.date)}</td>
-            </tr>`;
-          }).join('') || '<tr><td colspan="4" class="empty">No issues yet</td></tr>'}
-        </tbody>
-      `;
-
-      // Section bars
-      renderSectionBars('catBars');
-    }
-
-    // ─── shared helper ───
-    function renderSectionBars(containerId) {
-      const allCats = DB.list('categories');
-      const all = DB.list('products');
-      const catTotals = allCats.map(c => {
-        const items = all.filter(p => p.categoryId === c.id);
-        const value = items.reduce((sum, p) => sum + (p.currentStock * p.unitPrice), 0);
-        return { ...c, items: items.length, value };
-      }).filter(c => c.items > 0);
-      const maxVal = Math.max(...catTotals.map(c => c.value), 1);
-      document.getElementById(containerId).innerHTML = catTotals.map(c => `
-        <div style="margin-bottom:14px;">
-          <div class="row-between" style="margin-bottom:6px;">
-            <div>
-              <span class="bold">${escapeHtml(c.name)}</span>
-              <span class="text-sm text-mute"> · ${c.items} SKUs</span>
-            </div>
-            <div class="text-sm bold">${fmtMoney(c.value)}</div>
-          </div>
-          <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
-            <div style="height:100%;width:${(c.value/maxVal)*100}%;background:linear-gradient(90deg,var(--navy-700),var(--navy-600));"></div>
-          </div>
-        </div>
-      `).join('');
-    }
+    // ── Tab switching ──────────────────────────────────────────────
+    document.querySelectorAll('.dv2-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.dv2-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeTab = tab.dataset.tab;
+        renderChart();
+        const leg2 = document.getElementById('dv2-leg2');
+        if (activeTab === 'demand') {
+          document.getElementById('dv2-legend').innerHTML =
+            `<span><span class="dv2-legend-dot" style="background:#1a3a6c;"></span>Demands Raised</span>
+             <span id="dv2-leg2"><span class="dv2-legend-dot" style="background:#c9a14a;"></span>Fulfilled</span>`;
+        } else {
+          document.getElementById('dv2-legend').innerHTML =
+            `<span><span class="dv2-legend-dot" style="background:#166534;"></span>Goods Received</span>`;
+        }
+      });
+    });
   </script>
 </body>
 </html>

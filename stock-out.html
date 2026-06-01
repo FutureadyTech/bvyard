@@ -239,7 +239,7 @@
               ${isShortStock ? `<div class="text-sm" style="color:var(--danger);margin-top:6px;">⚠ Only ${p.currentStock} ${p.baseUnit} on hand</div>` : ''}
               ${isOver ? `<div class="text-sm" style="color:var(--navy-700);margin-top:6px;">ℹ Over-issue by ${it.qty - it.demandedQty} ${p?.baseUnit} — allowed, flagged in report</div>` : ''}
               ${isShort ? `<div class="text-sm" style="color:var(--warn);margin-top:6px;">⚠ Short by ${it.demandedQty - it.qty} ${p?.baseUnit}</div>` : ''}
-              ${batches.length ? `<div class="fifo-hint">📦 FIFO — oldest available: ${batches.map(b => `${b.batchNo} (exp ${fmtDate(b.expiry)}, ${b.qty} ${p.baseUnit})`).join(' · ')}</div>` : ''}
+              ${batches.length ? `<div class="fifo-hint">FIFO — oldest available: ${batches.map(b => `${b.batchNo} (exp ${fmtDate(b.expiry)}, ${b.qty} ${p.baseUnit})`).join(' · ')}</div>` : ''}
             ` : ''}
 
             ${mode === 'absent' ? `
