@@ -50,24 +50,42 @@
       // All completed vouchers not yet dispatched are ready for gate-out
       const readyForGateOut = stockOut.filter(so => !dispatchedIds.has(so.id));
 
+      const today = DB.today();
+      const tmr = (() => { const t = new Date(); t.setDate(t.getDate() + 1); const p = n => String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`; })();
+
       document.getElementById('awaitingTbl').innerHTML = `
         <thead><tr>
-          <th>Voucher</th><th>Date</th><th>Ship</th><th>Items Going Out</th><th></th>
+          <th>Demand</th><th>Voucher</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
         </tr></thead>
         <tbody>
           ${readyForGateOut.slice().reverse().map(so => {
             const ship = DB.ship(so.shipId);
-            return `<tr>
+            const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+            const reqBy = demand?.dateRequired;
+            const isOverdue = reqBy && reqBy < today;
+            const isDueTmr = reqBy === tmr;
+            const isDueToday = reqBy === today;
+            const rowStyle = isOverdue ? 'background:#fef2f2;border-left:3px solid var(--danger);'
+              : isDueToday ? 'background:#fff7ed;border-left:3px solid var(--danger);'
+              : isDueTmr ? 'background:#fffbeb;border-left:3px solid var(--warn);'
+              : '';
+            const urgencyBadge = isOverdue ? '<span class="badge danger" style="font-size:9px;">OVERDUE</span>'
+              : isDueToday ? '<span class="badge danger" style="font-size:9px;">DUE TODAY</span>'
+              : isDueTmr ? '<span class="badge warn" style="font-size:9px;">DUE TMR</span>'
+              : '';
+            return `<tr style="${rowStyle}">
+              <td class="bold text-sm">${demand ? demand.demandNo : '<span class="text-mute">Direct</span>'}</td>
               <td class="bold">${so.voucherNo}</td>
               <td>${fmtDate(so.date)}</td>
               <td>${ship ? ship.name : '—'}</td>
+              <td>${reqBy ? `${fmtDate(reqBy)} ${urgencyBadge}` : '<span class="text-mute">—</span>'}</td>
               <td class="text-sm text-mute">${fulfillmentSummary(so)}</td>
-              <td class="text-right">
+              <td class="text-right" style="white-space:nowrap;">
                 <button class="btn btn-sm" onclick="viewItems('${so.id}')">View Items</button>
                 ${can('create') ? `<button class="btn btn-sm btn-gold" onclick="openGateOutFor('${so.id}')">Send Out →</button>` : ''}
               </td>
             </tr>`;
-          }).join('') || '<tr><td colspan="5" class="empty">No vouchers awaiting gate-out.</td></tr>'}
+          }).join('') || '<tr><td colspan="7" class="empty">No vouchers awaiting gate-out.</td></tr>'}
         </tbody>
       `;
 
