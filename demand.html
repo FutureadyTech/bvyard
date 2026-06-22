@@ -263,7 +263,7 @@
             <div class="field"><label>Demand No. (auto)</label>
               <input id="f_dno" value="${firstShip ? DB.nextDemandNo(firstShip) : ''}" readonly style="background:#f8fafc;color:var(--muted);font-family:monospace;">
             </div>
-            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
+            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}" readonly style="background:#f8fafc;color:var(--muted);"></div>
             <div class="field"><label>Required By <span class="req">*</span></label><input id="f_req" type="date" value="${tomorrowStr()}"></div>
           </div>
           <div class="field"><label>From Ship / Unit <span class="req">*</span></label>

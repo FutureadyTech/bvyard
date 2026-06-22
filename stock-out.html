@@ -158,7 +158,7 @@
 
     function form() {
       const ships = DB.list('ships');
-      const demands = DB.list('demands').filter(d => ['approved', 'partially_fulfilled'].includes(d.status));
+      const demands = DB.list('demands').filter(d => ['approved', 'partially_approved', 'partially_fulfilled'].includes(d.status));
       return `
         <div class="form-grid">
           <div class="form-row-3">

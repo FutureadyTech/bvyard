@@ -249,13 +249,13 @@ const ROLES = {
   inventory_manager: {
     label: 'Inventory Manager',
     icon: '◈',
-    nav: ['dashboard', 'demand', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
+    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: false }
   },
   rd_section: {
     label: 'R&D Section (Outward)',
     icon: '↑',
-    nav: ['dashboard', 'stock-out', 'dispatch'],
+    nav: ['dashboard', 'dispatch'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {
