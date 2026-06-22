@@ -11,13 +11,29 @@
   <div id="pageContent">
     <div class="card mb-16" style="background:#fef9e7;border-color:#fbe5b6;">
       <div class="bold" style="color:#92400e;">Why this page exists</div>
-      <div class="text-sm" style="color:#92400e;">From the meeting: "You get 100 in, issue 95, 5 is spoilage — without recording it, stock keeps showing the wrong level." Use this page whenever stock is lost to spoilage, damage, expiry, or theft so the system stays reconciled with physical reality.</div>
+      <div class="text-sm" style="color:#92400e;">Record stock losses (spoilage, damage, expiry, theft) or surplus adjustments. All records require Reviewer approval before stock is adjusted.</div>
+    </div>
+
+    <div id="pendingCard" style="display:none;" class="card mb-16">
+      <div class="card-header"><h3 style="color:var(--warn);">Pending Approval</h3></div>
+      <div class="table-wrap"><table class="data" id="pendingTbl"></table></div>
     </div>
 
     <div class="card">
       <div class="card-header">
-        <h3>Stock Write-offs</h3>
-        <button class="btn btn-primary" id="newBtn">+ Record Write-off</button>
+        <div class="row" style="gap:12px;">
+          <h3>Approved Adjustments</h3>
+          <select id="filterType" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All types</option>
+            <option value="spoilage">Spoilage</option>
+            <option value="damage">Damage</option>
+            <option value="expired">Expired</option>
+            <option value="theft">Theft</option>
+            <option value="surplus">Surplus</option>
+            <option value="misc">Misc</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="newBtn">+ Record Adjustment</button>
       </div>
       <div class="table-wrap"><table class="data" id="tbl"></table></div>
     </div>
@@ -27,35 +43,100 @@
   <script src="assets/js/db.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
-    renderShell('spoilage', 'Spoilage / Write-off', 'Reconcile inventory with physical losses');
+    renderShell('spoilage', 'Spoilage / Write-off', 'Reconcile inventory · all adjustments require Reviewer approval');
 
-    const REASONS = ['spoilage', 'damage', 'expired', 'theft', 'misc'];
+    const TYPES = ['spoilage', 'damage', 'expired', 'theft', 'surplus', 'misc'];
 
     function refresh() {
-      const rows = DB.list('spoilage');
-      document.getElementById('tbl').innerHTML = `
+      const f = document.getElementById('filterType').value;
+      const allRecords = DB.list('spoilage');
+      const pending = allRecords.filter(r => r.status === 'pending_approval');
+      let approved = allRecords.filter(r => r.status === 'approved');
+      if (f) approved = approved.filter(r => r.reason === f);
+
+      const pendingCard = document.getElementById('pendingCard');
+      pendingCard.style.display = pending.length ? '' : 'none';
+
+      document.getElementById('pendingTbl').innerHTML = `
         <thead><tr>
-          <th>Date</th><th>Item</th><th>Category</th><th class="text-right">Qty</th>
-          <th>Reason</th><th>Notes</th><th>Recorded By</th>
+          <th>Date</th><th>Item</th><th class="text-right">Qty</th><th>Type</th><th>Notes</th><th>Recorded By</th><th></th>
         </tr></thead>
         <tbody>
-          ${rows.slice().reverse().map(r => {
+          ${pending.slice().reverse().map(r => {
+            const p = DB.product(r.productId);
+            const u = DB.user(r.recordedBy);
+            const isSurplus = r.reason === 'surplus';
+            return `<tr style="background:#fffbeb;">
+              <td>${fmtDate(r.date)}</td>
+              <td class="bold">${p ? escapeHtml(displayName(p)) : '—'}</td>
+              <td class="text-right" style="color:${isSurplus?'var(--ok)':'var(--danger)'};font-weight:600;">${isSurplus?'+':'−'}${r.qty} ${p?.baseUnit||''}</td>
+              <td><span class="badge warn">${r.reason.toUpperCase()}</span></td>
+              <td class="text-sm text-mute">${escapeHtml(r.notes||'—')}</td>
+              <td class="text-sm">${u ? u.name : '—'}</td>
+              <td class="text-right">
+                ${can('approve') ? `
+                  <button class="btn btn-sm btn-primary" onclick="approveRecord('${r.id}')">Approve</button>
+                  <button class="btn btn-sm btn-danger" onclick="rejectRecord('${r.id}')">Reject</button>
+                ` : '<span class="badge warn" style="font-size:10px;">AWAITING</span>'}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="7" class="empty">No pending approvals.</td></tr>'}
+        </tbody>
+      `;
+
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Date</th><th>Item</th><th>Category</th><th class="text-right">Qty Adjusted</th>
+          <th>Type</th><th>Notes</th><th>Recorded By</th><th>Approved By</th>
+        </tr></thead>
+        <tbody>
+          ${approved.slice().reverse().map(r => {
             const p = DB.product(r.productId);
             const cat = p ? DB.category(p.categoryId) : null;
             const u = DB.user(r.recordedBy);
+            const ap = DB.user(r.approvedBy);
+            const isSurplus = r.reason === 'surplus';
             return `<tr>
               <td>${fmtDate(r.date)}</td>
               <td class="bold">${p ? escapeHtml(displayName(p)) : '—'}</td>
               <td class="text-sm">${cat ? escapeHtml(cat.name) : '—'}</td>
-              <td class="text-right" style="color:var(--danger);font-weight:600;">−${r.qty} ${p?.baseUnit || ''}</td>
-              <td><span class="badge ${r.reason === 'theft' ? 'danger' : 'warn'}">${r.reason.toUpperCase()}</span></td>
-              <td class="text-sm text-mute">${escapeHtml(r.notes || '—')}</td>
+              <td class="text-right" style="color:${isSurplus?'var(--ok)':'var(--danger)'};font-weight:600;">${isSurplus?'+':'−'}${r.qty} ${p?.baseUnit||''}</td>
+              <td><span class="badge ${r.reason === 'theft' ? 'danger' : isSurplus ? 'ok' : 'warn'}">${r.reason.toUpperCase()}</span></td>
+              <td class="text-sm text-mute">${escapeHtml(r.notes||'—')}</td>
               <td class="text-sm">${u ? u.name : '—'}</td>
+              <td class="text-sm">${ap ? ap.name : '—'}</td>
             </tr>`;
-          }).join('') || '<tr><td colspan="7" class="empty">No write-offs recorded — good.</td></tr>'}
+          }).join('') || '<tr><td colspan="8" class="empty">No approved adjustments yet.</td></tr>'}
         </tbody>
       `;
     }
+
+    window.approveRecord = (id) => {
+      if (!can('approve')) return toast('Your role cannot approve adjustments', 'warn');
+      const r = DB.get('spoilage', id);
+      if (!r) return;
+      r.status = 'approved';
+      r.approvedBy = Session.get()?.id;
+      r.approvedAt = new Date().toISOString();
+      DB.upsert('spoilage', r);
+      const delta = r.reason === 'surplus' ? r.qty : -r.qty;
+      DB.adjustStock(r.productId, delta);
+      const p = DB.product(r.productId);
+      toast(`Approved — stock ${r.reason === 'surplus' ? 'increased' : 'reduced'} by ${r.qty} ${p?.baseUnit||''}`, 'ok');
+      refresh();
+    };
+
+    window.rejectRecord = (id) => {
+      if (!can('approve')) return toast('Your role cannot reject', 'warn');
+      const r = DB.get('spoilage', id);
+      if (!r || !confirm(`Reject this ${r.reason} record? No stock change will be made.`)) return;
+      r.status = 'rejected';
+      r.approvedBy = Session.get()?.id;
+      r.approvedAt = new Date().toISOString();
+      DB.upsert('spoilage', r);
+      toast('Rejected — no stock change applied', 'warn');
+      refresh();
+    };
 
     function form() {
       const my = userSections();
@@ -64,42 +145,47 @@
         <div class="form-grid">
           <div class="form-row">
             <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
-            <div class="field"><label>Item <span class="req">*</span></label>
-              <select id="f_product">${prods.map(p => `<option value="${p.id}">${p.code} — ${escapeHtml(p.name)} (${p.currentStock} ${p.baseUnit} avail)</option>`).join('')}</select>
+            <div class="field"><label>Type <span class="req">*</span></label>
+              <select id="f_reason">${TYPES.map(r => `<option value="${r}">${r.charAt(0).toUpperCase()+r.slice(1)}</option>`).join('')}</select>
             </div>
           </div>
-          <div class="form-row">
-            <div class="field"><label>Quantity <span class="req">*</span></label><input id="f_qty" type="number" min="1"></div>
-            <div class="field"><label>Reason</label>
-              <select id="f_reason">${REASONS.map(r => `<option>${r}</option>`).join('')}</select>
-            </div>
+          <div class="field"><label>Item <span class="req">*</span></label>
+            <select id="f_product">${prods.map(p => `<option value="${p.id}">${p.code} — ${escapeHtml(p.name)} (${p.currentStock} ${p.baseUnit} on hand)</option>`).join('')}</select>
           </div>
-          <div class="field"><label>Notes</label><textarea id="f_notes" rows="2" placeholder="e.g. Crate damaged in transit, fruits browned"></textarea></div>
+          <div class="field"><label>Quantity <span class="req">*</span></label>
+            <input id="f_qty" type="number" min="1" placeholder="Enter quantity">
+            <div class="text-sm text-mute" style="margin-top:4px;">Write-offs reduce stock · Surplus increases stock · Applied only after Reviewer approval.</div>
+          </div>
+          <div class="field"><label>Notes</label><textarea id="f_notes" rows="2" placeholder="e.g. Crate damaged in transit; or found extra stock during count"></textarea></div>
+          <div class="text-sm" style="background:#f0f4ff;border-radius:6px;padding:10px;color:#374151;">
+            This record will be submitted for Reviewer approval. Stock will only adjust after approval.
+          </div>
         </div>
       `;
     }
 
     document.getElementById('newBtn').addEventListener('click', () => {
-      if (!can('create')) return toast('Your role cannot record write-offs', 'warn');
-      openModal('Record Write-off', form(), () => {
+      if (!can('create')) return toast('Your role cannot record adjustments', 'warn');
+      openModal('Record Stock Adjustment', form(), () => {
         const productId = document.getElementById('f_product').value;
         const qty = Number(document.getElementById('f_qty').value);
+        const reason = document.getElementById('f_reason').value;
         const p = DB.product(productId);
         if (!productId || !qty) { toast('Item and qty required', 'danger'); return false; }
-        if (qty > p.currentStock) { toast(`Only ${p.currentStock} ${p.baseUnit} on hand`, 'danger'); return false; }
         DB.upsert('spoilage', {
           id: DB.uid('sp'),
           date: document.getElementById('f_date').value,
-          productId, qty,
-          reason: document.getElementById('f_reason').value,
+          productId, qty, reason,
           notes: document.getElementById('f_notes').value.trim(),
-          recordedBy: Session.get()?.id
+          recordedBy: Session.get()?.id,
+          status: 'pending_approval'
         });
-        DB.adjustStock(productId, -qty);
-        toast(`Wrote off ${qty} ${p.baseUnit} of ${p.name}`, 'warn');
+        toast('Submitted for Reviewer approval', 'ok');
         refresh();
-      }, 'Record & Reduce Stock');
+      }, 'Submit for Approval');
     });
+
+    document.getElementById('filterType').addEventListener('change', refresh);
     refresh();
   </script>
 </body>

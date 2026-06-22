@@ -362,7 +362,8 @@
           id: DB.uid('so'), voucherNo, date, shipId, demandId,
           items: issuedItems,
           absent: absentIds,
-          recordedBy, status: 'completed'
+          recordedBy, status: 'completed',
+          dispatchApproved: false
         });
         issuedItems.forEach(it => DB.adjustStock(it.productId, -it.qty));
         if (demandId) DB.recalcDemandFulfilment(demandId);

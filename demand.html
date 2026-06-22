@@ -16,13 +16,15 @@
           <select id="filter" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
+            <option value="partially_approved">Partially Approved</option>
             <option value="approved">Approved</option>
             <option value="partially_fulfilled">Partially Fulfilled</option>
+            <option value="dispatch_pending">Dispatch Pending</option>
             <option value="fulfilled">Fulfilled</option>
             <option value="rejected">Rejected</option>
           </select>
         </div>
-        <button class="btn btn-primary" id="newBtn">+ Raise Demand</button>
+        <button class="btn btn-primary" id="newBtn" style="display:none;">+ Raise Demand</button>
       </div>
       <div class="table-wrap"><table class="data" id="tbl"></table></div>
     </div>
@@ -34,27 +36,42 @@
   <script>
     renderShell('demand', 'Demands', 'Ship raises demand → Reviewer approves → Fulfill → Outward (gate-out)');
 
+    if (can('create')) document.getElementById('newBtn').style.display = '';
+
     const my = userSections();
     const canAll = my.includes('*');
 
+    function tomorrowStr() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+    }
+    const tomorrow = tomorrowStr();
+
     function relevantToMe(d) {
       if (canAll) return true;
-      // Show demand if at least one item is in user's sections
       return d.items.some(it => {
         const p = DB.product(it.productId);
         return p && my.includes(p.sectionId);
       });
     }
 
+    function statusBadgeClass(st) {
+      return st === 'fulfilled' ? 'ok'
+        : st === 'rejected' ? 'danger'
+        : st === 'partially_fulfilled' || st === 'dispatch_pending' ? 'info'
+        : 'warn';
+    }
+
     function refresh() {
       const f = document.getElementById('filter').value;
       let rows = DB.list('demands').filter(relevantToMe);
       if (f) rows = rows.filter(d => d.status === f);
-      const channelIcon = { print: '⎙', email: '✉', whatsapp: WA_ICON };
+      const channelIcon = { print: '⎙', email: '✉', whatsapp: WA_ICON, rio: '↔' };
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
-          <th>Demand</th><th>Date · Day</th><th>Via</th><th>From Ship</th>
-          <th>Categories</th>
+          <th>Demand</th><th>Date</th><th>Required By</th><th>Via</th><th>From Ship</th>
           <th class="text-right">Items</th>
           <th>Qty %</th><th>Item %</th>
           <th>Status</th><th></th>
@@ -63,26 +80,26 @@
           ${rows.slice().reverse().map(d => {
             const ship = DB.ship(d.shipId);
             const { qtyPct, itemPct } = DB.demandFulfilmentPct(d);
-            const touchSecs = [...new Set(d.items.map(it => DB.product(it.productId)?.categoryId).filter(Boolean))]
-              .map(cid => DB.category(cid)?.name).filter(Boolean).join(', ');
-            const statusClass = d.status === 'fulfilled' ? 'ok' : d.status === 'rejected' ? 'danger' : d.status === 'partially_fulfilled' ? 'info' : 'warn';
+            const statusClass = statusBadgeClass(d.status);
             const barCls = qtyPct >= 80 ? '' : qtyPct >= 50 ? 'warn' : 'danger';
             const day = d.dayOfWeek || DB.dayOfWeek(d.date);
+            const dueTomorrow = d.dateRequired === tomorrow;
+            const rowStyle = dueTomorrow ? 'background:#fffbeb;border-left:3px solid var(--warn);' : '';
             return `
-            <tr>
-              <td class="bold">${d.demandNo}</td>
+            <tr style="${rowStyle}">
+              <td class="bold">${d.demandNo}${dueTomorrow ? ' <span class="badge warn" style="font-size:9px;">DUE TMR</span>' : ''}</td>
               <td>${fmtDate(d.date)} <span class="badge muted">${day}</span></td>
+              <td>${d.dateRequired ? fmtDate(d.dateRequired) : '<span class="text-mute">—</span>'}</td>
               <td title="${d.sourceChannel || ''}">${channelIcon[d.sourceChannel] || '—'}</td>
               <td>${ship ? ship.name : '—'}</td>
-              <td class="text-sm text-mute">${touchSecs}</td>
               <td class="text-right">${d.items.length}</td>
               <td><span class="fulfil-bar ${barCls}"><span style="width:${qtyPct}%"></span></span>${qtyPct}%</td>
               <td><span class="fulfil-bar ${barCls}"><span style="width:${itemPct}%"></span></span>${itemPct}%</td>
-              <td><span class="badge ${statusClass}">${d.status.replace('_', ' ').toUpperCase()}</span></td>
+              <td><span class="badge ${statusClass}">${d.status.replace(/_/g,' ').toUpperCase()}</span></td>
               <td class="text-right" style="white-space:nowrap;">
                 <button class="btn btn-sm" onclick="viewDemand('${d.id}')">View</button>
-                ${d.status === 'pending' && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="approveDemand('${d.id}')">Approve</button>` : ''}
-                ${['approved','partially_fulfilled'].includes(d.status) && can('create') ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}
+                ${['pending','partially_approved'].includes(d.status) && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="openApprovalModal('${d.id}')">Review</button>` : ''}
+                ${['approved','partially_approved','partially_fulfilled'].includes(d.status) && can('create') ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}
                 ${d.status === 'pending' && can('approve') ? `<button class="btn btn-sm btn-danger" onclick="rejectDemand('${d.id}')">Reject</button>` : ''}
               </td>
             </tr>`;
@@ -95,19 +112,13 @@
       const d = DB.get('demands', id);
       DB.recalcDemandFulfilment(id);
       const ship = DB.ship(d.shipId);
-
-      // Build lookup: for each demand item, find any substitutions or absents recorded against it
       const linkedFulfillments = DB.list('stockOut').filter(so => so.demandId === d.id);
       const subsByOriginalId = {};
       const absentSet = new Set();
       linkedFulfillments.forEach(so => {
         so.items.forEach(it => {
           if (it.substitutedForProductId) {
-            (subsByOriginalId[it.substitutedForProductId] = subsByOriginalId[it.substitutedForProductId] || []).push({
-              productId: it.productId,
-              qty: it.qty,
-              voucherNo: so.voucherNo
-            });
+            (subsByOriginalId[it.substitutedForProductId] = subsByOriginalId[it.substitutedForProductId] || []).push({ productId: it.productId, qty: it.qty });
           }
         });
         (so.absent || []).forEach(pid => absentSet.add(pid));
@@ -116,60 +127,119 @@
       const itemRows = d.items.map(it => {
         const p = DB.product(it.productId);
         const fulfilled = it.fulfilledQty || 0;
-        const pct = Math.round((fulfilled / it.demandedQty) * 100);
+        const demanded = it.demandedQty || 0;
+        const approved = it.approvedQty !== undefined ? it.approvedQty : demanded;
+        const rejected = it.rejectedQty || 0;
+        const pct = Math.round((fulfilled / Math.max(demanded, 1)) * 100);
         const cls = pct >= 100 ? '' : pct >= 50 ? 'warn' : 'danger';
         const subs = subsByOriginalId[it.productId] || [];
-        const isAbsent = absentSet.has(it.productId);
-
         let noteCell = '<span class="text-mute">—</span>';
         if (subs.length) {
-          noteCell = subs.map(s => {
-            const sp = DB.product(s.productId);
-            return `<div class="text-sm" style="color:#92400e;">↔ Substituted with <strong>${escapeHtml(sp ? displayName(sp) : '—')}</strong> · ${s.qty} ${sp?.baseUnit || ''}</div>`;
-          }).join('');
-        } else if (isAbsent) {
+          noteCell = subs.map(s => { const sp = DB.product(s.productId); return `<div class="text-sm" style="color:#92400e;">↔ ${escapeHtml(sp ? displayName(sp) : '—')} · ${s.qty} ${sp?.baseUnit||''}</div>`; }).join('');
+        } else if (absentSet.has(it.productId)) {
           noteCell = '<span class="badge danger">ABSENT</span>';
+        } else if (rejected > 0) {
+          noteCell = `<span class="badge danger" title="${escapeHtml(it.rejectionReason||'')}">REJECTED ${rejected} ${p?.baseUnit||''}</span>`;
         }
-
+        const approvalCell = it.approvedQty !== undefined
+          ? `<span style="color:${rejected>0?'var(--danger)':'var(--ok)'};font-weight:600;">${approved} ${p?.baseUnit||''}</span>`
+          : '<span class="text-mute">—</span>';
         return `<tr>
           <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
           <td class="text-sm text-mute">${p?.code || ''}</td>
-          <td>${it.demandedQty} ${p?.baseUnit || ''}</td>
+          <td>${demanded} ${p?.baseUnit || ''}</td>
+          <td>${approvalCell}</td>
           <td>${fulfilled} ${p?.baseUnit || ''}</td>
           <td><span class="fulfil-bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></span>${pct}%</td>
           <td>${noteCell}</td>
         </tr>`;
       }).join('');
+
       const { qtyPct, itemPct } = DB.demandFulfilmentPct(d);
       openModal(`Demand ${d.demandNo}`, `
         <div class="form-grid">
           <div class="grid-3">
             <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(d.date)}</div></div>
+            <div><div class="text-sm text-mute">Required By</div><div class="bold">${d.dateRequired ? fmtDate(d.dateRequired) : '—'}</div></div>
             <div><div class="text-sm text-mute">Ship</div><div class="bold">${ship?.name || '—'}</div></div>
-            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${d.status === 'fulfilled' ? 'ok' : d.status === 'rejected' ? 'danger' : 'warn'}">${d.status.toUpperCase()}</span></div></div>
           </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${statusBadgeClass(d.status)}">${d.status.replace(/_/g,' ').toUpperCase()}</span></div></div>
+            ${d.rioFinalRecipient ? `<div><div class="text-sm text-mute">Final Recipient (RIO)</div><div class="bold">${escapeHtml(d.rioFinalRecipient)}</div></div>` : ''}
+            ${d.rioCarrier ? `<div><div class="text-sm text-mute">Carrier Ship</div><div class="bold">${DB.ship(d.rioCarrier)?.name||d.rioCarrier}</div></div>` : ''}
+          </div>
+          ${d.reviewNote ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px;"><div class="text-sm text-mute">Review Note</div><div class="text-sm" style="color:#92400e;">${escapeHtml(d.reviewNote)}</div></div>` : ''}
           <div class="grid-2">
             <div class="card" style="background:#fafbfd;"><div class="text-sm text-mute">Qty Fulfilment</div><div class="bold" style="font-size:22px;">${qtyPct}%</div></div>
             <div class="card" style="background:#fafbfd;"><div class="text-sm text-mute">Item Fulfilment</div><div class="bold" style="font-size:22px;">${itemPct}%</div></div>
           </div>
           <table class="data">
-            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Fulfilled</th><th>%</th><th>Substitute / Note</th></tr></thead>
+            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Approved</th><th>Fulfilled</th><th>%</th><th>Note</th></tr></thead>
             <tbody>${itemRows}</tbody>
           </table>
         </div>
       `, null, '', 'wide');
     };
 
-    window.approveDemand = (id) => {
-      if (!can('approve')) return toast('Your role cannot approve', 'warn');
+    window.openApprovalModal = (id) => {
+      if (!can('approve')) return toast('Your role cannot approve demands', 'warn');
       const d = DB.get('demands', id);
-      if (!confirm(`Approve demand ${d.demandNo}? It will be ready for fulfillment.`)) return;
-      d.status = 'approved';
-      d.approvedBy = Session.get()?.id || null;
-      d.approvedAt = new Date().toISOString();
-      DB.upsert('demands', d);
-      toast(`Approved — ready for fulfillment`, 'ok');
-      refresh();
+      const ship = DB.ship(d.shipId);
+      const itemRows = d.items.map((it, i) => {
+        const p = DB.product(it.productId);
+        const prev = it.approvedQty !== undefined ? it.approvedQty : it.demandedQty;
+        return `
+        <tr>
+          <td>${p ? escapeHtml(displayName(p)) : '—'} <span class="text-sm text-mute">${p?.code||''}</span></td>
+          <td class="text-right">${it.demandedQty} ${p?.baseUnit||''}</td>
+          <td style="width:110px;">
+            <input data-i="${i}" class="ap_qty" type="number" min="0" max="${it.demandedQty}"
+              value="${prev}"
+              style="width:100%;border:1px solid var(--border);padding:5px 7px;border-radius:4px;font-size:13px;text-align:right;">
+          </td>
+          <td style="min-width:180px;">
+            <input data-i="${i}" class="ap_reason" type="text" placeholder="Reason if qty reduced"
+              value="${escapeHtml(it.rejectionReason||'')}"
+              style="width:100%;border:1px solid var(--border);padding:5px 7px;border-radius:4px;font-size:12px;">
+          </td>
+        </tr>`;
+      }).join('');
+
+      openModal(`Review Demand ${d.demandNo} — ${ship?.name||''}`, `
+        <div class="form-grid">
+          <div class="text-sm text-mute" style="background:#f0f4ff;border-radius:6px;padding:10px;">
+            Set the approved qty for each item. Approved qty less than demanded = partial rejection. Approved qty = 0 = full rejection of that item. All items approved = status "Approved". Any item reduced = "Partially Approved".
+          </div>
+          <table class="data">
+            <thead><tr><th>Item</th><th class="text-right">Demanded</th><th class="text-right">Approve Qty</th><th>Rejection Reason</th></tr></thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+          <div class="field"><label>Review Note (optional)</label>
+            <input id="ap_note" type="text" value="${escapeHtml(d.reviewNote||'')}" placeholder="e.g. Sugar qty reduced — sufficient stock onboard">
+          </div>
+        </div>
+      `, () => {
+        const user = Session.get();
+        const qtyInputs = [...document.querySelectorAll('.ap_qty')];
+        const reasonInputs = [...document.querySelectorAll('.ap_reason')];
+        let anyRejected = false, allRejected = true;
+        d.items.forEach((it, i) => {
+          const approvedQty = Math.max(0, Math.min(Number(qtyInputs[i].value)||0, it.demandedQty));
+          const rejectedQty = it.demandedQty - approvedQty;
+          it.approvedQty = approvedQty;
+          it.rejectedQty = rejectedQty;
+          it.rejectionReason = reasonInputs[i].value.trim() || undefined;
+          if (rejectedQty > 0) anyRejected = true;
+          if (approvedQty > 0) allRejected = false;
+        });
+        d.reviewNote = document.getElementById('ap_note').value.trim() || undefined;
+        d.reviewerId = user?.id;
+        d.reviewedAt = new Date().toISOString();
+        d.status = allRejected ? 'rejected' : anyRejected ? 'partially_approved' : 'approved';
+        DB.upsert('demands', d);
+        toast(`Demand ${d.demandNo} — ${d.status.replace(/_/g,' ')}`, 'ok');
+        refresh();
+      }, 'Save Review', 'wide');
     };
 
     window.rejectDemand = (id) => {
@@ -185,32 +255,48 @@
     let demItems = [];
     function demandForm() {
       const ships = DB.list('ships');
+      const firstShip = ships[0]?.id || '';
       const lowStock = DB.lowStockItems(my);
       return `
         <div class="form-grid">
           <div class="form-row-3">
-            <div class="field"><label>Demand No. <span class="req">*</span></label><input id="f_dno" value="26R${Math.floor(Math.random()*9000+1000)}"></div>
-            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
-            <div class="field"><label>From Ship <span class="req">*</span></label>
-              <select id="f_ship">${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}</select>
+            <div class="field"><label>Demand No. (auto)</label>
+              <input id="f_dno" value="${firstShip ? DB.nextDemandNo(firstShip) : ''}" readonly style="background:#f8fafc;color:var(--muted);font-family:monospace;">
             </div>
+            <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}"></div>
+            <div class="field"><label>Required By <span class="req">*</span></label><input id="f_req" type="date" value="${tomorrowStr()}"></div>
+          </div>
+          <div class="field"><label>From Ship / Unit <span class="req">*</span></label>
+            <select id="f_ship">${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}</select>
           </div>
           <div class="field"><label>Received via</label>
-            <div class="row" style="gap:8px;">
-              ${[['print','⎙ Print'],['email','✉ Email'],['whatsapp',WA_ICON + ' WhatsApp']].map(([v,l]) => `
+            <div class="row" style="gap:8px;flex-wrap:wrap;" id="channelGroup">
+              ${[['print','⎙ Print'],['email','✉ Email'],['whatsapp',WA_ICON + ' WhatsApp'],['rio','↔ RIO (via carrier)']].map(([v,l]) => `
                 <label class="row" style="gap:6px;background:#fafbfd;padding:6px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;">
                   <input type="radio" name="f_channel" value="${v}" ${v === 'whatsapp' ? 'checked' : ''} style="margin:0;">
                   ${l}
                 </label>`).join('')}
             </div>
           </div>
+          <div id="rioPanel" style="display:none;border:1px dashed var(--border);border-radius:8px;padding:12px;background:#fafbfd;">
+            <div class="text-sm text-mute" style="margin-bottom:8px;">RIO = goods go via a carrier ship to a final recipient.</div>
+            <div class="form-row">
+              <div class="field"><label>Carrier Ship (optional)</label>
+                <select id="f_rioCarrier">
+                  <option value="">— None (direct) —</option>
+                  ${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}
+                </select>
+              </div>
+              <div class="field"><label>Final Recipient <span class="req">*</span></label>
+                <input id="f_rioRecipient" placeholder="e.g. INS Kochi / Unit XYZ">
+              </div>
+            </div>
+          </div>
           ${lowStock.length ? `
             <div class="card" style="background:var(--navy-50); border-color:var(--navy-600);">
               <div class="row-between">
-                <div>
-                  <div class="bold">${lowStock.length} items below minimum stock</div>
-                  <div class="text-sm text-mute">Pre-fill demand from low-stock items?</div>
-                </div>
+                <div><div class="bold">${lowStock.length} items below minimum stock</div>
+                <div class="text-sm text-mute">Pre-fill demand from low-stock items?</div></div>
                 <button class="btn btn-sm btn-primary" id="prefillBtn" type="button">Pre-fill</button>
               </div>
             </div>
@@ -232,13 +318,8 @@
       const wrap = document.getElementById('itemList');
       if (!demItems.length) { wrap.innerHTML = '<div class="empty" style="padding:20px;">No items added yet</div>'; return; }
       wrap.innerHTML = demItems.map((it, i) => {
-        // Derive category from current product if not set
-        if (!it.categoryId && it.productId) {
-          const p = DB.product(it.productId);
-          if (p) it.categoryId = p.categoryId;
-        }
+        if (!it.categoryId && it.productId) { const p = DB.product(it.productId); if (p) it.categoryId = p.categoryId; }
         const p = DB.product(it.productId);
-        // Only items within this line's selected category
         const catItems = it.categoryId ? allProds.filter(pp => pp.categoryId === it.categoryId) : allProds;
         return `
         <div class="row" style="gap:8px;margin-bottom:8px;flex-wrap:wrap;">
@@ -247,22 +328,18 @@
             ${allCats.map(c => `<option value="${c.id}" ${c.id === it.categoryId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
           </select>
           <select data-i="${i}" class="i_prod" style="flex:2;min-width:200px;border:1px solid var(--border);padding:7px 28px 7px 7px;border-radius:6px;" ${catItems.length ? '' : 'disabled'}>
-            ${!it.categoryId
-              ? '<option value="">— pick category first —</option>'
-              : catItems.length
-                ? catItems.map(pp => `<option value="${pp.id}" ${pp.id === it.productId ? 'selected' : ''}>${pp.code} — ${escapeHtml(pp.name)}</option>`).join('')
-                : '<option value="">No items in this category</option>'}
+            ${!it.categoryId ? '<option value="">— pick category first —</option>'
+              : catItems.length ? catItems.map(pp => `<option value="${pp.id}" ${pp.id === it.productId ? 'selected' : ''}>${pp.code} — ${escapeHtml(pp.name)}</option>`).join('')
+              : '<option value="">No items in this category</option>'}
           </select>
           <input data-i="${i}" class="i_qty" type="number" placeholder="Qty" value="${it.demandedQty || ''}" style="width:100px;border:1px solid var(--border);padding:7px;border-radius:6px;">
           <span class="text-sm text-mute" style="min-width:30px;">${p?.baseUnit || ''}</span>
           <button class="btn btn-sm btn-danger" onclick="rmDem(${i})">×</button>
         </div>
       `;}).join('');
-      // Wire handlers
       wrap.querySelectorAll('.i_cat').forEach(el => el.onchange = e => {
         const i = +e.target.dataset.i;
         demItems[i].categoryId = e.target.value;
-        // Auto-pick the first item in the new category so the row is usable immediately
         const firstInCat = allProds.find(pp => pp.categoryId === e.target.value);
         demItems[i].productId = firstInCat ? firstInCat.id : null;
         renderDemItems();
@@ -273,27 +350,35 @@
     window.rmDem = (i) => { demItems.splice(i, 1); renderDemItems(); };
 
     document.getElementById('newBtn').addEventListener('click', () => {
-      demItems = [{ categoryId: '', productId: null, demandedQty: 0, fulfilledQty: 0, substitutedFor: null }];
+      demItems = [{ categoryId: '', productId: null, demandedQty: 0, fulfilledQty: 0 }];
       openModal('Raise New Demand', demandForm(), () => {
-        const demandNo = document.getElementById('f_dno').value.trim();
-        const date = document.getElementById('f_date').value;
         const shipId = document.getElementById('f_ship').value;
-        const ship = DB.ship(shipId);
+        const demandNo = DB.nextDemandNo(shipId);
+        const date = document.getElementById('f_date').value;
+        const dateRequired = document.getElementById('f_req').value;
         const sourceChannel = document.querySelector('input[name="f_channel"]:checked')?.value || 'whatsapp';
-        const items = demItems.filter(it => it.productId && it.demandedQty > 0)
-          .map(it => ({ ...it, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }));
-        if (!demandNo || !items.length) { toast('Demand No. + items required', 'danger'); return false; }
+        const rioCarrier = sourceChannel === 'rio' ? (document.getElementById('f_rioCarrier')?.value || null) : null;
+        const rioFinalRecipient = sourceChannel === 'rio' ? (document.getElementById('f_rioRecipient')?.value.trim() || null) : null;
+        if (sourceChannel === 'rio' && !rioFinalRecipient) { toast('Final recipient required for RIO channel', 'danger'); return false; }
+        const items = demItems.filter(it => it.productId && it.demandedQty > 0).map(it => ({ ...it, fulfilledQty: 0, outcome: 'pending' }));
+        if (!items.length) { toast('Add at least one item with qty', 'danger'); return false; }
         DB.upsert('demands', {
-          id: DB.uid('d'), demandNo, date,
+          id: DB.uid('d'), demandNo, date, dateRequired,
           dayOfWeek: DB.dayOfWeek(date),
-          sourceChannel,
-          shipId, raisedBy: ship?.name, items, status: 'pending'
+          sourceChannel, rioCarrier, rioFinalRecipient,
+          shipId, raisedBy: Session.get()?.id, items, status: 'pending'
         });
-        toast('Demand raised', 'ok');
+        toast(`Demand ${demandNo} raised`, 'ok');
         refresh();
-      }, 'Submit Demand');
+      }, 'Submit Demand', 'wide');
       setTimeout(() => {
         renderDemItems();
+        document.getElementById('f_ship').addEventListener('change', e => {
+          document.getElementById('f_dno').value = DB.nextDemandNo(e.target.value);
+        });
+        document.getElementById('channelGroup').addEventListener('change', e => {
+          document.getElementById('rioPanel').style.display = e.target.value === 'rio' ? '' : 'none';
+        });
         document.getElementById('addItemBtn').onclick = () => { demItems.push({ categoryId: '', productId: null, demandedQty: 0 }); renderDemItems(); };
         const pre = document.getElementById('prefillBtn');
         if (pre) pre.onclick = () => {

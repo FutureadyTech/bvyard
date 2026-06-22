@@ -13,7 +13,7 @@
       <div class="brand">
         <div class="logo">B</div>
         <h1>BV Yard</h1>
-        <p class="sub">Inventory Management System · Mumbai · v0.4</p>
+        <p class="sub">Inventory Management System · Mumbai · v0.6</p>
       </div>
 
       <div>
@@ -45,7 +45,8 @@
       users.find(u => u.role === 'super_admin'),
       users.find(u => u.role === 'central_coordinator'),
       users.find(u => u.role === 'reviewer'),
-      users.find(u => u.role === 'inventory_manager') // Dry Store I/C
+      users.find(u => u.role === 'inventory_manager'),
+      users.find(u => u.role === 'rd_section')
     ].filter(Boolean);
 
     let selected = null;

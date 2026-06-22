@@ -100,7 +100,7 @@
       return `
         <div class="form-grid">
           <div class="form-row">
-            <div class="field"><label>Item Code <span class="req">*</span></label><input id="f_code" value="${escapeHtml(p.code || '')}" placeholder="e.g. CNVICT-NGFDAM102"></div>
+            <div class="field"><label>Item Code <span class="text-mute" style="font-weight:400;font-size:11px;">(optional)</span></label><input id="f_code" value="${escapeHtml(p.code || '')}" placeholder="e.g. CNVICT-NGFDAM102"></div>
             <div class="field"><label>Item Name <span class="req">*</span></label><input id="f_name" value="${escapeHtml(p.name || '')}"></div>
           </div>
           <div class="field">
@@ -187,7 +187,7 @@
       const code = document.getElementById('f_code').value.trim();
       const name = document.getElementById('f_name').value.trim();
       const categoryId = document.getElementById('f_cat').value;
-      if (!code || !name || !categoryId) { toast('Code, Name and Category required', 'danger'); return false; }
+      if (!name || !categoryId) { toast('Name and Category required', 'danger'); return false; }
       const cat = DB.category(categoryId);
       const rec = {
         ...existing,

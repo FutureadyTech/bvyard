@@ -1,6 +1,6 @@
-// v0.9 — Replace personal names with roles/designations
-const DB_KEY = 'bvyard_db_v10';   // bumped: users now show role/designation, not personal names
-const SESSION_KEY = 'bvyard_session_v10';
+// v0.6 — Sequential demand numbers, rd_section role, per-item approval, spoilage approval, PO workflow
+const DB_KEY = 'bvyard_db_v11';
+const SESSION_KEY = 'bvyard_session_v11';
 const PREFS_KEY = 'bvyard_prefs_v1';
 
 const DB = {
@@ -16,7 +16,7 @@ const DB = {
     localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(PREFS_KEY);
     // also clear older versions
-    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9'].forEach(k => localStorage.removeItem(k));
+    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9','bvyard_db_v10','bvyard_session_v10'].forEach(k => localStorage.removeItem(k));
     this.seed();
   },
 
@@ -120,13 +120,25 @@ const DB = {
       }
     });
 
-    // Overall status
+    // Overall status — don't override terminal/workflow statuses
     const anyIssued = d.items.some(it => it.fulfilledQty > 0);
     const allResolved = d.items.every(it => ['exact','over','absent','substituted'].includes(it.outcome) || it.fulfilledQty >= it.demandedQty);
-    if (d.status !== 'rejected') {
-      d.status = allResolved ? 'fulfilled' : anyIssued ? 'partially_fulfilled' : (d.poId ? 'approved' : 'pending');
+    if (!['rejected','dispatch_pending','fulfilled'].includes(d.status)) {
+      d.status = allResolved ? 'fulfilled' : anyIssued ? 'partially_fulfilled' : (['partially_approved','approved'].includes(d.status) ? d.status : 'pending');
     }
     this.save(s);
+  },
+
+  // Sequential demand number: DMD-YYYY-NNN-SHIPCODE
+  nextDemandNo(shipId) {
+    const year = new Date().getFullYear();
+    const ship = this.get('ships', shipId);
+    const code = ship?.code || shipId.toUpperCase();
+    const count = this.list('demands').filter(d =>
+      d.shipId === shipId && (d.demandNo || '').startsWith(`DMD-${year}-`)
+    ).length;
+    const seq = String(count + 1).padStart(3, '0');
+    return `DMD-${year}-${seq}-${code}`;
   },
 
   // FIFO batches — returns the available batches for a product, oldest first
@@ -219,26 +231,32 @@ const ROLES = {
   super_admin: {
     label: 'Super Admin',
     icon: '★',
-    nav: ['dashboard', 'demand', 'spoilage', 'stock-out', 'dispatch', 'purchase-orders', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
     can: { create: true, update: true, delete: true, approve: true, manageUsers: true, viewAllSections: true }
   },
   central_coordinator: {
     label: 'Central Coordinator',
     icon: '◆',
-    nav: ['dashboard', 'demand', 'spoilage', 'stock-out', 'dispatch', 'purchase-orders', 'inventory', 'low-stock', 'reports', 'products'],
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products'],
     can: { create: false, update: false, delete: false, approve: false, manageUsers: false, viewAllSections: true }
   },
   reviewer: {
     label: 'Reviewer / Approver',
     icon: '✓',
-    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'inventory', 'low-stock', 'reports'],
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
     can: { create: false, update: true, delete: false, approve: true, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {
     label: 'Inventory Manager',
     icon: '◈',
-    nav: ['dashboard', 'demand', 'spoilage', 'stock-out', 'dispatch', 'inventory', 'low-stock', 'products'],
+    nav: ['dashboard', 'demand', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: false }
+  },
+  rd_section: {
+    label: 'R&D Section (Outward)',
+    icon: '↑',
+    nav: ['dashboard', 'stock-out', 'dispatch'],
+    can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {
     label: 'Data Entry',
@@ -252,7 +270,7 @@ const ROLES = {
 const NAV_GROUPS = [
   { label: 'Overview', items: ['dashboard'] },
   { label: 'Demand → Outward (to ships)', items: ['demand', 'stock-out', 'dispatch'] },
-  { label: 'Replenishment (from suppliers)', items: ['purchase-orders', 'spoilage'] },
+  { label: 'Replenishment (from suppliers)', items: ['purchase-orders', 'stock-in', 'spoilage'] },
   { label: 'Insights', items: ['inventory', 'low-stock', 'reports'] },
   { label: 'Admin', items: ['products', 'categories', 'suppliers', 'users'] }
 ];

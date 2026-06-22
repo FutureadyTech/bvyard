@@ -21,7 +21,8 @@ window.SEED_DATA = {
     { id: 'u7',  name: 'Masala Store I/C',   rank: 'AVR',    role: 'inventory_manager',   designation: 'Masala Store I/C',  email: 'masala.ic@navy.mil.in',   sections: ['sec_masala'] },
     { id: 'u8',  name: 'Fresh Store I/C',    rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',   email: 'fresh.ic@navy.mil.in',    sections: ['sec_fresh'] },
     { id: 'u9',  name: 'Meat Store I/C',     rank: 'AVR',    role: 'inventory_manager',   designation: 'Meat Store I/C',    email: 'meat.ic@navy.mil.in',     sections: ['sec_meat'] },
-    { id: 'u10', name: 'Data Entry Operator', rank: 'SS',    role: 'data_entry',          designation: 'Central Hub Op',    email: 'dataop@navy.mil.in',      sections: ['*'] }
+    { id: 'u10', name: 'Data Entry Operator', rank: 'SS',    role: 'data_entry',          designation: 'Central Hub Op',    email: 'dataop@navy.mil.in',      sections: ['*'] },
+    { id: 'u11', name: 'R&D Section Officer', rank: 'PO',   role: 'rd_section',          designation: 'R&D Section (Outward)', email: 'rnd@navy.mil.in',     sections: ['*'] }
   ],
 
   categories: [
@@ -5406,12 +5407,12 @@ window.SEED_DATA = {
 ],
 
   ships: [
-    { id: 's1', name: 'S1', code: 'S1', class: 'Frigate',             cof: 447 },
-    { id: 's2', name: 'S2', code: 'S2', class: 'ASW Corvette',        cof: 410 },
-    { id: 's3', name: 'S3', code: 'S3', class: 'Base / Shore Estab.', cof: 280 },
-    { id: 's4', name: 'S4', code: 'S4', class: 'Hospital Ship',       cof: 195 },
-    { id: 's5', name: 'S5', code: 'S5', class: 'Destroyer',           cof: 520 },
-    { id: 's6', name: 'S6', code: 'S6', class: 'Patrol Vessel',       cof: 145 }
+    { id: 's1', name: 'S1', code: 'S1', class: 'Frigate',             cof: 447, pocName: 'Lt Mehta',   pocPhone: '+919820011001' },
+    { id: 's2', name: 'S2', code: 'S2', class: 'ASW Corvette',        cof: 410, pocName: 'Lt Sharma',  pocPhone: '+919820011002' },
+    { id: 's3', name: 'S3', code: 'S3', class: 'Base / Shore Estab.', cof: 280, pocName: 'Lt Rao',     pocPhone: '+919820011003' },
+    { id: 's4', name: 'S4', code: 'S4', class: 'Hospital Ship',       cof: 195, pocName: 'Surg Lt Joshi', pocPhone: '+919820011004' },
+    { id: 's5', name: 'S5', code: 'S5', class: 'Destroyer',           cof: 520, pocName: 'Lt Kumar',   pocPhone: '+919820011005' },
+    { id: 's6', name: 'S6', code: 'S6', class: 'Patrol Vessel',       cof: 145, pocName: 'Lt Nair',    pocPhone: '+919820011006' }
   ],
 
   suppliers: [
@@ -5421,21 +5422,34 @@ window.SEED_DATA = {
 
   demands: [
     {
-      id: 'd1', demandNo: '26R1067', date: '2026-05-13', dayOfWeek: 'Wed',
-      shipId: 's1', status: 'pending', raisedBy: 'S1', sourceChannel: 'whatsapp',
+      id: 'd1', demandNo: 'DMD-2026-001-S1', date: '2026-06-10', dayOfWeek: 'Wed',
+      shipId: 's1', status: 'pending', raisedBy: 'u4', sourceChannel: 'whatsapp',
+      dateRequired: '2026-06-23',
       items: [
         { productId: 'p_1',  demandedQty: 100, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
         { productId: 'p_11', demandedQty: 50,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
       ]
     },
     {
-      id: 'd2', demandNo: '26R1068', date: '2026-05-20', dayOfWeek: 'Wed',
-      shipId: 's2', status: 'approved', raisedBy: 'S2', sourceChannel: 'email',
+      id: 'd2', demandNo: 'DMD-2026-001-S2', date: '2026-06-15', dayOfWeek: 'Sun',
+      shipId: 's2', status: 'approved', raisedBy: 'u4', sourceChannel: 'email',
+      dateRequired: '2026-06-25',
       items: [
         { productId: 'p_82',  demandedQty: 80, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
         { productId: 'p_136', demandedQty: 60, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
       ],
       poId: null
+    },
+    {
+      id: 'd3', demandNo: 'DMD-2026-001-S3', date: '2026-06-20', dayOfWeek: 'Sat',
+      shipId: 's3', status: 'partially_approved', raisedBy: 'u4', sourceChannel: 'print',
+      dateRequired: '2026-06-27',
+      reviewerId: 'u3', reviewedAt: '2026-06-20T10:30:00.000Z',
+      reviewNote: 'Lentils approved; sugar qty reduced to 40 kg only',
+      items: [
+        { productId: 'p_82',  demandedQty: 100, approvedQty: 100, rejectedQty: 0,   fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
+        { productId: 'p_136', demandedQty: 80,  approvedQty: 40,  rejectedQty: 40,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending', rejectionReason: 'Sufficient stock onboard' }
+      ]
     }
   ],
 

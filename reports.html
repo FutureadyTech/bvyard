@@ -41,7 +41,7 @@
 
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><h3>Top Items Issued</h3></div>
+        <div class="card-header"><h3>Top Items Issued</h3><div class="text-sm text-mute">Click column headers to sort</div></div>
         <div class="table-wrap"><table class="data" id="topItems"></table></div>
       </div>
       <div class="card">
@@ -137,12 +137,33 @@
       stockOut.forEach(so => so.items.forEach(it => {
         itemTotals[it.productId] = (itemTotals[it.productId] || 0) + it.qty;
       }));
-      const top = Object.entries(itemTotals).map(([pid, qty]) => ({ p: DB.product(pid), qty }))
-        .filter(x => x.p).sort((a, b) => b.qty - a.qty).slice(0, 10);
-      document.getElementById('topItems').innerHTML = `
-        <thead><tr><th>Item</th><th class="text-right">Qty Issued</th></tr></thead>
-        <tbody>${top.map(t => `<tr><td>${escapeHtml(displayName(t.p))}</td><td class="text-right bold">${t.qty} ${t.p.baseUnit}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">No activity</td></tr>'}</tbody>
-      `;
+      let top = Object.entries(itemTotals).map(([pid, qty]) => {
+        const p = DB.product(pid);
+        const totalValue = qty * (p?.unitPrice || 0);
+        return { p, qty, totalValue };
+      }).filter(x => x.p);
+
+      // Sortable top items
+      let topSortKey = 'qty';
+      function renderTopItems() {
+        const sorted = top.slice().sort((a, b) => b[topSortKey] - a[topSortKey]).slice(0, 10);
+        document.getElementById('topItems').innerHTML = `
+          <thead><tr>
+            <th>Item</th>
+            <th class="text-right" style="cursor:pointer;" onclick="setTopSort('qty')" title="Sort by qty">${topSortKey === 'qty' ? '▼ ' : ''}Qty Issued</th>
+            <th class="text-right">Unit Price</th>
+            <th class="text-right" style="cursor:pointer;" onclick="setTopSort('totalValue')" title="Sort by value">${topSortKey === 'totalValue' ? '▼ ' : ''}Total Value</th>
+          </tr></thead>
+          <tbody>${sorted.map(t => `<tr>
+            <td>${escapeHtml(displayName(t.p))}</td>
+            <td class="text-right bold">${t.qty} ${t.p.baseUnit}</td>
+            <td class="text-right text-mute">${t.p.unitPrice ? fmtMoney(t.p.unitPrice) : '—'}</td>
+            <td class="text-right bold">${t.totalValue > 0 ? fmtMoney(t.totalValue) : '—'}</td>
+          </tr>`).join('') || '<tr><td colspan="4" class="empty">No activity</td></tr>'}</tbody>
+        `;
+      }
+      window.setTopSort = (key) => { topSortKey = key; renderTopItems(); };
+      renderTopItems();
 
       // Ship breakdown
       const ships = DB.list('ships');

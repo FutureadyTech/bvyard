@@ -9,6 +9,12 @@
 </head>
 <body>
   <div id="pageContent">
+
+    <div id="pendingPOCard" style="display:none;" class="card mb-16">
+      <div class="card-header"><h3 style="color:var(--warn);">Awaiting PO Approval</h3></div>
+      <div class="table-wrap"><table class="data" id="pendingPOTbl"></table></div>
+    </div>
+
     <div class="card">
       <div class="card-header">
         <div class="row" style="gap:14px;">
@@ -16,7 +22,9 @@
           <select id="filter" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
-            <option value="issued">Issued</option>
+            <option value="pending_approval">Pending Approval</option>
+            <option value="approved">Approved</option>
+            <option value="sent">Sent to Supplier</option>
             <option value="received">Received</option>
             <option value="closed">Closed</option>
           </select>
@@ -34,15 +42,52 @@
   <script src="assets/js/db.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
-    renderShell('purchase-orders', 'Purchase Orders', 'Create manually · or use Smart PO for consumption-based auto-generation');
+    renderShell('purchase-orders', 'Purchase Orders', 'Create · submit for approval · send to supplier');
+
+    function statusClass(st) {
+      return st === 'approved' || st === 'received' ? 'ok'
+        : st === 'pending_approval' ? 'warn'
+        : st === 'closed' ? 'muted'
+        : st === 'sent' ? 'info'
+        : 'warn';
+    }
 
     function refresh() {
       const f = document.getElementById('filter').value;
       let rows = DB.list('purchaseOrders');
+      const pending = rows.filter(p => p.status === 'pending_approval');
       if (f) rows = rows.filter(p => p.status === f);
+
+      const pendingCard = document.getElementById('pendingPOCard');
+      pendingCard.style.display = (pending.length && can('approve')) ? '' : 'none';
+
+      document.getElementById('pendingPOTbl').innerHTML = `
+        <thead><tr>
+          <th>ILMS PO No.</th><th>Date</th><th>Supplier</th>
+          <th class="text-right">Items</th><th class="text-right">Total Value</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${pending.slice().reverse().map(po => {
+            const sp = DB.supplier(po.supplierId);
+            return `<tr style="background:#fffbeb;">
+              <td class="bold">${po.ilmsPONo || po.poNo}</td>
+              <td>${fmtDate(po.date)}</td>
+              <td>${sp ? escapeHtml(sp.name) : '—'}</td>
+              <td class="text-right">${po.items.length}</td>
+              <td class="text-right bold">${fmtMoney(po.totalValue)}</td>
+              <td class="text-right">
+                <button class="btn btn-sm" onclick="viewPO('${po.id}')">View</button>
+                <button class="btn btn-sm btn-primary" onclick="approvePO('${po.id}')">Approve</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectPO('${po.id}')">Reject</button>
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="6" class="empty">No POs awaiting approval.</td></tr>'}
+        </tbody>
+      `;
+
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
-          <th>PO No.</th><th>Date</th><th>Supplier</th>
+          <th>ILMS PO No.</th><th>Date</th><th>Supplier</th>
           <th class="text-right">Items</th><th class="text-right">Total Value</th>
           <th>Status</th><th>Source</th><th></th>
         </tr></thead>
@@ -50,19 +95,19 @@
           ${rows.slice().reverse().map(po => {
             const sp = DB.supplier(po.supplierId);
             const dem = po.demandId ? DB.get('demands', po.demandId) : null;
-            const statusClass = po.status === 'draft' ? 'warn' : po.status === 'closed' ? 'muted' : 'ok';
             return `
             <tr>
-              <td class="bold">${po.poNo}</td>
+              <td class="bold">${po.ilmsPONo || po.poNo || '—'}</td>
               <td>${fmtDate(po.date)}</td>
               <td>${sp ? escapeHtml(sp.name) : '—'}</td>
               <td class="text-right">${po.items.length}</td>
               <td class="text-right bold">${fmtMoney(po.totalValue)}</td>
-              <td><span class="badge ${statusClass}">${po.status.toUpperCase()}</span></td>
+              <td><span class="badge ${statusClass(po.status)}">${po.status.replace(/_/g,' ').toUpperCase()}</span></td>
               <td class="text-sm">${dem ? `Demand ${dem.demandNo}` : po.source === 'smart' ? '★ Smart' : 'Manual'}</td>
-              <td class="text-right">
+              <td class="text-right" style="white-space:nowrap;">
                 <button class="btn btn-sm" onclick="viewPO('${po.id}')">View</button>
-                ${po.status === 'draft' && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="issuePO('${po.id}')">Issue PO</button>` : ''}
+                ${po.status === 'draft' && can('create') ? `<button class="btn btn-sm btn-primary" onclick="submitPO('${po.id}')">Submit</button>` : ''}
+                ${po.status === 'approved' && can('approve') ? `<button class="btn btn-sm btn-gold" onclick="markSent('${po.id}')">Mark Sent</button>` : ''}
                 <button class="btn btn-sm" onclick="shareViaWhatsApp('${po.id}')" title="Send via WhatsApp">${WA_ICON}</button>
               </td>
             </tr>`;
@@ -70,6 +115,44 @@
         </tbody>
       `;
     }
+
+    window.approvePO = (id) => {
+      if (!can('approve')) return toast('Your role cannot approve POs', 'warn');
+      const po = DB.get('purchaseOrders', id);
+      po.status = 'approved';
+      po.approvedBy = Session.get()?.id;
+      po.approvedAt = new Date().toISOString();
+      DB.upsert('purchaseOrders', po);
+      toast(`PO ${po.ilmsPONo || po.poNo} approved`, 'ok');
+      refresh();
+    };
+
+    window.rejectPO = (id) => {
+      if (!can('approve')) return;
+      const po = DB.get('purchaseOrders', id);
+      if (!confirm(`Reject PO ${po.ilmsPONo || po.poNo}?`)) return;
+      po.status = 'draft';
+      DB.upsert('purchaseOrders', po);
+      toast('Returned to draft', 'warn');
+      refresh();
+    };
+
+    window.submitPO = (id) => {
+      const po = DB.get('purchaseOrders', id);
+      po.status = 'pending_approval';
+      DB.upsert('purchaseOrders', po);
+      toast(`PO submitted for approval`, 'ok');
+      refresh();
+    };
+
+    window.markSent = (id) => {
+      if (!can('approve')) return;
+      const po = DB.get('purchaseOrders', id);
+      po.status = 'sent';
+      DB.upsert('purchaseOrders', po);
+      toast(`PO marked as sent to supplier`, 'ok');
+      refresh();
+    };
 
     window.viewPO = (id) => {
       const po = DB.get('purchaseOrders', id);
@@ -85,19 +168,25 @@
           <td class="text-right bold">${fmtMoney(subtotal)}</td>
         </tr>`;
       }).join('');
-      openModal(`Purchase Order ${po.poNo}`, `
+
+      const attachmentHtml = po.attachmentBase64
+        ? `<div style="margin-top:8px;"><a href="${po.attachmentBase64}" target="_blank" download="${escapeHtml(po.attachmentName||'attachment')}" class="btn btn-sm">⬇ ${escapeHtml(po.attachmentName||'Download attachment')}</a></div>`
+        : '';
+
+      openModal(`Purchase Order ${po.ilmsPONo || po.poNo}`, `
         <div class="form-grid">
           <div class="grid-3">
+            <div><div class="text-sm text-mute">ILMS PO No.</div><div class="bold">${po.ilmsPONo || '—'}</div></div>
             <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(po.date)}</div></div>
-            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${po.status === 'draft' ? 'warn' : 'ok'}">${po.status.toUpperCase()}</span></div></div>
-            <div><div class="text-sm text-mute">Total</div><div class="bold">${fmtMoney(po.totalValue)}</div></div>
+            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${statusClass(po.status)}">${po.status.replace(/_/g,' ').toUpperCase()}</span></div></div>
           </div>
           <div class="card" style="background:#fafbfd;">
             <div class="text-sm text-mute">Supplier</div>
-            <div class="bold">${sp ? sp.name + ' (' + sp.code + ')' : '—'}</div>
+            <div class="bold">${sp ? escapeHtml(sp.name) + ' (' + sp.code + ')' : '—'}</div>
             <div class="text-sm">${sp ? escapeHtml(sp.address) : ''}</div>
             <div class="text-sm text-mute" style="margin-top:4px;">GST: ${sp?.gst || '—'} · WhatsApp: ${sp?.whatsapp || '—'}</div>
           </div>
+          ${attachmentHtml}
           <table class="data">
             <thead><tr><th>Item</th><th>Code</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Subtotal</th></tr></thead>
             <tbody>${itemRows}</tbody>
@@ -111,15 +200,6 @@
       `, null, '', 'wide');
     };
 
-    window.issuePO = (id) => {
-      if (!can('approve')) return toast('Your role cannot issue POs', 'warn');
-      const po = DB.get('purchaseOrders', id);
-      po.status = 'issued';
-      DB.upsert('purchaseOrders', po);
-      toast(`PO ${po.poNo} issued`, 'ok');
-      refresh();
-    };
-
     window.shareViaWhatsApp = (id) => {
       const po = DB.get('purchaseOrders', id);
       const sp = DB.supplier(po.supplierId);
@@ -127,16 +207,17 @@
         const p = DB.product(it.productId);
         return `• ${p?.code || ''} — ${it.qty} ${p?.baseUnit || ''} @ ${fmtMoney(it.rate)}`;
       }).join('%0A');
-      const text = `*Purchase Order ${po.poNo}*%0ADate: ${po.date}%0A%0A${items}%0A%0ATotal: ${fmtMoney(po.totalValue)}%0A%0ABV Yard Mumbai`;
+      const ref = po.ilmsPONo || po.poNo;
+      const text = `*Purchase Order ${ref}*%0ADate: ${po.date}%0A%0A${items}%0A%0ATotal: ${fmtMoney(po.totalValue)}%0A%0ABV Yard Mumbai`;
       const phone = sp?.whatsapp?.replace(/[^0-9]/g, '') || '';
       window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
     };
 
-    // ─── Manual PO ────────────────────────────────────────────────
+    // ─── Manual PO ───────────────────────────────────────────────
     let manualItems = [];
 
     function buildManualRow(it, i) {
-      const p   = DB.product(it.productId);
+      const p = DB.product(it.productId);
       const sub = (it.qty || 0) * (it.rate || 0);
       return `<tr data-i="${i}">
         <td class="bold" style="font-size:13px;">${p ? escapeHtml(p.name) : '—'}</td>
@@ -167,7 +248,6 @@
         return;
       }
       tbody.innerHTML = manualItems.map((it, i) => buildManualRow(it, i)).join('');
-
       tbody.querySelectorAll('.m_qty').forEach(el => el.oninput = e => {
         const i = +e.target.dataset.i;
         manualItems[i].qty = Number(e.target.value) || 0;
@@ -199,36 +279,27 @@
 
     function manualPOForm() {
       const suppliers = DB.list('suppliers');
-      const cats      = DB.list('categories');
-
+      const cats = DB.list('categories');
       return `
         <div class="form-grid">
-
-          <!-- PO No · Date -->
           <div class="form-row">
             <div class="field">
-              <label>PO No. <span class="req">*</span></label>
-              <input id="m_pono" value="26BNVC${String(Math.floor(Math.random()*900)+100)}">
+              <label>ILMS PO No. <span class="req">*</span></label>
+              <input id="m_ilmspono" placeholder="e.g. ILMS/2026/0042" style="font-family:monospace;">
             </div>
             <div class="field">
               <label>Date <span class="req">*</span></label>
               <input id="m_date" type="date" value="${DB.today()}">
             </div>
           </div>
-
-          <!-- Supplier -->
           <div class="field">
             <label>Supplier <span class="req">*</span></label>
             <select id="m_supplier">
               <option value="">— Select supplier —</option>
-              ${suppliers.map(s => `
-                <option value="${s.id}">${escapeHtml(s.name)} (${s.code})</option>
-              `).join('')}
+              ${suppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${s.code})</option>`).join('')}
             </select>
             <div id="m_supplierInfo" style="margin-top:6px;font-size:12px;color:var(--text-mute);display:none;"></div>
           </div>
-
-          <!-- Item picker -->
           <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
             <div style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid var(--border);">
               <div class="bold" style="font-size:13px;margin-bottom:8px;">Add Items</div>
@@ -243,8 +314,6 @@
                 <button class="btn btn-primary btn-sm" id="m_addBtn" disabled>+ Add to PO</button>
               </div>
             </div>
-
-            <!-- Items table -->
             <div class="table-wrap" style="margin:0;">
               <table class="data" style="margin:0;">
                 <thead><tr>
@@ -265,13 +334,15 @@
               </table>
             </div>
           </div>
-
-          <!-- Notes -->
+          <div class="field">
+            <label>Attach Signed PO Document (optional)</label>
+            <input type="file" id="m_attachment" accept="image/*,.pdf" style="font-size:13px;">
+            <div class="text-sm text-mute" style="margin-top:4px;">Image or PDF · stored locally in prototype</div>
+          </div>
           <div class="field">
             <label>Notes <span class="text-mute" style="font-weight:400;font-size:11px;">(optional)</span></label>
-            <input id="m_notes" placeholder="e.g. Urgent — required before 01 Jun">
+            <input id="m_notes" placeholder="e.g. Urgent — required before 01 Jul">
           </div>
-
         </div>
       `;
     }
@@ -279,101 +350,86 @@
     document.getElementById('newBtn').addEventListener('click', () => {
       if (!can('create')) return toast('Your role cannot create POs', 'warn');
       manualItems = [];
-
       openModal('New Purchase Order', manualPOForm(), () => {
-        const poNo       = document.getElementById('m_pono').value.trim();
-        const date       = document.getElementById('m_date').value;
+        const ilmsPONo = document.getElementById('m_ilmspono').value.trim();
+        const date = document.getElementById('m_date').value;
         const supplierId = document.getElementById('m_supplier').value;
-        const notes      = document.getElementById('m_notes').value.trim();
-        const items      = manualItems.filter(it => it.qty > 0 && it.rate > 0);
-
-        if (!poNo || !supplierId) { toast('PO No. and Supplier are required', 'danger'); return false; }
-        if (!items.length)         { toast('Add at least one item with qty and rate', 'danger'); return false; }
-
+        const notes = document.getElementById('m_notes').value.trim();
+        const items = manualItems.filter(it => it.qty > 0 && it.rate > 0);
+        if (!ilmsPONo || !supplierId) { toast('ILMS PO No. and Supplier are required', 'danger'); return false; }
+        if (!items.length) { toast('Add at least one item with qty and rate', 'danger'); return false; }
         const totalValue = items.reduce((s, it) => s + it.qty * it.rate, 0);
-        DB.upsert('purchaseOrders', {
-          id: DB.uid('po'), poNo, date, supplierId,
-          status: 'draft', source: 'manual',
-          demandId: null, totalValue, items,
-          notes: notes || undefined
-        });
-        toast(`PO ${poNo} saved as draft`, 'ok');
-        refresh();
+
+        const fileInput = document.getElementById('m_attachment');
+        const file = fileInput?.files?.[0];
+        const savePO = (attachmentBase64, attachmentName) => {
+          DB.upsert('purchaseOrders', {
+            id: DB.uid('po'), ilmsPONo, poNo: ilmsPONo, date, supplierId,
+            status: 'draft', source: 'manual',
+            demandId: null, totalValue, items,
+            notes: notes || undefined,
+            attachmentBase64: attachmentBase64 || undefined,
+            attachmentName: attachmentName || undefined
+          });
+          toast(`PO ${ilmsPONo} saved as draft`, 'ok');
+          refresh();
+        };
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => savePO(e.target.result, file.name);
+          reader.readAsDataURL(file);
+          return; // async — modal will close after reader fires
+        } else {
+          savePO(null, null);
+        }
       }, 'Save as Draft', 'wide');
 
       setTimeout(() => {
         renderManualItems();
-
-        // Supplier info panel
         document.getElementById('m_supplier').addEventListener('change', e => {
-          const sp  = DB.supplier(e.target.value);
+          const sp = DB.supplier(e.target.value);
           const div = document.getElementById('m_supplierInfo');
-          if (sp) {
-            div.style.display = 'block';
-            div.innerHTML = `<span class="bold">${escapeHtml(sp.name)}</span> · GST: ${sp.gst || '—'} · ${escapeHtml(sp.address)}`;
-          } else {
-            div.style.display = 'none';
-          }
+          if (sp) { div.style.display = 'block'; div.innerHTML = `<span class="bold">${escapeHtml(sp.name)}</span> · GST: ${sp.gst || '—'} · ${escapeHtml(sp.address)}`; }
+          else { div.style.display = 'none'; }
         });
-
-        // Category → item cascade
         document.getElementById('m_catPick').addEventListener('change', e => {
-          const catId    = e.target.value;
+          const catId = e.target.value;
           const itemPick = document.getElementById('m_itemPick');
-          const addBtn   = document.getElementById('m_addBtn');
-          if (!catId) {
-            itemPick.innerHTML = '<option value="">— Pick category first —</option>';
-            itemPick.disabled  = true;
-            addBtn.disabled    = true;
-            return;
-          }
+          const addBtn = document.getElementById('m_addBtn');
+          if (!catId) { itemPick.innerHTML = '<option value="">— Pick category first —</option>'; itemPick.disabled = true; addBtn.disabled = true; return; }
           const prods = DB.list('products').filter(p => p.categoryId === catId);
           itemPick.innerHTML = '<option value="">— Select item —</option>' +
-            prods.map(p => `<option value="${p.id}">${escapeHtml(p.name)} · ${p.baseUnit} · ₹${p.unitPrice}</option>`).join('');
-          itemPick.disabled = false;
-          addBtn.disabled   = true;
-          itemPick.addEventListener('change', () => {
-            addBtn.disabled = !itemPick.value;
-          });
+            prods.map(p => `<option value="${p.id}">${escapeHtml(p.name)} · ${p.baseUnit}${p.unitPrice ? ' · ₹'+p.unitPrice : ''}</option>`).join('');
+          itemPick.disabled = false; addBtn.disabled = true;
+          itemPick.addEventListener('change', () => { addBtn.disabled = !itemPick.value; });
         });
-
-        // Add item to table
         document.getElementById('m_addBtn').addEventListener('click', () => {
           const pid = document.getElementById('m_itemPick').value;
           if (!pid) return;
-          if (manualItems.some(it => it.productId === pid)) {
-            toast('Item already added — adjust qty in the table', 'warn'); return;
-          }
+          if (manualItems.some(it => it.productId === pid)) { toast('Item already added — adjust qty in table', 'warn'); return; }
           const p = DB.product(pid);
           manualItems.push({ productId: pid, qty: 0, rate: p?.unitPrice || 0 });
           renderManualItems();
-          // Reset picker
           document.getElementById('m_itemPick').value = '';
           document.getElementById('m_addBtn').disabled = true;
         });
       }, 50);
     });
 
-    // Smart PO — per-category MOQ + cadence + consolidated demand across all ships
+    // Smart PO
     document.getElementById('smartBtn').addEventListener('click', () => {
       if (!can('create')) return toast('Your role cannot create POs', 'warn');
-
-      // Step 1: consolidate ALL pending demand qty per product (S1 + S2 + S3 + ...)
-      const pendingDemand = {};   // productId → total demanded qty across all open demands
-      DB.list('demands')
-        .filter(d => ['pending','approved','partially_fulfilled'].includes(d.status))
+      const pendingDemand = {};
+      DB.list('demands').filter(d => ['pending','approved','partially_approved','partially_fulfilled'].includes(d.status))
         .forEach(d => d.items.forEach(it => {
           const pending = it.demandedQty - (it.fulfilledQty || 0);
           if (pending > 0) pendingDemand[it.productId] = (pendingDemand[it.productId] || 0) + pending;
         }));
-
-      // Step 2: 30-day consumption per product (for cadence-based suggestions)
       const consumption = {};
       DB.list('stockOut').forEach(so => so.items.forEach(it => {
         consumption[it.productId] = (consumption[it.productId] || 0) + it.qty;
       }));
-
-      // Step 3: group products by category, apply MOQ + cadence logic
       const cats = DB.list('categories');
       const groups = cats.map(cat => {
         const items = DB.list('products').filter(p => p.categoryId === cat.id);
@@ -381,36 +437,26 @@
         items.forEach(p => {
           const pending = pendingDemand[p.id] || 0;
           const avgDaily = (consumption[p.id] || 0) / 30;
-          // Coverage period based on cadence
           const coverDays = { daily: 1, weekly: 7, monthly: 30, quarterly: 90, adhoc: 30 }[cat.cadence || 'monthly'];
-          const cadenceQty = Math.ceil(avgDaily * coverDays * 1.2);  // 20% buffer
-          // Suggested = whichever covers pending demand + cadence + min stock gap
-          let suggested = Math.max(
-            pending,
-            cadenceQty,
-            Math.max(0, p.minStock - p.currentStock)
-          );
-          if (suggested > 0) {
-            lines.push({ p, pending, avgDaily, cadenceQty, suggested });
-          }
+          const cadenceQty = Math.ceil(avgDaily * coverDays * 1.2);
+          let suggested = Math.max(pending, cadenceQty, Math.max(0, p.minStock - p.currentStock));
+          if (suggested > 0) lines.push({ p, pending, avgDaily, cadenceQty, suggested });
         });
-        // Apply category MOQ — round category total up to MOQ multiple
         const catTotal = lines.reduce((s, l) => s + l.suggested, 0);
         const moqRounded = cat.moq && catTotal > 0 ? Math.ceil(catTotal / cat.moq) * cat.moq : catTotal;
         return { cat, lines, catTotal, moqRounded, moqGap: moqRounded - catTotal };
       }).filter(g => g.lines.length);
 
       if (!groups.length) return toast('No reorders needed', 'ok');
-
-      const supplierOptions = DB.list('suppliers').map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      const supplierOptions = DB.list('suppliers').map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
 
       const body = `
         <div class="form-grid">
-          <div class="text-sm text-mute">
-            Consolidates pending demand across all ships, applies category-level MOQ + cadence rules.
-            Cadence sets the coverage window; MOQ rounds the category total to the next bulk multiple.
+          <div class="text-sm text-mute">Consolidates pending demand across all ships, applies category-level MOQ + cadence rules.</div>
+          <div class="form-row">
+            <div class="field"><label>ILMS PO No. <span class="req">*</span></label><input id="sm_ilmspono" placeholder="e.g. ILMS/2026/0043" style="font-family:monospace;"></div>
+            <div class="field"><label>Supplier</label><select id="sm_supplier">${supplierOptions}</select></div>
           </div>
-          <div class="field"><label>Supplier (one PO per category recommended)</label><select id="sm_supplier">${supplierOptions}</select></div>
           ${groups.map(g => `
             <div class="card" style="background:#fafbfd;">
               <div class="row-between" style="margin-bottom:10px;">
@@ -423,7 +469,7 @@
                 </label>
               </div>
               <table class="data" style="font-size:12px;">
-                <thead><tr><th>Item</th><th class="text-right">Current</th><th class="text-right">Pending Demand</th><th class="text-right">Avg/day</th><th class="text-right">Cadence Cover</th><th class="text-right">Suggested Qty</th></tr></thead>
+                <thead><tr><th>Item</th><th class="text-right">Current</th><th class="text-right">Pending</th><th class="text-right">Avg/day</th><th class="text-right">Cadence Cover</th><th class="text-right">Suggested</th></tr></thead>
                 <tbody>
                   ${g.lines.map(l => `<tr>
                     <td>${escapeHtml(displayName(l.p))}</td>
@@ -434,16 +480,6 @@
                     <td class="text-right"><input type="number" data-pid="${l.p.id}" data-cat="${g.cat.id}" class="sm_qty" value="${l.suggested}" style="width:90px;border:1px solid var(--border);padding:4px;border-radius:4px;"></td>
                   </tr>`).join('')}
                 </tbody>
-                <tfoot>
-                  <tr style="background:#eef2f8;">
-                    <td colspan="5" class="text-right bold">Category total:</td>
-                    <td class="text-right bold">${g.catTotal} ${g.cat.moqUnit || ''}</td>
-                  </tr>
-                  ${g.moqGap > 0 ? `<tr style="background:#fef3c7;">
-                    <td colspan="5" class="text-right" style="color:#92400e;">Rounded up to MOQ multiple (+${g.moqGap}):</td>
-                    <td class="text-right bold" style="color:#92400e;">${g.moqRounded} ${g.cat.moqUnit || ''}</td>
-                  </tr>` : ''}
-                </tfoot>
               </table>
             </div>
           `).join('')}
@@ -451,35 +487,29 @@
       `;
 
       openModal('Smart PO — Per-category, MOQ-aware', body, () => {
+        const ilmsPONo = document.getElementById('sm_ilmspono').value.trim();
+        if (!ilmsPONo) { toast('ILMS PO No. required', 'danger'); return false; }
         const supplierId = document.getElementById('sm_supplier').value;
         const includedCats = new Set(Array.from(document.querySelectorAll('.g_include:checked')).map(x => x.dataset.cat));
         const items = Array.from(document.querySelectorAll('.sm_qty')).filter(inp => includedCats.has(inp.dataset.cat)).map(inp => {
           const p = DB.product(inp.dataset.pid);
-          return { productId: inp.dataset.pid, qty: Number(inp.value) || 0, rate: p.unitPrice, categoryId: p.categoryId };
+          return { productId: inp.dataset.pid, qty: Number(inp.value) || 0, rate: p?.unitPrice || 0, categoryId: p?.categoryId };
         }).filter(it => it.qty > 0);
         if (!items.length) { toast('No items selected', 'danger'); return false; }
-
-        // Generate one PO per category included (per the diagram — Cat → PO)
         const byCat = {};
         items.forEach(it => { (byCat[it.categoryId] = byCat[it.categoryId] || []).push(it); });
         const created = [];
         Object.entries(byCat).forEach(([catId, catItems]) => {
           const totalValue = catItems.reduce((s, it) => s + it.qty * it.rate, 0);
-          const po = {
-            id: DB.uid('po'),
-            poNo: '26BNVC' + String(Math.floor(Math.random() * 900) + 100),
-            date: DB.today(),
-            supplierId, status: 'draft',
-            demandId: null,
-            source: 'smart',
-            categoryId: catId,
-            totalValue,
-            items: catItems.map(({categoryId, ...rest}) => rest)
-          };
-          DB.upsert('purchaseOrders', po);
-          created.push(po.poNo);
+          DB.upsert('purchaseOrders', {
+            id: DB.uid('po'), ilmsPONo, poNo: ilmsPONo,
+            date: DB.today(), supplierId, status: 'draft', source: 'smart',
+            demandId: null, categoryId: catId, totalValue,
+            items: catItems.map(({ categoryId, ...rest }) => rest)
+          });
+          created.push(ilmsPONo);
         });
-        toast(`Created ${created.length} draft PO(s): ${created.join(', ')}`, 'ok');
+        toast(`Created ${created.length} draft PO(s)`, 'ok');
         refresh();
       }, 'Generate Draft PO(s)', 'wide');
     });
