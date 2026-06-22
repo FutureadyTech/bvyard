@@ -14,13 +14,7 @@
       <div class="text-sm text-mute">Last touchpoint before goods leave BV Yard. Confirm what's on the vehicle, who's driving, and when it left.</div>
     </div>
 
-    <!-- Awaiting Dispatch Approval — fulfilled vouchers waiting for reviewer sign-off -->
-    <div id="awaitApprovalCard" style="display:none;" class="card mb-16">
-      <div class="card-header"><h3 style="color:var(--warn);">Awaiting Dispatch Approval</h3></div>
-      <div class="table-wrap"><table class="data" id="awaitApprovalTbl"></table></div>
-    </div>
-
-    <!-- Awaiting Gate-out — approved and ready to roll -->
+    <!-- Awaiting Gate-out — fulfilled vouchers ready to dispatch -->
     <div class="card mb-16" id="awaitingCard">
       <div class="card-header">
         <h3>Awaiting Gate-out</h3>
@@ -53,35 +47,8 @@
       const dispatches = DB.list('dispatch');
       const dispatchedIds = new Set(dispatches.map(d => d.stockOutId));
 
-      // Split into: awaiting dispatch approval, and approved/ready for gate-out
-      const notDispatched = stockOut.filter(so => !dispatchedIds.has(so.id));
-      const awaitApproval = notDispatched.filter(so => !so.dispatchApproved);
-      const readyForGateOut = notDispatched.filter(so => so.dispatchApproved);
-
-      // Awaiting approval panel — visible only if reviewer
-      const awaitApprovalCard = document.getElementById('awaitApprovalCard');
-      awaitApprovalCard.style.display = (awaitApproval.length || can('approve')) ? '' : 'none';
-
-      document.getElementById('awaitApprovalTbl').innerHTML = `
-        <thead><tr>
-          <th>Voucher</th><th>Date</th><th>Ship</th><th>Items Going Out</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${awaitApproval.slice().reverse().map(so => {
-            const ship = DB.ship(so.shipId);
-            return `<tr style="background:#fffbeb;">
-              <td class="bold">${so.voucherNo}</td>
-              <td>${fmtDate(so.date)}</td>
-              <td>${ship ? ship.name : '—'}</td>
-              <td class="text-sm text-mute">${fulfillmentSummary(so)}</td>
-              <td class="text-right">
-                <button class="btn btn-sm" onclick="viewItems('${so.id}')">View Items</button>
-                ${can('approve') ? `<button class="btn btn-sm btn-primary" onclick="approveDispatch('${so.id}')">Approve Dispatch</button>` : '<span class="badge warn" style="font-size:10px;">AWAITING</span>'}
-              </td>
-            </tr>`;
-          }).join('') || '<tr><td colspan="5" class="empty">No vouchers awaiting dispatch approval.</td></tr>'}
-        </tbody>
-      `;
+      // All completed vouchers not yet dispatched are ready for gate-out
+      const readyForGateOut = stockOut.filter(so => !dispatchedIds.has(so.id));
 
       document.getElementById('awaitingTbl').innerHTML = `
         <thead><tr>
@@ -100,7 +67,7 @@
                 ${can('create') ? `<button class="btn btn-sm btn-gold" onclick="openGateOutFor('${so.id}')">Send Out →</button>` : ''}
               </td>
             </tr>`;
-          }).join('') || '<tr><td colspan="5" class="empty">No vouchers ready for gate-out.</td></tr>'}
+          }).join('') || '<tr><td colspan="5" class="empty">No vouchers awaiting gate-out.</td></tr>'}
         </tbody>
       `;
 
@@ -132,23 +99,6 @@
         </tbody>
       `;
     }
-
-    window.approveDispatch = (stockOutId) => {
-      if (!can('approve')) return toast('Your role cannot approve dispatch', 'warn');
-      const so = DB.get('stockOut', stockOutId);
-      if (!so) return;
-      so.dispatchApproved = true;
-      so.dispatchApprovedBy = Session.get()?.id;
-      so.dispatchApprovedAt = new Date().toISOString();
-      DB.upsert('stockOut', so);
-      // Mark the linked demand as dispatch-approved
-      if (so.demandId) {
-        const d = DB.get('demands', so.demandId);
-        if (d) { d.status = 'dispatch_pending'; DB.upsert('demands', d); }
-      }
-      toast('Dispatch approved — ready for gate-out', 'ok');
-      refresh();
-    };
 
     window.viewItems = (stockOutId) => {
       const so = DB.get('stockOut', stockOutId);
@@ -196,7 +146,7 @@
     };
 
     function gateOutForm(prefilledStockOutId) {
-      const completed = DB.list('stockOut').filter(so => so.status === 'completed' && so.dispatchApproved);
+      const completed = DB.list('stockOut').filter(so => so.status === 'completed');
       const dispatched = new Set(DB.list('dispatch').map(d => d.stockOutId));
       const available = completed.filter(so => !dispatched.has(so.id) || so.id === prefilledStockOutId);
       const selected = prefilledStockOutId ? DB.get('stockOut', prefilledStockOutId) : null;

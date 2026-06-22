@@ -58,6 +58,8 @@ function renderShell(activeKey, pageTitle, pageSub) {
     : 'All sections';
   const prefs = Prefs.get();
 
+  const unread = DB.unreadCount();
+
   document.body.classList.add('has-shell');
   document.body.innerHTML = `
     <div class="app-shell">
@@ -90,6 +92,12 @@ function renderShell(activeKey, pageTitle, pageSub) {
             <select id="roleSwitcher" class="role-switcher" title="Preview a different role">
               ${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${k === user.role ? 'selected' : ''}>View as: ${r.label}</option>`).join('')}
             </select>` : ''}
+            <div style="position:relative;" id="notifWrap">
+              <button id="notifBtn" title="Notifications" style="background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:6px;color:rgba(255,255,255,0.85);position:relative;display:flex;align-items:center;gap:0;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                ${unread > 0 ? `<span id="notifBadge" style="position:absolute;top:0;right:0;background:var(--danger);color:#fff;border-radius:8px;font-size:10px;font-weight:700;padding:0 4px;line-height:16px;min-width:16px;text-align:center;">${unread > 9 ? '9+' : unread}</span>` : ''}
+              </button>
+            </div>
             <div class="user-chip" id="userChip" title="Click to log out">
               <div class="avatar">${initials}</div>
               <div class="meta">
@@ -136,6 +144,41 @@ function renderShell(activeKey, pageTitle, pageSub) {
   document.getElementById('userChip').addEventListener('click', () => {
     if (confirm('Log out?')) { Session.clear(); window.location.href = 'index.html'; }
   });
+
+  // Notification bell
+  const notifBtn = document.getElementById('notifBtn');
+  if (notifBtn) {
+    notifBtn.addEventListener('click', () => {
+      const existing = document.getElementById('notifPanel');
+      if (existing) { existing.remove(); return; }
+      DB.markAllRead();
+      const badge = document.getElementById('notifBadge');
+      if (badge) badge.remove();
+      const notifs = DB.listNotifications().slice(0, 15);
+      const panel = document.createElement('div');
+      panel.id = 'notifPanel';
+      panel.style.cssText = 'position:absolute;right:0;top:calc(100% + 8px);width:320px;max-height:400px;overflow-y:auto;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:1000;';
+      const typeBar = t => t === 'ok' ? 'var(--ok)' : t === 'danger' ? 'var(--danger)' : t === 'warn' ? 'var(--warn)' : 'var(--navy-700)';
+      panel.innerHTML = `
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px;color:var(--text);">Notifications</div>
+        ${notifs.length ? notifs.map(n => `
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;border-left:3px solid ${typeBar(n.type)};">
+            <div style="color:var(--text);">${escapeHtml(n.message)}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">${fmtDateTime(n.createdAt)}</div>
+          </div>
+        `).join('') : '<div style="padding:20px 14px;text-align:center;color:var(--text-muted);font-size:13px;">No notifications yet</div>'}
+      `;
+      document.getElementById('notifWrap').appendChild(panel);
+      setTimeout(() => {
+        document.addEventListener('click', function closePanel(e) {
+          if (!panel.contains(e.target) && !notifBtn.contains(e.target)) {
+            panel.remove();
+            document.removeEventListener('click', closePanel);
+          }
+        });
+      }, 10);
+    });
+  }
 }
 
 function toast(msg, type = 'ok') {

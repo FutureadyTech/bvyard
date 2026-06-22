@@ -177,6 +177,31 @@ const DB = {
     const loose = p.currentStock % p.packToBase;
     if (loose === 0) return `${packs} × ${p.packSize}${p.baseUnit} ${p.packUnit} = ${p.currentStock} ${p.baseUnit}`;
     return `${packs} × ${p.packSize}${p.baseUnit} + ${loose} ${p.baseUnit} = ${p.currentStock} ${p.baseUnit}`;
+  },
+
+  // Notification helpers
+  notify(message, type = 'info', link = null) {
+    const s = this.load();
+    if (!s.notifications) s.notifications = [];
+    s.notifications.push({
+      id: this.uid('nt'),
+      message, type, link,
+      createdAt: new Date().toISOString(),
+      read: false
+    });
+    if (s.notifications.length > 50) s.notifications = s.notifications.slice(-50);
+    this.save(s);
+  },
+  markAllRead() {
+    const s = this.load();
+    if (s.notifications) s.notifications.forEach(n => n.read = true);
+    this.save(s);
+  },
+  unreadCount() {
+    return (this.load().notifications || []).filter(n => !n.read).length;
+  },
+  listNotifications() {
+    return (this.load().notifications || []).slice().reverse();
   }
 };
 
@@ -255,7 +280,7 @@ const ROLES = {
   rd_section: {
     label: 'R&D Section (Outward)',
     icon: '↑',
-    nav: ['dashboard', 'stock-out', 'dispatch'],
+    nav: ['dashboard', 'dispatch'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {

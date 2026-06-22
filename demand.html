@@ -237,6 +237,14 @@
         d.reviewedAt = new Date().toISOString();
         d.status = allRejected ? 'rejected' : anyRejected ? 'partially_approved' : 'approved';
         DB.upsert('demands', d);
+        const ship = DB.ship(d.shipId);
+        if (d.status === 'approved') {
+          DB.notify(`Demand ${d.demandNo} approved — ${ship?.name || ''} · ready for fulfillment`, 'ok', 'demand.html');
+        } else if (d.status === 'rejected') {
+          DB.notify(`Demand ${d.demandNo} rejected — ${ship?.name || ''}`, 'danger', 'demand.html');
+        } else {
+          DB.notify(`Demand ${d.demandNo} partially approved — some items reduced · ${ship?.name || ''}`, 'warn', 'demand.html');
+        }
         toast(`Demand ${d.demandNo} — ${d.status.replace(/_/g,' ')}`, 'ok');
         refresh();
       }, 'Save Review', 'wide');
@@ -248,6 +256,8 @@
       if (!confirm(`Reject ${d.demandNo}?`)) return;
       d.status = 'rejected';
       DB.upsert('demands', d);
+      const ship = DB.ship(d.shipId);
+      DB.notify(`Demand ${d.demandNo} rejected — ${ship?.name || ''}`, 'danger', 'demand.html');
       toast('Rejected', 'warn');
       refresh();
     };
