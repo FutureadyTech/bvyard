@@ -171,6 +171,19 @@
       if (!so) return;
       const ship = DB.ship(so.shipId);
       const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+      const dispatch = DB.list('dispatch').find(d => d.stockOutId === stockOutId);
+      // Build a map of returned items: productId → { qty, condition }
+      const returnedMap = {};
+      (dispatch?.returnedItems || []).forEach(r => { returnedMap[r.productId] = r; });
+
+      function gateInCell(productId, baseUnit) {
+        if (!dispatch) return '—';
+        if (!dispatch.gateInTime) return '<span class="text-mute" style="font-size:11px;">In transit</span>';
+        const ret = returnedMap[productId];
+        if (ret) return `${ret.qty} ${baseUnit || ''} <span class="badge ${ret.condition === 'good' ? 'ok' : 'warn'}" style="font-size:9px;">${ret.condition.toUpperCase()}</span>`;
+        return '<span class="badge ok" style="font-size:9px;">DELIVERED</span>';
+      }
+
       const rows = so.items.map(it => {
         const p = DB.product(it.productId);
         const subOf = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
@@ -182,6 +195,7 @@
           <td class="bold">${it.qty} ${p?.baseUnit || ''}</td>
           <td><span class="badge ${outcome === 'exact' ? 'ok' : outcome === 'over' ? 'info' : outcome === 'short' ? 'warn' : outcome === 'substituted' ? 'muted' : 'danger'}">${outcome.toUpperCase()}</span></td>
           <td class="text-sm">${subOf ? `↔ replaced ${escapeHtml(subOf.name)}` : '—'}</td>
+          <td class="text-sm">${gateInCell(it.productId, p?.baseUnit)}</td>
         </tr>`;
       }).join('');
       const absentRows = (so.absent || []).map(pid => {
@@ -194,6 +208,7 @@
           <td>0</td>
           <td><span class="badge danger">ABSENT</span></td>
           <td>—</td>
+          <td>—</td>
         </tr>`;
       }).join('');
       openModal(`Items Going Out — ${so.voucherNo}`, `
@@ -202,9 +217,12 @@
             <div><div class="text-sm text-mute">Ship</div><div class="bold">${ship?.name || '—'}</div></div>
             <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(so.date)}</div></div>
             <div><div class="text-sm text-mute">From Demand</div><div class="bold">${demand ? demand.demandNo : 'Direct'}</div></div>
+            ${dispatch ? `<div><div class="text-sm text-mute">Gate-out</div><div class="bold">${fmtDateTime(dispatch.gateOutTime)}</div></div>` : ''}
+            ${dispatch ? `<div><div class="text-sm text-mute">Gate-in</div><div class="bold">${dispatch.gateInTime ? fmtDateTime(dispatch.gateInTime) : '<span class="badge warn" style="font-size:10px;">VEHICLE OUT</span>'}</div></div>` : ''}
+            ${dispatch?.exPostFactoNote ? `<div style="grid-column:1/-1;"><div class="text-sm text-mute">Ex-post Facto Note</div><div class="text-sm">${escapeHtml(dispatch.exPostFactoNote)}</div></div>` : ''}
           </div>
           <table class="data">
-            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Going Out</th><th>Outcome</th><th>Note</th></tr></thead>
+            <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Going Out</th><th>Outcome</th><th>Note</th><th>Gate-in Status</th></tr></thead>
             <tbody>${rows}${absentRows}</tbody>
           </table>
         </div>
