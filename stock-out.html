@@ -33,10 +33,22 @@
 </head>
 <body>
   <div id="pageContent">
+    <!-- Pending Fulfillment -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <div>
+          <h3>Pending Fulfillment</h3>
+          <div class="text-sm text-mute" style="margin-top:2px;">Approved demands ready to issue</div>
+        </div>
+        <button class="btn btn-primary" id="newBtn">+ Direct Issue</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="pendingTbl"></table></div>
+    </div>
+
+    <!-- Fulfillment History -->
     <div class="card">
       <div class="card-header">
-        <h3>Fulfillment Records <span class="text-sm text-mute" style="font-weight:400;">(in lieu of IAFZ-2096 Issue Voucher)</span></h3>
-        <button class="btn btn-primary" id="newBtn">+ New Fulfillment</button>
+        <h3>Fulfillment History <span class="text-sm text-mute" style="font-weight:400;">(IAFZ-2096 Issue Voucher)</span></h3>
       </div>
       <div class="table-wrap"><table class="data" id="tbl"></table></div>
     </div>
@@ -46,9 +58,42 @@
   <script src="assets/js/db.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
-    renderShell('stock-out', 'Fulfillment', 'Record what is actually issued vs demanded · exact / short / over / absent / substitute');
+    renderShell('stock-out', 'Fulfillment', 'Issue against approved demands · exact / short / over / absent / substitute');
 
-    function refresh() {
+    function refreshPending() {
+      const pending = DB.list('demands').filter(d => ['approved', 'partially_approved', 'partially_fulfilled'].includes(d.status));
+      document.getElementById('pendingTbl').innerHTML = `
+        <thead><tr>
+          <th>Demand No.</th><th>Date</th><th>Required By</th><th>Ship</th>
+          <th class="text-right">Items</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${pending.slice().reverse().map(d => {
+            const ship = DB.ship(d.shipId);
+            const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+            const tmrStr = tmr.toISOString().slice(0, 10);
+            const isDue = d.dateRequired === tmrStr;
+            const isPast = d.dateRequired && d.dateRequired < DB.today();
+            const rowStyle = isPast ? 'background:#fef2f2;border-left:3px solid var(--danger);' : isDue ? 'background:#fffbeb;border-left:3px solid var(--warn);' : '';
+            const statusCls = d.status === 'approved' ? 'ok' : d.status === 'partially_approved' ? 'warn' : 'info';
+            const itemCount = d.items?.length || 0;
+            return `<tr style="${rowStyle}">
+              <td class="bold">${d.demandNo}${isDue ? ' <span class="badge warn" style="font-size:9px;">DUE TMR</span>' : ''}${isPast ? ' <span class="badge danger" style="font-size:9px;">OVERDUE</span>' : ''}</td>
+              <td>${fmtDate(d.date)}</td>
+              <td>${d.dateRequired ? fmtDate(d.dateRequired) : '<span class="text-mute">—</span>'}</td>
+              <td>${ship ? ship.name : '—'}</td>
+              <td class="text-right">${itemCount}</td>
+              <td><span class="badge ${statusCls}">${d.status.replace(/_/g,' ').toUpperCase()}</span></td>
+              <td class="text-right">
+                ${can('create') ? `<button class="btn btn-sm btn-primary" onclick="fulfillDemand('${d.id}')">Fulfill</button>` : ''}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="7" class="empty">No demands pending fulfillment</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    function refreshHistory() {
       const rows = DB.list('stockOut');
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
@@ -67,7 +112,6 @@
             const totalDemanded = so.items.reduce((s, x) => s + (x.demandedQty || x.qty), 0);
             const pct = totalDemanded ? Math.round((totalIssued / totalDemanded) * 100) : 100;
             const cls = pct >= 100 ? '' : pct >= 50 ? 'warn' : 'danger';
-            // Outcome counts
             const oc = { exact: 0, short: 0, over: 0, absent: 0, substituted: 0 };
             so.items.forEach(it => { if (it.outcome) oc[it.outcome] = (oc[it.outcome] || 0) + 1; });
             (so.absent || []).forEach(() => oc.absent++);
@@ -76,7 +120,7 @@
               <td class="bold">${so.voucherNo}</td>
               <td>${fmtDate(so.date)}</td>
               <td>${ship ? ship.name : '—'}</td>
-              <td>${demand ? `<a href="demand.html" class="text-sm bold">${demand.demandNo}</a><br><span class="fulfil-bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></span>${pct}%` : '<span class="text-sm text-mute">Direct</span>'}</td>
+              <td>${demand ? `<span class="text-sm bold">${demand.demandNo}</span><br><span class="fulfil-bar ${cls}"><span style="width:${Math.min(pct,100)}%"></span></span>${pct}%` : '<span class="text-sm text-mute">Direct</span>'}</td>
               <td class="text-right">${so.items.length}</td>
               <td class="text-sm">
                 ${oc.exact ? `<span class="badge ok">${oc.exact} exact</span> ` : ''}
@@ -93,10 +137,12 @@
       `;
     }
 
+    function refresh() { refreshPending(); refreshHistory(); }
+
     window.viewVoucher = (id) => {
       const so = DB.get('stockOut', id);
       const ship = DB.ship(so.shipId);
-      const recorder = DB.user(so.recordedBy || so.preparedBy);  // back-compat with legacy seed
+      const recorder = DB.user(so.recordedBy || so.preparedBy);
       const demand = so.demandId ? DB.get('demands', so.demandId) : null;
       const absentList = so.absent || [];
 
@@ -149,12 +195,8 @@
     };
 
     // outItems shape: { productId, demandedQty, qty, batchNo, mode, substituteProductId, substitutedForProductId }
-    // mode: 'issue' | 'absent' | 'substitute'
     let outItems = [];
     let linkedDemand = null;
-
-    const params = new URLSearchParams(location.search);
-    const preDemandId = params.get('demandId');
 
     function form() {
       const ships = DB.list('ships');
@@ -205,8 +247,6 @@
         const isExact = mode === 'issue' && it.demandedQty && it.qty === it.demandedQty;
         const isShortStock = mode === 'issue' && p && it.qty > p.currentStock;
         const lineClass = mode === 'absent' ? 'absent' : mode === 'substitute' ? 'subst' : isExact ? 'exact' : isOver ? 'over' : '';
-
-        // FIFO hint
         const batches = mode === 'issue' && p ? DB.fifoBatchesFor(p.id).slice(0, 2) : [];
 
         return `
@@ -273,19 +313,19 @@
         `;
       }).join('');
 
-      // wire handlers
       wrap.querySelectorAll('.i_qty').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].qty = Number(e.target.value) || 0; renderOutItems(); });
       wrap.querySelectorAll('.i_batch').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].batchNo = e.target.value; });
       wrap.querySelectorAll('.i_prod').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].productId = e.target.value; renderOutItems(); });
       wrap.querySelectorAll('.i_subcat').forEach(el => el.onchange = e => {
         const i = +e.target.dataset.i;
         outItems[i].substituteCategoryId = e.target.value;
-        outItems[i].substituteProductId = null;  // reset item when category changes
+        outItems[i].substituteProductId = null;
         renderOutItems();
       });
       wrap.querySelectorAll('.i_sub').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].substituteProductId = e.target.value; renderOutItems(); });
       wrap.querySelectorAll('.i_subqty').forEach(el => el.onchange = e => { outItems[+e.target.dataset.i].qty = Number(e.target.value) || 0; renderOutItems(); });
     }
+
     window.rmOut = (i) => { outItems.splice(i, 1); renderOutItems(); };
     window.setMode = (i, mode) => {
       outItems[i].mode = mode;
@@ -297,19 +337,29 @@
     function openNew() {
       if (!can('create')) return toast('Your role cannot create issue vouchers', 'warn');
       if (linkedDemand) {
-        outItems = linkedDemand.items.map(it => {
-          const p = DB.product(it.productId);
-          const pending = it.demandedQty - (it.fulfilledQty || 0);
-          const issueQty = Math.min(pending, p?.currentStock || 0);
-          return {
+        outItems = linkedDemand.items
+          .filter(it => (it.approvedQty ?? it.demandedQty) > (it.fulfilledQty || 0))
+          .map(it => {
+            const p = DB.product(it.productId);
+            const approved = it.approvedQty ?? it.demandedQty;
+            const pending = approved - (it.fulfilledQty || 0);
+            const issueQty = Math.min(pending, p?.currentStock || 0);
+            return {
+              productId: it.productId,
+              demandedQty: approved,
+              qty: issueQty,
+              batchNo: '',
+              mode: 'issue',
+              substituteProductId: null
+            };
+          });
+        if (!outItems.length) {
+          outItems = linkedDemand.items.map(it => ({
             productId: it.productId,
-            demandedQty: it.demandedQty,
-            qty: issueQty,
-            batchNo: '',
-            mode: 'issue',
-            substituteProductId: null
-          };
-        });
+            demandedQty: it.approvedQty ?? it.demandedQty,
+            qty: 0, batchNo: '', mode: 'issue', substituteProductId: null
+          }));
+        }
       } else {
         outItems = [{ productId: DB.list('products')[0]?.id, qty: 0, batchNo: '', mode: 'issue' }];
       }
@@ -319,34 +369,23 @@
         const date = document.getElementById('f_date').value;
         const shipId = document.getElementById('f_ship').value;
         const demandId = document.getElementById('f_demand').value || null;
-        const recordedBy = Session.get()?.id || null;  // auto-capture who saved it (audit)
+        const recordedBy = Session.get()?.id || null;
         if (!voucherNo) { toast('Voucher No. required', 'danger'); return false; }
 
         const issuedItems = [];
         const absentIds = [];
         outItems.forEach(it => {
-          if (it.mode === 'absent') {
-            absentIds.push(it.productId);
-            return;
-          }
+          if (it.mode === 'absent') { absentIds.push(it.productId); return; }
           if (it.mode === 'substitute') {
             if (!it.substituteProductId || !it.qty) return;
             const sp = DB.product(it.substituteProductId);
             const qty = Math.min(it.qty, sp.currentStock);
-            issuedItems.push({
-              productId: it.substituteProductId,
-              qty,
-              demandedQty: it.demandedQty,
-              batchNo: '',
-              substitutedForProductId: it.productId,
-              outcome: 'substituted'
-            });
+            issuedItems.push({ productId: it.substituteProductId, qty, demandedQty: it.demandedQty, batchNo: '', substitutedForProductId: it.productId, outcome: 'substituted' });
             return;
           }
-          // regular issue
           if (!it.productId || !it.qty) return;
           const p = DB.product(it.productId);
-          const qty = Math.min(it.qty, p.currentStock);  // cap at stock
+          const qty = Math.min(it.qty, p.currentStock);
           let outcome = 'exact';
           if (it.demandedQty) {
             if (qty === it.demandedQty) outcome = 'exact';
@@ -360,18 +399,13 @@
 
         DB.upsert('stockOut', {
           id: DB.uid('so'), voucherNo, date, shipId, demandId,
-          items: issuedItems,
-          absent: absentIds,
-          recordedBy, status: 'completed',
-          dispatchApproved: false
+          items: issuedItems, absent: absentIds,
+          recordedBy, status: 'completed', dispatchApproved: false
         });
         issuedItems.forEach(it => DB.adjustStock(it.productId, -it.qty));
         if (demandId) DB.recalcDemandFulfilment(demandId);
 
-        const msg = [
-          issuedItems.length ? `${issuedItems.length} issued` : '',
-          absentIds.length ? `${absentIds.length} absent` : ''
-        ].filter(Boolean).join(' · ');
+        const msg = [issuedItems.length ? `${issuedItems.length} issued` : '', absentIds.length ? `${absentIds.length} absent` : ''].filter(Boolean).join(' · ');
         toast('Voucher saved — ' + msg, 'ok');
         refresh();
       }, 'Save Fulfillment & Update Inventory', 'wide');
@@ -387,11 +421,20 @@
       }, 50);
     }
 
+    window.fulfillDemand = (id) => {
+      linkedDemand = DB.get('demands', id);
+      if (linkedDemand) openNew();
+    };
+
     document.getElementById('newBtn').addEventListener('click', () => { linkedDemand = null; openNew(); });
+
+    const params = new URLSearchParams(location.search);
+    const preDemandId = params.get('demandId');
     if (preDemandId) {
       linkedDemand = DB.get('demands', preDemandId);
       if (linkedDemand) openNew();
     }
+
     refresh();
   </script>
 </body>

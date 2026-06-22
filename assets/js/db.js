@@ -249,7 +249,7 @@ const ROLES = {
   inventory_manager: {
     label: 'Inventory Manager',
     icon: '◈',
-    nav: ['dashboard', 'demand', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
+    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: false }
   },
   rd_section: {
