@@ -15,7 +15,7 @@
     </div>
 
     <!-- Panel 1: Pending Outward Approval — Reviewer must sign off before dispatch -->
-    <div id="awaitApprovalCard" class="card mb-16" style="display:none;">
+    <div id="awaitApprovalCard" class="card mb-16">
       <div class="card-header">
         <div>
           <h3 style="color:var(--warn);">Pending Outward Approval</h3>
@@ -96,8 +96,6 @@
         </tr>`;
       }
 
-      const awaitApprovalCard = document.getElementById('awaitApprovalCard');
-      awaitApprovalCard.style.display = awaitApproval.length ? '' : 'none';
       document.getElementById('awaitApprovalTbl').innerHTML = `
         <thead><tr>
           <th>Demand</th><th>Voucher</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
