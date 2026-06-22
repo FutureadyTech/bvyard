@@ -266,7 +266,8 @@
         { href: 'purchase-orders.html', icon: '◧', label: 'New Purchase Order',  show: can('create') },
         { href: 'low-stock.html',       icon: '!', label: 'View Low Stock',       show: nav.includes('low-stock') },
         { href: 'inventory.html',       icon: '◻', label: 'Inventory Ledger',    show: nav.includes('inventory') },
-        { href: 'reports.html',         icon: '≡', label: 'Reports',             show: nav.includes('reports') }
+        { href: 'reports.html',         icon: '≡', label: 'Reports',             show: nav.includes('reports') },
+        { href: 'dispatch.html?expost=1', icon: '▷', label: 'Ex-post Facto Supply', show: nav.includes('dispatch') && can('create') }
       ].filter(l => l.show).map(l => `
         <a class="dv2-qa-btn" href="${l.href}">
           <div class="dv2-qa-icon">${l.icon}</div>

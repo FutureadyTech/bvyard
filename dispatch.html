@@ -449,6 +449,10 @@
     });
 
     refresh();
+
+    if (new URLSearchParams(window.location.search).get('expost') === '1') {
+      document.getElementById('newBtn')?.click();
+    }
   </script>
 </body>
 </html>
