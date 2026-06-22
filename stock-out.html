@@ -95,12 +95,14 @@
 
     function refreshHistory() {
       const rows = DB.list('stockOut');
+      const dispatched = new Set(DB.list('dispatch').map(d => d.stockOutId));
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
           <th>Voucher</th><th>Date</th><th>Ship</th>
           <th>Vs Demand</th>
           <th class="text-right">Items</th>
           <th>Outcomes</th>
+          <th>Outward Status</th>
           <th>Recorded By</th><th></th>
         </tr></thead>
         <tbody>
@@ -108,6 +110,12 @@
             const ship = DB.ship(so.shipId);
             const recorder = DB.user(so.recordedBy || so.preparedBy);
             const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+            const isDispatched = dispatched.has(so.id);
+            const outwardStatus = isDispatched
+              ? '<span class="badge ok">Dispatched</span>'
+              : so.dispatchApproved
+                ? '<span class="badge info">Approved — Gate-out pending</span>'
+                : '<span class="badge warn">Awaiting Reviewer Approval</span>';
             // Items covered by a substitute — the substitute item already carries the demandedQty,
             // so don't double-count the original absent product in the denominator or absent badge
             const coveredBySubst = new Set(so.items.filter(it => it.substitutedForProductId).map(it => it.substitutedForProductId));
@@ -138,10 +146,11 @@
                 ${oc.absent ? `<span class="badge danger">${oc.absent} absent</span> ` : ''}
                 ${oc.substituted ? `<span class="badge" style="background:#fef3c7;color:#92400e;">${oc.substituted} subst</span>` : ''}
               </td>
+              <td>${outwardStatus}</td>
               <td class="text-sm text-mute">${recorder ? recorder.name : '—'}</td>
               <td class="text-right"><button class="btn btn-sm" onclick="viewVoucher('${so.id}')">View</button></td>
             </tr>`;
-          }).join('') || '<tr><td colspan="8" class="empty">No issue vouchers yet</td></tr>'}
+          }).join('') || '<tr><td colspan="9" class="empty">No issue vouchers yet</td></tr>'}
         </tbody>
       `;
     }

@@ -17,10 +17,11 @@
     <!-- Panel 1: Pending Outward Approval — Reviewer must sign off before dispatch -->
     <div id="awaitApprovalCard" class="card mb-16">
       <div class="card-header">
-        <div>
+        <div class="row" style="gap:10px;align-items:center;">
           <h3 style="color:var(--warn);">Pending Outward Approval</h3>
-          <div class="text-sm text-mute" style="margin-top:2px;">Fulfilled vouchers — Reviewer must approve before R&amp;D Section can dispatch</div>
+          <span id="awaitApprovalCount" style="background:var(--warn);color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:2px 8px;"></span>
         </div>
+        <div class="text-sm text-mute">Fulfilled vouchers — Reviewer must approve before R&amp;D Section can dispatch</div>
       </div>
       <div class="table-wrap"><table class="data" id="awaitApprovalTbl"></table></div>
     </div>
@@ -47,9 +48,10 @@
     renderShell('dispatch', 'Outward (Gate-out)', 'Final step in the demand cycle — vehicle, driver, time-out, POC, returns');
 
     function fulfillmentSummary(so) {
-      const issued = so.items.length;
+      const items = so.items || [];
+      const issued = items.length;
       const absent = (so.absent || []).length;
-      const totalQty = so.items.reduce((s, x) => s + x.qty, 0);
+      const totalQty = items.reduce((s, x) => s + (x.qty || 0), 0);
       return `${issued} item${issued !== 1 ? 's' : ''} · ${totalQty} units` + (absent ? ` · ${absent} absent` : '');
     }
 
@@ -96,13 +98,14 @@
         </tr>`;
       }
 
+      document.getElementById('awaitApprovalCount').textContent = awaitApproval.length || '';
       document.getElementById('awaitApprovalTbl').innerHTML = `
         <thead><tr>
           <th>Demand</th><th>Voucher</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
         </tr></thead>
         <tbody>
           ${awaitApproval.slice().reverse().map(so => soRow(so, 'approve')).join('')
-            || '<tr><td colspan="7" class="empty">No vouchers pending approval.</td></tr>'}
+            || '<tr><td colspan="7" class="empty">No vouchers pending approval — fulfilled demands will appear here.</td></tr>'}
         </tbody>
       `;
 
