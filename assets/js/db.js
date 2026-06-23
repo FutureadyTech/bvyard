@@ -1,6 +1,6 @@
-// v0.6 — Sequential demand numbers, rd_section role, per-item approval, spoilage approval, PO workflow
-const DB_KEY = 'bvyard_db_v11';
-const SESSION_KEY = 'bvyard_session_v11';
+// v0.7 — Stock seeded at 2×minStock, clean slate (no demo demands/fulfillments/dispatch)
+const DB_KEY = 'bvyard_db_v12';
+const SESSION_KEY = 'bvyard_session_v12';
 const PREFS_KEY = 'bvyard_prefs_v1';
 
 const DB = {
@@ -16,7 +16,7 @@ const DB = {
     localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(PREFS_KEY);
     // also clear older versions
-    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9','bvyard_db_v10','bvyard_session_v10'].forEach(k => localStorage.removeItem(k));
+    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9','bvyard_db_v10','bvyard_session_v10','bvyard_db_v11','bvyard_session_v11'].forEach(k => localStorage.removeItem(k));
     this.seed();
   },
 

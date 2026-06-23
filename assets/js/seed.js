@@ -247,7 +247,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -263,7 +263,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -279,7 +279,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -295,7 +295,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -311,7 +311,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -327,7 +327,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -343,7 +343,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -359,7 +359,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -375,7 +375,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -391,7 +391,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -647,7 +647,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -663,7 +663,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -679,7 +679,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -695,7 +695,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -711,7 +711,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -727,7 +727,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -743,7 +743,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -759,7 +759,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -775,7 +775,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -791,7 +791,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -807,7 +807,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -823,7 +823,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -839,7 +839,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -855,7 +855,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -871,7 +871,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -887,7 +887,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -903,7 +903,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -919,7 +919,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -935,7 +935,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -951,7 +951,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -967,7 +967,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -983,7 +983,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -999,7 +999,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -1015,7 +1015,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -1031,7 +1031,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -1047,7 +1047,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -1063,7 +1063,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -1079,7 +1079,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1095,7 +1095,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1111,7 +1111,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1127,7 +1127,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1143,7 +1143,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1159,7 +1159,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1175,7 +1175,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1191,7 +1191,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1207,7 +1207,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1223,7 +1223,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1239,7 +1239,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1255,7 +1255,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1271,7 +1271,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1287,7 +1287,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1303,7 +1303,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1319,7 +1319,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 600,
         "minStock": 300,
         "unitPrice": 0,
         "freshItem": false
@@ -1335,7 +1335,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1351,7 +1351,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1367,7 +1367,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1383,7 +1383,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1399,7 +1399,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1415,7 +1415,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1431,7 +1431,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1447,7 +1447,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1463,7 +1463,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1479,7 +1479,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1495,7 +1495,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -1511,7 +1511,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 1000,
         "minStock": 500,
         "unitPrice": 0,
         "freshItem": false
@@ -3143,7 +3143,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3159,7 +3159,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3175,7 +3175,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3191,7 +3191,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3207,7 +3207,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3223,7 +3223,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3239,7 +3239,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3255,7 +3255,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3271,7 +3271,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3287,7 +3287,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3303,7 +3303,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3319,7 +3319,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3335,7 +3335,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3351,7 +3351,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3367,7 +3367,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3383,7 +3383,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3399,7 +3399,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3415,7 +3415,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3431,7 +3431,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3447,7 +3447,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3463,7 +3463,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3479,7 +3479,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3495,7 +3495,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3511,7 +3511,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3527,7 +3527,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3543,7 +3543,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3559,7 +3559,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3575,7 +3575,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3591,7 +3591,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3607,7 +3607,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3623,7 +3623,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3639,7 +3639,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3655,7 +3655,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3671,7 +3671,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3687,7 +3687,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3703,7 +3703,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3719,7 +3719,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3735,7 +3735,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3751,7 +3751,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3767,7 +3767,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3783,7 +3783,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3799,7 +3799,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3815,7 +3815,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3831,7 +3831,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3847,7 +3847,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": true
@@ -3879,7 +3879,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3895,7 +3895,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3911,7 +3911,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3927,7 +3927,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3943,7 +3943,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3959,7 +3959,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3975,7 +3975,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -3991,7 +3991,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4007,7 +4007,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4039,7 +4039,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4311,7 +4311,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4327,7 +4327,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4359,7 +4359,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4375,7 +4375,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4391,7 +4391,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4407,7 +4407,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4423,7 +4423,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4439,7 +4439,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4471,7 +4471,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4487,7 +4487,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4615,7 +4615,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4647,7 +4647,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4663,7 +4663,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4743,7 +4743,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4759,7 +4759,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4775,7 +4775,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4871,7 +4871,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -4887,7 +4887,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -4935,7 +4935,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -4951,7 +4951,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -4967,7 +4967,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -4983,7 +4983,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -4999,7 +4999,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -5095,7 +5095,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5111,7 +5111,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -5127,7 +5127,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 400,
         "minStock": 200,
         "unitPrice": 0,
         "freshItem": false
@@ -5175,7 +5175,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5191,7 +5191,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5271,7 +5271,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5287,7 +5287,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5303,7 +5303,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5319,7 +5319,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5335,7 +5335,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5351,7 +5351,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5367,7 +5367,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5399,7 +5399,7 @@ window.SEED_DATA = {
         "packSize": 1,
         "packUnit": "unit",
         "packToBase": 1,
-        "currentStock": 100,
+        "currentStock": 200,
         "minStock": 100,
         "unitPrice": 0,
         "freshItem": false
@@ -5420,38 +5420,7 @@ window.SEED_DATA = {
     { id: 'sp2', name: 'Rupal Syndicates',  code: 'R0024B', gst: '27AAEPD8860H1ZA', address: '26/104, Shakti Krupa Shopping Centre, Ghatkopar (East), Mumbai - 400077', contact: 'rupalsyndicates@gmail.com', whatsapp: '+919876543220' }
   ],
 
-  demands: [
-    {
-      id: 'd1', demandNo: 'DMD-2026-001-S1', date: '2026-06-10', dayOfWeek: 'Wed',
-      shipId: 's1', status: 'pending', raisedBy: 'u4', sourceChannel: 'whatsapp',
-      dateRequired: '2026-06-23',
-      items: [
-        { productId: 'p_1',  demandedQty: 100, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
-        { productId: 'p_11', demandedQty: 50,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
-      ]
-    },
-    {
-      id: 'd2', demandNo: 'DMD-2026-001-S2', date: '2026-06-15', dayOfWeek: 'Sun',
-      shipId: 's2', status: 'approved', raisedBy: 'u4', sourceChannel: 'email',
-      dateRequired: '2026-06-25',
-      items: [
-        { productId: 'p_82',  demandedQty: 80, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
-        { productId: 'p_136', demandedQty: 60, fulfilledQty: 0, substitutedFor: null, outcome: 'pending' }
-      ],
-      poId: null
-    },
-    {
-      id: 'd3', demandNo: 'DMD-2026-001-S3', date: '2026-06-20', dayOfWeek: 'Sat',
-      shipId: 's3', status: 'partially_approved', raisedBy: 'u4', sourceChannel: 'print',
-      dateRequired: '2026-06-27',
-      reviewerId: 'u3', reviewedAt: '2026-06-20T10:30:00.000Z',
-      reviewNote: 'Lentils approved; sugar qty reduced to 40 kg only',
-      items: [
-        { productId: 'p_82',  demandedQty: 100, approvedQty: 100, rejectedQty: 0,   fulfilledQty: 0, substitutedFor: null, outcome: 'pending' },
-        { productId: 'p_136', demandedQty: 80,  approvedQty: 40,  rejectedQty: 40,  fulfilledQty: 0, substitutedFor: null, outcome: 'pending', rejectionReason: 'Sufficient stock onboard' }
-      ]
-    }
-  ],
+  demands: [],
 
   purchaseOrders: [],
   stockIn:        [],
