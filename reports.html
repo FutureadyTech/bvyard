@@ -21,7 +21,13 @@
         <div class="field"><label>Day of week</label>
           <select id="filterDay" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
             <option value="">Any day</option>
-            ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<option value="${d}">${d}</option>`).join('')}
+            <option value="Mon">Mon</option>
+            <option value="Tue">Tue</option>
+            <option value="Wed">Wed</option>
+            <option value="Thu">Thu</option>
+            <option value="Fri">Fri</option>
+            <option value="Sat">Sat</option>
+            <option value="Sun">Sun</option>
           </select>
         </div>
         <div class="field"><label>Channel</label>
@@ -29,7 +35,8 @@
             <option value="">All channels</option>
             <option value="print">⎙ Print</option>
             <option value="email">✉ Email</option>
-            <option value="whatsapp">WhatsApp</option>
+            <option value="whatsapp">✆ WhatsApp</option>
+            <option value="rio">↔ RIO</option>
           </select>
         </div>
         <div class="field"><label>&nbsp;</label><button class="btn btn-primary" id="applyBtn">Apply Filters</button></div>
@@ -41,7 +48,14 @@
 
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><h3>Top Items Issued</h3><div class="text-sm text-mute">Click column headers to sort</div></div>
+        <div class="card-header">
+          <h3>Top Items Issued</h3>
+          <select id="topSortSel" style="border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:white;">
+            <option value="qty">Sort: Qty issued ↓</option>
+            <option value="unitPrice">Sort: Unit price ↓</option>
+            <option value="totalValue">Sort: Total value ↓</option>
+          </select>
+        </div>
         <div class="table-wrap"><table class="data" id="topItems"></table></div>
       </div>
       <div class="card">
@@ -88,6 +102,8 @@
     const cats = DB.list('categories');
     document.getElementById('filterCategory').innerHTML = '<option value="">All categories</option>' +
       cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+    let topSortKey = 'qty';
 
     function inRange(dateStr, from, to) {
       const d = new Date(dateStr);
@@ -139,26 +155,29 @@
       }));
       let top = Object.entries(itemTotals).map(([pid, qty]) => {
         const p = DB.product(pid);
-        const totalValue = qty * (p?.unitPrice || 0);
-        return { p, qty, totalValue };
+        const unitPrice = p?.unitPrice || 0;
+        return { p, qty, unitPrice, totalValue: qty * unitPrice };
       }).filter(x => x.p);
 
-      // Sortable top items
-      let topSortKey = 'qty';
       function renderTopItems() {
+        const sel = document.getElementById('topSortSel');
+        if (sel) sel.value = topSortKey;
         const sorted = top.slice().sort((a, b) => b[topSortKey] - a[topSortKey]).slice(0, 10);
+        const hdr = (key, label) =>
+          `<th class="text-right" style="cursor:pointer;white-space:nowrap;user-select:none;" onclick="setTopSort('${key}')">` +
+          `${topSortKey === key ? '<span style="color:var(--navy-700)">▼ </span>' : ''}<span style="text-decoration:underline dotted 1px;">${label}</span></th>`;
         document.getElementById('topItems').innerHTML = `
           <thead><tr>
             <th>Item</th>
-            <th class="text-right" style="cursor:pointer;" onclick="setTopSort('qty')" title="Sort by qty">${topSortKey === 'qty' ? '▼ ' : ''}Qty Issued</th>
-            <th class="text-right">Unit Price</th>
-            <th class="text-right" style="cursor:pointer;" onclick="setTopSort('totalValue')" title="Sort by value">${topSortKey === 'totalValue' ? '▼ ' : ''}Total Value</th>
+            ${hdr('qty', 'Qty Issued')}
+            ${hdr('unitPrice', 'Unit Price')}
+            ${hdr('totalValue', 'Total Value')}
           </tr></thead>
           <tbody>${sorted.map(t => `<tr>
             <td>${escapeHtml(displayName(t.p))}</td>
-            <td class="text-right bold">${t.qty} ${t.p.baseUnit}</td>
-            <td class="text-right text-mute">${t.p.unitPrice ? fmtMoney(t.p.unitPrice) : '—'}</td>
-            <td class="text-right bold">${t.totalValue > 0 ? fmtMoney(t.totalValue) : '—'}</td>
+            <td class="text-right bold" style="font-variant-numeric:tabular-nums;">${t.qty.toLocaleString('en-IN')} ${t.p.baseUnit}</td>
+            <td class="text-right" style="font-variant-numeric:tabular-nums;">${t.p.unitPrice ? fmtMoney(t.p.unitPrice) : '—'}</td>
+            <td class="text-right bold" style="font-variant-numeric:tabular-nums;">${t.totalValue > 0 ? fmtMoney(t.totalValue) : '—'}</td>
           </tr>`).join('') || '<tr><td colspan="4" class="empty">No activity</td></tr>'}</tbody>
         `;
       }
@@ -177,13 +196,13 @@
         return { name: sh.name, demands: myDemands.length, issues: myIssues.length, tonnage: myTonnage, comp: avgComp };
       }).sort((a, b) => b.tonnage - a.tonnage);
       document.getElementById('shipBreakdown').innerHTML = `
-        <thead><tr><th>Ship</th><th class="text-right">Demands</th><th class="text-right">Issues</th><th class="text-right">Outflow</th><th>Compliance</th></tr></thead>
+        <thead><tr><th>Ship</th><th class="text-right">Demands</th><th class="text-right">Issues</th><th class="text-right">Outflow</th><th style="min-width:120px;">Compliance</th></tr></thead>
         <tbody>${shipRows.map(s => `<tr>
           <td class="bold">${s.name}</td>
-          <td class="text-right">${s.demands}</td>
-          <td class="text-right">${s.issues}</td>
-          <td class="text-right">${s.tonnage}</td>
-          <td><span class="fulfil-bar ${s.comp >= 80 ? '' : s.comp >= 50 ? 'warn' : 'danger'}"><span style="width:${s.comp}%"></span></span>${s.comp}%</td>
+          <td class="text-right" style="font-variant-numeric:tabular-nums;">${s.demands}</td>
+          <td class="text-right" style="font-variant-numeric:tabular-nums;">${s.issues}</td>
+          <td class="text-right" style="font-variant-numeric:tabular-nums;">${s.tonnage.toLocaleString('en-IN')}</td>
+          <td style="white-space:nowrap;"><span class="fulfil-bar ${s.comp >= 80 ? '' : s.comp >= 50 ? 'warn' : 'danger'}"><span style="width:${s.comp}%"></span></span> ${s.comp}%</td>
         </tr>`).join('')}</tbody>
       `;
 
@@ -279,6 +298,7 @@
     document.getElementById('applyBtn').addEventListener('click', render);
     document.getElementById('filterDay').addEventListener('change', render);
     document.getElementById('filterChannel').addEventListener('change', render);
+    document.getElementById('topSortSel').addEventListener('change', e => { window.setTopSort(e.target.value); });
     render();
   </script>
 </body>

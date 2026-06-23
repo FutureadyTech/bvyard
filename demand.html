@@ -366,13 +366,13 @@
       demItems = [{ categoryId: '', productId: null, demandedQty: 0, fulfilledQty: 0 }];
       openModal('Raise New Demand', demandForm(), () => {
         const shipId = document.getElementById('f_ship').value;
-        const demandNo = DB.nextDemandNo(shipId);
         const date = document.getElementById('f_date').value;
         const dateRequired = document.getElementById('f_req').value;
         const sourceChannel = document.querySelector('input[name="f_channel"]:checked')?.value || 'whatsapp';
         const rioCarrier = sourceChannel === 'rio' ? (document.getElementById('f_rioCarrier')?.value || null) : null;
         const rioFinalRecipient = sourceChannel === 'rio' ? (document.getElementById('f_rioRecipient')?.value.trim() || null) : null;
         if (sourceChannel === 'rio' && !rioFinalRecipient) { toast('Final recipient required for RIO channel', 'danger'); return false; }
+        const demandNo = DB.nextDemandNo(sourceChannel === 'rio' ? rioFinalRecipient : shipId);
         const items = demItems.filter(it => it.productId && it.demandedQty > 0).map(it => ({ ...it, fulfilledQty: 0, outcome: 'pending' }));
         if (!items.length) { toast('Add at least one item with qty', 'danger'); return false; }
         const currentUser = Session.get();
@@ -400,10 +400,15 @@
           const shipSel = document.getElementById('f_ship');
           shipSel.disabled = isRio;
           shipSel.style.opacity = isRio ? '0.45' : '';
-          if (!isRio) document.getElementById('f_dno').value = DB.nextDemandNo(shipSel.value);
+          if (isRio) {
+            const recip = document.getElementById('f_rioRecipient').value;
+            document.getElementById('f_dno').value = recip ? DB.nextDemandNo(recip) : '— select recipient —';
+          } else {
+            document.getElementById('f_dno').value = DB.nextDemandNo(shipSel.value);
+          }
         });
         document.getElementById('f_rioRecipient').addEventListener('change', e => {
-          if (e.target.value) document.getElementById('f_dno').value = DB.nextDemandNo(e.target.value);
+          document.getElementById('f_dno').value = e.target.value ? DB.nextDemandNo(e.target.value) : '— select recipient —';
         });
         document.getElementById('addItemBtn').onclick = () => { demItems.push({ categoryId: '', productId: null, demandedQty: 0 }); renderDemItems(); };
         const pre = document.getElementById('prefillBtn');

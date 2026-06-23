@@ -30,7 +30,10 @@
     <div class="card mb-16" id="awaitingCard">
       <div class="card-header">
         <h3>Approved — Ready to Dispatch</h3>
-        <button class="btn btn-primary" id="newBtn">+ Ex-post Facto Supply</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" id="scanQrBtn">⬚ Scan Voucher QR</button>
+          <button class="btn btn-primary" id="newBtn">+ Ex-post Facto Supply</button>
+        </div>
       </div>
       <div class="table-wrap"><table class="data" id="awaitingTbl"></table></div>
     </div>
@@ -471,6 +474,98 @@
     if (new URLSearchParams(window.location.search).get('expost') === '1') {
       document.getElementById('newBtn')?.click();
     }
+
+    // QR scan ---------------------------------------------------------------
+    let _scanner = null;
+
+    function stopScanner() {
+      if (_scanner) {
+        _scanner.stop().catch(() => {});
+        _scanner = null;
+      }
+    }
+
+    window.handleScannedVoucher = function(text) {
+      stopScanner();
+      text = (text || '').trim();
+      // Accept either the internal stockOut ID or the voucher number
+      let so = DB.get('stockOut', text) || DB.list('stockOut').find(s => s.voucherNo === text);
+      if (!so) { toast(`Voucher not found: "${text}"`, 'danger'); return; }
+      if (!so.dispatchApproved) {
+        toast(`${so.voucherNo} is not yet approved for dispatch — a Reviewer must approve it first`, 'warn');
+        return;
+      }
+      if (DB.list('dispatch').find(d => d.stockOutId === so.id)) {
+        toast(`${so.voucherNo} has already been dispatched`, 'warn');
+        return;
+      }
+      openGateOutFor(so.id);
+    };
+
+    function openQRScan() {
+      if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
+      openModal('Scan Voucher QR', `
+        <div class="form-grid">
+          <div class="text-sm text-mute" style="line-height:1.7;">
+            Point the camera at the <strong>QR code on the printed Issue Voucher</strong>.<br>
+            The gate-out form will auto-fill with the demand items — no typing needed.
+          </div>
+          <div id="qr-cam-wrap" style="width:100%;max-width:420px;margin:0 auto;border-radius:8px;overflow:hidden;background:#0f2040;min-height:160px;display:flex;align-items:center;justify-content:center;">
+            <span class="text-sm text-mute" style="color:rgba(255,255,255,0.4);">Starting camera…</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <span class="text-sm text-mute">or enter manually</span>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input id="qr-manual-in" placeholder="Voucher No. — e.g. 26BIB12345"
+              style="flex:1;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;"
+              onkeydown="if(event.key==='Enter') lookupManualVoucher()">
+            <button class="btn" onclick="lookupManualVoucher()">Look up</button>
+          </div>
+        </div>
+      `, () => { stopScanner(); }, 'Close', '');
+
+      window.lookupManualVoucher = () => {
+        const val = document.getElementById('qr-manual-in')?.value.trim();
+        if (!val) return;
+        closeModal();
+        setTimeout(() => handleScannedVoucher(val), 150);
+      };
+
+      setTimeout(() => {
+        const wrap = document.getElementById('qr-cam-wrap');
+        if (!wrap) return;
+        if (!window.Html5Qrcode) {
+          wrap.innerHTML = '<div class="text-sm" style="color:rgba(255,255,255,0.5);padding:24px;text-align:center;">Scanner library not loaded.<br>Use manual entry below.</div>';
+          return;
+        }
+        wrap.innerHTML = '';
+        const readerId = 'qr-cam-inner';
+        const inner = document.createElement('div');
+        inner.id = readerId;
+        inner.style.width = '100%';
+        wrap.appendChild(inner);
+
+        _scanner = new Html5Qrcode(readerId);
+        _scanner.start(
+          { facingMode: 'environment' },
+          { fps: 12, qrbox: { width: 260, height: 200 } },
+          (decodedText) => {
+            closeModal();
+            stopScanner();
+            setTimeout(() => handleScannedVoucher(decodedText), 150);
+          },
+          () => {}
+        ).catch(() => {
+          if (wrap) wrap.innerHTML = '<div class="text-sm" style="color:rgba(255,255,255,0.55);padding:24px;text-align:center;">Camera not available or permission denied.<br>Use manual entry below.</div>';
+        });
+      }, 200);
+    }
+
+    document.getElementById('scanQrBtn').addEventListener('click', openQRScan);
   </script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </body>
 </html>
