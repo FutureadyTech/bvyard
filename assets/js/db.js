@@ -274,7 +274,7 @@ const ROLES = {
   inventory_manager: {
     label: 'Inventory Manager',
     icon: '◈',
-    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products'],
+    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: false }
   },
   rd_section: {
@@ -286,7 +286,7 @@ const ROLES = {
   data_entry: {
     label: 'Data Entry',
     icon: '✎',
-    nav: ['dashboard', 'products', 'inventory'],
+    nav: ['dashboard', 'products', 'inventory', 'spoilage'],
     can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
   }
 };

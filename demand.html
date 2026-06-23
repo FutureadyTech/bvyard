@@ -298,7 +298,18 @@
                 </select>
               </div>
               <div class="field"><label>Final Recipient <span class="req">*</span></label>
-                <input id="f_rioRecipient" placeholder="e.g. INS Kochi / Unit XYZ">
+                <select id="f_rioRecipient">
+                  <option value="">— Select recipient —</option>
+                  ${(() => {
+                    const roleOrder = {data_entry:0, inventory_manager:1, reviewer:2, rd_section:3, central_coordinator:4, super_admin:5};
+                    const me = Session.get()?.id;
+                    return DB.list('users')
+                      .filter(u => u.id !== me)
+                      .sort((a,b) => (roleOrder[a.role]||0) - (roleOrder[b.role]||0))
+                      .map(u => `<option value="${escapeHtml(u.name)} (${ROLES[u.role]?.label || u.role})">${escapeHtml(u.name)} — ${ROLES[u.role]?.label || u.role}</option>`)
+                      .join('');
+                  })()}
+                </select>
               </div>
             </div>
           </div>
@@ -372,13 +383,18 @@
         if (sourceChannel === 'rio' && !rioFinalRecipient) { toast('Final recipient required for RIO channel', 'danger'); return false; }
         const items = demItems.filter(it => it.productId && it.demandedQty > 0).map(it => ({ ...it, fulfilledQty: 0, outcome: 'pending' }));
         if (!items.length) { toast('Add at least one item with qty', 'danger'); return false; }
+        const currentUser = Session.get();
+        // Reviewer raising RIO skips approval — auto-approved for fulfillment
+        const reviewerRIO = sourceChannel === 'rio' && currentUser?.role === 'reviewer';
         DB.upsert('demands', {
           id: DB.uid('d'), demandNo, date, dateRequired,
           dayOfWeek: DB.dayOfWeek(date),
           sourceChannel, rioCarrier, rioFinalRecipient,
-          shipId, raisedBy: Session.get()?.id, items, status: 'pending'
+          shipId, raisedBy: currentUser?.id, items,
+          status: reviewerRIO ? 'approved' : 'pending',
+          ...(reviewerRIO ? { reviewerId: currentUser.id, reviewedAt: new Date().toISOString(), reviewNote: 'Auto-approved — raised by Reviewer via RIO' } : {})
         });
-        toast(`Demand ${demandNo} raised`, 'ok');
+        toast(`Demand ${demandNo} raised${reviewerRIO ? ' · auto-approved (Reviewer RIO)' : ''}`, 'ok');
         refresh();
       }, 'Submit Demand', 'wide');
       setTimeout(() => {

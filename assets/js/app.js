@@ -145,6 +145,9 @@ function renderShell(activeKey, pageTitle, pageSub) {
     if (confirm('Log out?')) { Session.clear(); window.location.href = 'index.html'; }
   });
 
+  // Day-before demand reminders
+  checkDemandReminders();
+
   // Notification bell
   const notifBtn = document.getElementById('notifBtn');
   if (notifBtn) {
@@ -233,6 +236,38 @@ function localNow() {
 }
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Proactive day-before demand reminder — fires at most once per demand per day
+function checkDemandReminders() {
+  const d = new Date(); d.setDate(d.getDate() + 1);
+  const p = n => String(n).padStart(2, '0');
+  const tmr = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+  const today = DB.today();
+  const s = DB.load();
+  if (!s.remindedOn) s.remindedOn = {};
+  const alreadyToday = new Set(s.remindedOn[today] || []);
+  const dueTmr = (s.demands || []).filter(dem =>
+    dem.dateRequired === tmr &&
+    !['rejected', 'fulfilled'].includes(dem.status) &&
+    !alreadyToday.has(dem.id)
+  );
+  if (!dueTmr.length) return;
+  if (!s.notifications) s.notifications = [];
+  dueTmr.forEach(dem => {
+    const ship = (s.ships || []).find(sh => sh.id === dem.shipId);
+    s.notifications.push({
+      id: DB.uid('nt'),
+      message: `Demand ${dem.demandNo} for ${ship?.name || '—'} is due tomorrow — action needed`,
+      type: 'warn', link: 'demand.html',
+      createdAt: new Date().toISOString(), read: false
+    });
+    alreadyToday.add(dem.id);
+  });
+  if (s.notifications.length > 50) s.notifications = s.notifications.slice(-50);
+  s.remindedOn[today] = [...alreadyToday];
+  Object.keys(s.remindedOn).filter(k => k < today).forEach(k => delete s.remindedOn[k]);
+  DB.save(s);
 }
 
 function can(perm) {
