@@ -165,7 +165,7 @@
           </div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;">
             <div><div class="text-sm text-mute">Status</div><div><span class="badge ${statusBadgeClass(d.status)}">${d.status.replace(/_/g,' ').toUpperCase()}</span></div></div>
-            ${d.rioFinalRecipient ? `<div><div class="text-sm text-mute">Final Recipient (RIO)</div><div class="bold">${escapeHtml(d.rioFinalRecipient)}</div></div>` : ''}
+            ${d.rioFinalRecipient ? `<div><div class="text-sm text-mute">Final Recipient (RIO)</div><div class="bold">${escapeHtml(DB.ship(d.rioFinalRecipient)?.name || d.rioFinalRecipient)}</div></div>` : ''}
             ${d.rioCarrier ? `<div><div class="text-sm text-mute">Carrier Ship</div><div class="bold">${DB.ship(d.rioCarrier)?.name||d.rioCarrier}</div></div>` : ''}
           </div>
           ${d.reviewNote ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px;"><div class="text-sm text-mute">Review Note</div><div class="text-sm" style="color:#92400e;">${escapeHtml(d.reviewNote)}</div></div>` : ''}
@@ -297,18 +297,10 @@
                   ${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}
                 </select>
               </div>
-              <div class="field"><label>Final Recipient <span class="req">*</span></label>
+              <div class="field"><label>Final Recipient Ship <span class="req">*</span></label>
                 <select id="f_rioRecipient">
-                  <option value="">— Select recipient —</option>
-                  ${(() => {
-                    const roleOrder = {data_entry:0, inventory_manager:1, reviewer:2, rd_section:3, central_coordinator:4, super_admin:5};
-                    const me = Session.get()?.id;
-                    return DB.list('users')
-                      .filter(u => u.id !== me)
-                      .sort((a,b) => (roleOrder[a.role]||0) - (roleOrder[b.role]||0))
-                      .map(u => `<option value="${escapeHtml(u.name)} (${ROLES[u.role]?.label || u.role})">${escapeHtml(u.name)} — ${ROLES[u.role]?.label || u.role}</option>`)
-                      .join('');
-                  })()}
+                  <option value="">— Select ship —</option>
+                  ${ships.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -403,7 +395,15 @@
           document.getElementById('f_dno').value = DB.nextDemandNo(e.target.value);
         });
         document.getElementById('channelGroup').addEventListener('change', e => {
-          document.getElementById('rioPanel').style.display = e.target.value === 'rio' ? '' : 'none';
+          const isRio = e.target.value === 'rio';
+          document.getElementById('rioPanel').style.display = isRio ? '' : 'none';
+          const shipSel = document.getElementById('f_ship');
+          shipSel.disabled = isRio;
+          shipSel.style.opacity = isRio ? '0.45' : '';
+          if (!isRio) document.getElementById('f_dno').value = DB.nextDemandNo(shipSel.value);
+        });
+        document.getElementById('f_rioRecipient').addEventListener('change', e => {
+          if (e.target.value) document.getElementById('f_dno').value = DB.nextDemandNo(e.target.value);
         });
         document.getElementById('addItemBtn').onclick = () => { demItems.push({ categoryId: '', productId: null, demandedQty: 0 }); renderDemItems(); };
         const pre = document.getElementById('prefillBtn');
