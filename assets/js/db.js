@@ -269,7 +269,7 @@ const ROLES = {
     label: 'Reviewer / Approver',
     icon: '✓',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
-    can: { create: false, update: true, delete: false, approve: true, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: true, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {
     label: 'Inventory Manager',
