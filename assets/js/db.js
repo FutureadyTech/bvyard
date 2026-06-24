@@ -141,6 +141,18 @@ const DB = {
     return `DMD-${year}-${seq}-${code}`;
   },
 
+  // Sequential voucher number: VCH-YYYY-NNN-SHIPCODE
+  nextVoucherNo(shipId) {
+    const year = new Date().getFullYear();
+    const ship = this.get('ships', shipId);
+    const code = ship?.code || shipId.toUpperCase();
+    const count = this.list('stockOut').filter(so =>
+      so.shipId === shipId && (so.voucherNo || '').startsWith(`VCH-${year}-`)
+    ).length;
+    const seq = String(count + 1).padStart(3, '0');
+    return `VCH-${year}-${seq}-${code}`;
+  },
+
   // FIFO batches — returns the available batches for a product, oldest first
   // Looks at stockIn entries to determine batch age (by date received)
   fifoBatchesFor(productId) {

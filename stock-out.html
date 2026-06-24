@@ -255,7 +255,7 @@
       return `
         <div class="form-grid">
           <div class="form-row-3">
-            <div class="field"><label>Voucher No. <span class="req">*</span></label><input id="f_vno" value="26BIB${Math.floor(Math.random()*90000+10000)}"></div>
+            <div class="field"><label>Voucher No.</label><input id="f_vno" readonly style="background:#f8fafc;color:var(--muted);font-family:monospace;" value="${DB.nextVoucherNo(linkedDemand?.shipId || ships[0]?.id)}"></div>
             <div class="field"><label>Date</label><input id="f_date" type="date" value="${DB.today()}" readonly style="background:#f8fafc;color:var(--muted);"></div>
             <div class="field"><label>Link to Demand (optional)</label>
               <select id="f_demand">
@@ -421,7 +421,7 @@
         const shipId = document.getElementById('f_ship').value;
         const demandId = document.getElementById('f_demand').value || null;
         const recordedBy = Session.get()?.id || null;
-        if (!voucherNo) { toast('Voucher No. required', 'danger'); return false; }
+        if (!voucherNo) { toast('Voucher number could not be generated', 'danger'); return false; }
 
         const issuedItems = [];
         const absentIds = [];
@@ -465,6 +465,10 @@
         renderOutItems();
         const addBtn = document.getElementById('addItemBtn');
         if (addBtn) addBtn.onclick = () => { outItems.push({ productId: DB.list('products')[0]?.id, qty: 0, batchNo: '', mode: 'issue' }); renderOutItems(); };
+        document.getElementById('f_ship').addEventListener('change', e => {
+          const vnoEl = document.getElementById('f_vno');
+          if (vnoEl) vnoEl.value = DB.nextVoucherNo(e.target.value);
+        });
         document.getElementById('f_demand').addEventListener('change', e => {
           const d = e.target.value ? DB.get('demands', e.target.value) : null;
           if (d) { linkedDemand = d; closeModal(); openNew(); }
