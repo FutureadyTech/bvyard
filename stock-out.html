@@ -227,20 +227,9 @@
       setTimeout(() => {
         const el = document.getElementById('voucher-qr-box');
         if (el && window.QRCode) {
-          // Self-contained payload — works when scanned on a different device
-          const qrPayload = JSON.stringify({
-            id: so.id,
-            vno: so.voucherNo || '',
-            dno: demand?.demandNo || '',
-            ship: so.shipId || '',
-            ok: !!so.dispatchApproved,
-            items: (so.items || []).map(it => {
-              const p = DB.product(it.productId);
-              return { p: it.productId, n: p?.name || '—', u: p?.baseUnit || '', q: it.qty, o: it.outcome || 'exact' };
-            }),
-            absent: (so.absent || []).map(pid => { const p = DB.product(pid); return { p: pid, n: p?.name || '—' }; })
-          });
-          new QRCode(el, { text: qrPayload, width: 200, height: 200, colorDark: '#0a1628', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L });
+          // Compact pipe format: voucherNo|shipId|approved — keeps QR tiny and scannable on any camera
+          const qrText = `${so.voucherNo}|${so.shipId}|${so.dispatchApproved ? '1' : '0'}`;
+          new QRCode(el, { text: qrText, width: 200, height: 200, colorDark: '#0a1628', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L });
         } else if (el) {
           el.style.display = 'flex';
           el.style.alignItems = 'center';

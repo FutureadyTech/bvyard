@@ -304,7 +304,9 @@
           <strong>${escapeHtml(name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
         </div>`;
       }).join('');
-      list.innerHTML = itemLines + absentLines || '<div class="empty">Nothing on the manifest</div>';
+      list.innerHTML = itemLines + absentLines || (so._crossDevice
+        ? '<div class="text-sm text-mute" style="padding:6px 0;">QR scanned from another device — verify items against the printed voucher.</div>'
+        : '<div class="empty">Nothing on the manifest</div>');
     }
 
     // Close Gate-in with optional returns
@@ -492,48 +494,38 @@
       stopScanner();
       text = (text || '').trim();
 
-      // Try JSON payload first (self-contained, cross-device)
-      let payload = null;
-      try { payload = JSON.parse(text); } catch(e) {}
-
       let so = null;
-      if (payload && payload.id) {
-        // Same-device: full record in localStorage
-        so = DB.get('stockOut', payload.id);
+      const parts = text.split('|');
+
+      if (parts.length >= 3 && !text.startsWith('{')) {
+        // Pipe format from QR: voucherNo|shipId|approved
+        const [vno, shipId, approvedFlag] = parts;
+        const approved = approvedFlag === '1';
+        // Try same-device lookup first (full record)
+        so = DB.list('stockOut').find(s => s.voucherNo === vno);
         if (!so) {
-          // Cross-device: synthesise from QR payload and inject into localStorage
-          // so renderItemsPreview and gateOutForm work without changes
-          so = {
-            id: payload.id,
-            voucherNo: payload.vno,
-            shipId: payload.ship,
-            demandId: null,
-            status: 'completed',
-            dispatchApproved: payload.ok,
-            items: (payload.items || []).map(it => ({
-              productId: it.p, qty: it.q, outcome: it.o || 'exact',
-              _name: it.n, _unit: it.u   // name/unit pre-resolved in QR
-            })),
-            absent: (payload.absent || []).map(a => a.p || a),
-            _absentNames: Object.fromEntries((payload.absent || []).map(a => [a.p || a, a.n || '—']))
-          };
+          // Cross-device: synthesise minimal record so gate-out form works
+          so = { id: 'syn_' + vno, voucherNo: vno, shipId, demandId: null,
+                 status: 'completed', dispatchApproved: approved,
+                 items: [], absent: [], _crossDevice: true };
           DB.upsert('stockOut', so);
         }
       } else {
-        // Legacy plain-text fallback (old QR or manual entry)
+        // Fallback: same-device plain ID or voucher number (manual entry / old QR)
         so = DB.get('stockOut', text) || DB.list('stockOut').find(s => s.voucherNo === text);
       }
 
       if (!so) { toast(`Voucher not found: "${text}"`, 'danger'); return; }
       if (!so.dispatchApproved) {
-        toast(`${so.voucherNo} is not yet approved for dispatch — a Reviewer must approve it first`, 'warn');
+        toast(`${so.voucherNo} — not yet approved for dispatch. Reviewer must approve first.`, 'warn');
         return;
       }
       if (DB.list('dispatch').find(d => d.stockOutId === so.id)) {
         toast(`${so.voucherNo} has already been dispatched`, 'warn');
         return;
       }
-      openGateOutFor(so.id);
+      closeModal();
+      setTimeout(() => openGateOutFor(so.id), 150);
     };
 
     function openQRScan() {
