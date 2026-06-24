@@ -227,8 +227,14 @@
       setTimeout(() => {
         const el = document.getElementById('voucher-qr-box');
         if (el && window.QRCode) {
-          // Compact pipe format: voucherNo|shipId|approved — keeps QR tiny and scannable on any camera
-          const qrText = `${so.voucherNo}|${so.shipId}|${so.dispatchApproved ? '1' : '0'}`;
+          // Compact pipe format: voucherNo|shipId|approved|item1:qty:unit;item2:...|absent1;absent2
+          const safe = s => (s || '').replace(/[|;:]/g, ' ');
+          const itemStr = (so.items || []).map(it => {
+            const p = DB.product(it.productId);
+            return `${safe(p?.name)}:${it.qty}:${safe(p?.baseUnit)}`;
+          }).join(';');
+          const absentStr = (so.absent || []).map(pid => safe(DB.product(pid)?.name)).join(';');
+          const qrText = `${so.voucherNo}|${so.shipId}|${so.dispatchApproved ? '1' : '0'}|${itemStr}|${absentStr}`;
           new QRCode(el, { text: qrText, width: 200, height: 200, colorDark: '#0a1628', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L });
         } else if (el) {
           el.style.display = 'flex';

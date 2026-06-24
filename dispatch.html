@@ -53,7 +53,7 @@
     function fulfillmentSummary(so) {
       const items = so.items || [];
       const issued = items.length;
-      const absent = (so.absent || []).length;
+      const absent = (so.absent || []).length + (so._absentItems || []).length;
       const totalQty = items.reduce((s, x) => s + (x.qty || 0), 0);
       return `${issued} item${issued !== 1 ? 's' : ''} · ${totalQty} units` + (absent ? ` · ${absent} absent` : '');
     }
@@ -297,16 +297,19 @@
           ${sub ? `<div class="text-mute" style="margin-left:12px;font-size:11px;">↔ replacing ${escapeHtml(sub.name)}</div>` : ''}
         </div>`;
       }).join('');
-      const absentLines = (so.absent || []).map(pid => {
-        const p = DB.product(pid);
-        const name = p?.name || (so._absentNames && so._absentNames[pid]) || '—';
-        return `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>${escapeHtml(name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
-        </div>`;
-      }).join('');
-      list.innerHTML = itemLines + absentLines || (so._crossDevice
-        ? '<div class="text-sm text-mute" style="padding:6px 0;">QR scanned from another device — verify items against the printed voucher.</div>'
-        : '<div class="empty">Nothing on the manifest</div>');
+      const absentLines = (so._absentItems
+        ? so._absentItems.map(a => `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
+            <strong>${escapeHtml(a.name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
+          </div>`)
+        : (so.absent || []).map(pid => {
+            const p = DB.product(pid);
+            const name = p?.name || (so._absentNames && so._absentNames[pid]) || '—';
+            return `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
+              <strong>${escapeHtml(name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
+            </div>`;
+          })
+      ).join('');
+      list.innerHTML = itemLines + absentLines || '<div class="empty">Nothing on the manifest</div>';
     }
 
     // Close Gate-in with optional returns
@@ -498,16 +501,21 @@
       const parts = text.split('|');
 
       if (parts.length >= 3 && !text.startsWith('{')) {
-        // Pipe format from QR: voucherNo|shipId|approved
-        const [vno, shipId, approvedFlag] = parts;
+        // Pipe format: voucherNo|shipId|approved|item1:qty:unit;...|absent1;...
+        const [vno, shipId, approvedFlag, itemsStr, absentStr] = parts;
         const approved = approvedFlag === '1';
-        // Try same-device lookup first (full record)
+        // Same-device lookup first (has full product data)
         so = DB.list('stockOut').find(s => s.voucherNo === vno);
         if (!so) {
-          // Cross-device: synthesise minimal record so gate-out form works
+          // Cross-device: parse items from QR string
+          const items = (itemsStr || '').split(';').filter(Boolean).map(seg => {
+            const [name, qty, unit] = seg.split(':');
+            return { productId: '', qty: parseFloat(qty) || 0, outcome: 'exact', _name: name || '—', _unit: unit || '' };
+          });
+          const absentItems = (absentStr || '').split(';').filter(Boolean).map(n => ({ name: n }));
           so = { id: 'syn_' + vno, voucherNo: vno, shipId, demandId: null,
                  status: 'completed', dispatchApproved: approved,
-                 items: [], absent: [], _crossDevice: true };
+                 items, absent: [], _absentItems: absentItems, _crossDevice: true };
           DB.upsert('stockOut', so);
         }
       } else {
