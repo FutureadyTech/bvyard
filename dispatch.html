@@ -585,7 +585,7 @@
         _scanner = new Html5Qrcode(readerId);
         _scanner.start(
           { facingMode: 'environment' },
-          { fps: 12, qrbox: { width: 260, height: 200 } },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
           (decodedText) => {
             closeModal();
             stopScanner();

@@ -209,7 +209,7 @@
           <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
             <div style="flex-shrink:0;text-align:center;">
               <div class="text-sm text-mute bold" style="margin-bottom:6px;">Gate-out QR code</div>
-              <div id="voucher-qr-box" style="width:120px;height:120px;display:inline-block;border:1px solid var(--border);padding:4px;background:#fff;border-radius:4px;"></div>
+              <div id="voucher-qr-box" style="width:208px;height:208px;display:inline-block;border:1px solid var(--border);padding:4px;background:#fff;border-radius:4px;"></div>
               <div class="text-sm text-mute" style="margin-top:4px;font-size:10px;font-family:monospace;">${so.voucherNo}</div>
             </div>
             <div class="text-sm" style="line-height:1.8;flex:1;min-width:200px;">
@@ -240,7 +240,7 @@
             }),
             absent: (so.absent || []).map(pid => { const p = DB.product(pid); return { p: pid, n: p?.name || '—' }; })
           });
-          new QRCode(el, { text: qrPayload, width: 112, height: 112, colorDark: '#0a1628', colorLight: '#ffffff' });
+          new QRCode(el, { text: qrPayload, width: 200, height: 200, colorDark: '#0a1628', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L });
         } else if (el) {
           el.style.display = 'flex';
           el.style.alignItems = 'center';
