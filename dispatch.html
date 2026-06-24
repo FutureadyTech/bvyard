@@ -286,19 +286,22 @@
       preview.style.display = 'block';
       const itemLines = so.items.map(it => {
         const p = DB.product(it.productId);
+        const name = p?.name || it._name || '—';
+        const unit = p?.baseUnit || it._unit || '';
         const sub = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
         const badge = it.outcome === 'substituted' ? `<span class="badge muted" style="font-size:9px;">SUBST</span>`
           : it.outcome === 'over' ? `<span class="badge info" style="font-size:9px;">OVER</span>`
           : it.outcome === 'short' ? `<span class="badge warn" style="font-size:9px;">SHORT</span>` : '';
         return `<div class="text-sm" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>${escapeHtml(p?.name || '—')}</strong> — ${it.qty} ${p?.baseUnit || ''} ${badge}
+          <strong>${escapeHtml(name)}</strong> — ${it.qty} ${unit} ${badge}
           ${sub ? `<div class="text-mute" style="margin-left:12px;font-size:11px;">↔ replacing ${escapeHtml(sub.name)}</div>` : ''}
         </div>`;
       }).join('');
       const absentLines = (so.absent || []).map(pid => {
         const p = DB.product(pid);
+        const name = p?.name || (so._absentNames && so._absentNames[pid]) || '—';
         return `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>${escapeHtml(p?.name || '—')}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
+          <strong>${escapeHtml(name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
         </div>`;
       }).join('');
       list.innerHTML = itemLines + absentLines || '<div class="empty">Nothing on the manifest</div>';
@@ -488,8 +491,39 @@
     window.handleScannedVoucher = function(text) {
       stopScanner();
       text = (text || '').trim();
-      // Accept either the internal stockOut ID or the voucher number
-      let so = DB.get('stockOut', text) || DB.list('stockOut').find(s => s.voucherNo === text);
+
+      // Try JSON payload first (self-contained, cross-device)
+      let payload = null;
+      try { payload = JSON.parse(text); } catch(e) {}
+
+      let so = null;
+      if (payload && payload.id) {
+        // Same-device: full record in localStorage
+        so = DB.get('stockOut', payload.id);
+        if (!so) {
+          // Cross-device: synthesise from QR payload and inject into localStorage
+          // so renderItemsPreview and gateOutForm work without changes
+          so = {
+            id: payload.id,
+            voucherNo: payload.vno,
+            shipId: payload.ship,
+            demandId: null,
+            status: 'completed',
+            dispatchApproved: payload.ok,
+            items: (payload.items || []).map(it => ({
+              productId: it.p, qty: it.q, outcome: it.o || 'exact',
+              _name: it.n, _unit: it.u   // name/unit pre-resolved in QR
+            })),
+            absent: (payload.absent || []).map(a => a.p || a),
+            _absentNames: Object.fromEntries((payload.absent || []).map(a => [a.p || a, a.n || '—']))
+          };
+          DB.upsert('stockOut', so);
+        }
+      } else {
+        // Legacy plain-text fallback (old QR or manual entry)
+        so = DB.get('stockOut', text) || DB.list('stockOut').find(s => s.voucherNo === text);
+      }
+
       if (!so) { toast(`Voucher not found: "${text}"`, 'danger'); return; }
       if (!so.dispatchApproved) {
         toast(`${so.voucherNo} is not yet approved for dispatch — a Reviewer must approve it first`, 'warn');
