@@ -269,37 +269,43 @@ const ROLES = {
     label: 'Super Admin',
     icon: '★',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
-    can: { create: true, update: true, delete: true, approve: true, manageUsers: true, viewAllSections: true }
+    can: { create: true, update: true, delete: true, approve: true, approveDispatch: true, manageUsers: true, viewAllSections: true }
   },
   central_coordinator: {
     label: 'Central Coordinator',
     icon: '◆',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products'],
-    can: { create: false, update: false, delete: false, approve: false, manageUsers: false, viewAllSections: true }
+    can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   reviewer: {
     label: 'Reviewer / Approver',
     icon: '✓',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
-    can: { create: true, update: true, delete: false, approve: true, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: true, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {
     label: 'Inventory Manager',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
-    can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: false }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: false }
   },
   rd_section: {
     label: 'R&D Section (Outward)',
     icon: '↑',
     nav: ['dashboard', 'dispatch'],
-    can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, manageUsers: false, viewAllSections: true }
+  },
+  gate_keeper: {
+    label: 'Gate Keeper',
+    icon: '⬚',
+    nav: ['dashboard', 'dispatch'],
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {
     label: 'Data Entry',
     icon: '✎',
     nav: ['dashboard', 'products', 'inventory', 'spoilage'],
-    can: { create: true, update: true, delete: false, approve: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   }
 };
 

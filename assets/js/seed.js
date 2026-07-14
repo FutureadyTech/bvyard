@@ -22,7 +22,8 @@ window.SEED_DATA = {
     { id: 'u8',  name: 'Fresh Store I/C',    rank: 'AVR',    role: 'inventory_manager',   designation: 'Fresh Store I/C',   email: 'fresh.ic@navy.mil.in',    sections: ['sec_fresh'] },
     { id: 'u9',  name: 'Meat Store I/C',     rank: 'AVR',    role: 'inventory_manager',   designation: 'Meat Store I/C',    email: 'meat.ic@navy.mil.in',     sections: ['sec_meat'] },
     { id: 'u10', name: 'Data Entry Operator', rank: 'SS',    role: 'data_entry',          designation: 'Central Hub Op',    email: 'dataop@navy.mil.in',      sections: ['*'] },
-    { id: 'u11', name: 'R&D Section Officer', rank: 'PO',   role: 'rd_section',          designation: 'R&D Section (Outward)', email: 'rnd@navy.mil.in',     sections: ['*'] }
+    { id: 'u11', name: 'R&D Section Officer', rank: 'PO',   role: 'rd_section',          designation: 'R&D Section (Outward)', email: 'rnd@navy.mil.in',     sections: ['*'] },
+    { id: 'u12', name: 'Gate Keeper',         rank: 'MR',   role: 'gate_keeper',         designation: 'Main Gate (Entry/Exit)', email: 'gate@navy.mil.in',    sections: ['*'] }
   ],
 
   categories: [
