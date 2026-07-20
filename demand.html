@@ -37,7 +37,8 @@
   <script>
     renderShell('demand', 'Demands', 'Ship raises demand → Reviewer approves → Fulfill → Outward (gate-out)');
 
-    if (can('create')) document.getElementById('newBtn').style.display = '';
+    const canRaiseDemand = can('create') && Session.get()?.role !== 'data_entry';
+    if (canRaiseDemand) document.getElementById('newBtn').style.display = '';
 
     const my = userSections();
     const canAll = my.includes('*');
@@ -100,7 +101,7 @@
               <td class="text-right" style="white-space:nowrap;">
                 <button class="btn btn-sm" onclick="viewDemand('${d.id}')">View</button>
                 ${['pending','partially_approved'].includes(d.status) && can('approve') ? `<button class="btn btn-sm btn-primary" onclick="openApprovalModal('${d.id}')">Review</button>` : ''}
-                ${['approved','partially_approved','partially_fulfilled'].includes(d.status) && can('create') ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}
+                ${['approved','partially_approved','partially_fulfilled'].includes(d.status) && canRaiseDemand ? `<a class="btn btn-sm btn-gold" href="stock-out.html?demandId=${d.id}">Fulfill</a>` : ''}
                 ${d.status === 'pending' && can('approve') ? `<button class="btn btn-sm btn-danger" onclick="rejectDemand('${d.id}')">Reject</button>` : ''}
               </td>
             </tr>`;
