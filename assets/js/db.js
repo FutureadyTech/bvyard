@@ -304,7 +304,7 @@ const ROLES = {
   data_entry: {
     label: 'DEO',
     icon: '✎',
-    nav: ['dashboard', 'demand', 'products', 'inventory', 'spoilage'],
+    nav: ['dashboard', 'demand', 'products', 'inventory'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   }
 };
