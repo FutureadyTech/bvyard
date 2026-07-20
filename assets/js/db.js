@@ -275,13 +275,13 @@ const ROLES = {
     label: 'Overall Coordinator',
     icon: '◆',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products'],
-    can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
+    can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, manageUsers: true, viewAllSections: true }
   },
   reviewer: {
     label: 'Group OiC',
     icon: '✓',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
-    can: { create: true, update: true, delete: false, approve: true, approveDispatch: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: true, approveDispatch: true, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {
     label: 'Group Incharge',
@@ -293,7 +293,7 @@ const ROLES = {
     label: 'Receipt & Dispatch Section',
     icon: '↑',
     nav: ['dashboard', 'dispatch'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   gate_keeper: {
     label: 'Gate Keeper',
@@ -304,7 +304,7 @@ const ROLES = {
   data_entry: {
     label: 'DEO',
     icon: '✎',
-    nav: ['dashboard', 'products', 'inventory', 'spoilage'],
+    nav: ['dashboard', 'demand', 'products', 'inventory', 'spoilage'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   }
 };
