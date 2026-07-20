@@ -266,31 +266,31 @@ function displayNameFull(p) {
 // Role permissions
 const ROLES = {
   super_admin: {
-    label: 'Super Admin',
+    label: 'BVO',
     icon: '★',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
     can: { create: true, update: true, delete: true, approve: true, approveDispatch: true, manageUsers: true, viewAllSections: true }
   },
   central_coordinator: {
-    label: 'Central Coordinator',
+    label: 'Overall Coordinator',
     icon: '◆',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products'],
     can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   reviewer: {
-    label: 'Reviewer / Approver',
+    label: 'Group OiC',
     icon: '✓',
     nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
     can: { create: true, update: true, delete: false, approve: true, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {
-    label: 'Inventory Manager',
+    label: 'Group Incharge',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: false }
   },
   rd_section: {
-    label: 'R&D Section (Outward)',
+    label: 'Receipt & Dispatch Section',
     icon: '↑',
     nav: ['dashboard', 'dispatch'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, manageUsers: false, viewAllSections: true }
@@ -302,7 +302,7 @@ const ROLES = {
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {
-    label: 'Data Entry',
+    label: 'DEO',
     icon: '✎',
     nav: ['dashboard', 'products', 'inventory', 'spoilage'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, manageUsers: false, viewAllSections: true }

@@ -152,7 +152,7 @@
     }
 
     window.approveDispatch = (stockOutId) => {
-      if (!can('approveDispatch')) return toast('Your role cannot approve dispatch — R&D Section only', 'warn');
+      if (!can('approveDispatch')) return toast('Your role cannot approve dispatch — Receipt &amp; Dispatch Section only', 'warn');
       const so = DB.get('stockOut', stockOutId);
       if (!so) return;
       so.dispatchApproved = true;
@@ -165,7 +165,7 @@
         `Outward approved — ${demand ? demand.demandNo : so.voucherNo} for ${ship?.name || '—'} · R&D can now dispatch`,
         'ok', 'dispatch.html'
       );
-      toast('Dispatch approved — R&D Section can now send out', 'ok');
+      toast('Dispatch approved — Receipt &amp; Dispatch Section can now send out', 'ok');
       refresh();
     };
 
@@ -509,7 +509,7 @@
         const approved = linkedSOs.find(s => s.dispatchApproved && !DB.list('dispatch').find(d => d.stockOutId === s.id));
         if (!approved) {
           if (!linkedSOs.length) { toast(`No issue vouchers found for ${demandNo}`, 'warn'); return; }
-          toast(`${demandNo} — voucher not yet approved for dispatch. R&D Section must approve first.`, 'warn');
+          toast(`${demandNo} — voucher not yet approved for dispatch. Receipt &amp; Dispatch Section must approve first.`, 'warn');
           return;
         }
         closeModal();
@@ -542,7 +542,7 @@
 
       if (!so) { toast(`Voucher not found: "${text}"`, 'danger'); return; }
       if (!so.dispatchApproved) {
-        toast(`${so.voucherNo} — not yet approved for dispatch. R&D Section must approve first.`, 'warn');
+        toast(`${so.voucherNo} — not yet approved for dispatch. Receipt &amp; Dispatch Section must approve first.`, 'warn');
         return;
       }
       if (DB.list('dispatch').find(d => d.stockOutId === so.id)) {

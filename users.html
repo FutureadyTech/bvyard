@@ -136,7 +136,7 @@
       refresh();
       toast('Saved');
     }
-    document.getElementById('addBtn').addEventListener('click', () => { if (!can('manageUsers')) return toast('Only Super Admin', 'warn'); openModal('Add User', userForm({}), () => save({}), 'Create'); });
+    document.getElementById('addBtn').addEventListener('click', () => { if (!can('manageUsers')) return toast('Only BVO can manage users', 'warn'); openModal('Add User', userForm({}), () => save({}), 'Create'); });
     refresh();
   </script>
 </body>
