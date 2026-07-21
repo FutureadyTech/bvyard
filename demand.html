@@ -263,13 +263,13 @@
         const reviewer = DB.user(d.reviewerId);
         if (d.status === 'approved') {
           DB.notify(`Demand ${d.demandNo} approved by ${reviewer?.name || 'Group OiC'} — ${ship?.name || ''} · ready for fulfilment`, 'ok', 'demand.html');
-          DB.notify(`[Action required] Demand ${d.demandNo} (${ship?.name || ''}) forwarded for fulfilment by Group OiC`, 'ok', 'stock-out.html', ['inventory_manager', 'super_admin', 'central_coordinator']);
+          DB.notify(`[Action required] Demand ${d.demandNo} (${ship?.name || ''}) forwarded for fulfilment by Group OiC`, 'ok', 'stock-out.html', [...GROUP_INCHARGE_ROLES, 'super_admin', 'central_coordinator']);
           DB.notify(`[Action required] Demand ${d.demandNo} (${ship?.name || ''}) approved — prepare for gate-out once fulfilled`, 'info', 'dispatch.html', ['rd_section', 'gate_keeper', 'super_admin']);
         } else if (d.status === 'rejected') {
           DB.notify(`Demand ${d.demandNo} rejected by ${reviewer?.name || 'Group OiC'} — ${ship?.name || ''}`, 'danger', 'demand.html');
         } else {
           DB.notify(`Demand ${d.demandNo} partially approved by ${reviewer?.name || 'Group OiC'} — some items reduced · ${ship?.name || ''}`, 'warn', 'demand.html');
-          DB.notify(`[Action required] Demand ${d.demandNo} (${ship?.name || ''}) forwarded for partial fulfilment by Group OiC`, 'warn', 'stock-out.html', ['inventory_manager', 'super_admin', 'central_coordinator']);
+          DB.notify(`[Action required] Demand ${d.demandNo} (${ship?.name || ''}) forwarded for partial fulfilment by Group OiC`, 'warn', 'stock-out.html', [...GROUP_INCHARGE_ROLES, 'super_admin', 'central_coordinator']);
         }
         toast(`Demand ${d.demandNo} — ${d.status.replace(/_/g,' ')}`, 'ok');
         refresh();

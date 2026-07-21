@@ -45,7 +45,7 @@
       users.find(u => u.role === 'super_admin'),
       users.find(u => u.role === 'central_coordinator'),
       users.find(u => u.role === 'reviewer'),
-      users.find(u => u.role === 'inventory_manager'),
+      ...GROUP_INCHARGE_ROLES.map(r => users.find(u => u.role === r)),
       users.find(u => u.role === 'rd_section'),
       users.find(u => u.role === 'gate_keeper'),
       users.find(u => u.role === 'data_entry')

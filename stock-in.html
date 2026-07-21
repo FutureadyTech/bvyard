@@ -313,7 +313,7 @@
     function newSRVForm() {
       const suppliers = DB.list('suppliers');
       const pos       = DB.list('purchaseOrders').filter(p => p.status === 'issued');
-      const prepUsers = DB.list('users').filter(u => ['inventory_manager','data_entry'].includes(u.role));
+      const prepUsers = DB.list('users').filter(u => [...GROUP_INCHARGE_ROLES, 'data_entry'].includes(u.role));
       const apprUsers = DB.list('users').filter(u => ['reviewer','super_admin'].includes(u.role));
 
       return `

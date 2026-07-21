@@ -1,7 +1,10 @@
-// v0.7 — Stock seeded at 2×minStock, clean slate (no demo demands/fulfillments/dispatch)
-const DB_KEY = 'bvyard_db_v12';
-const SESSION_KEY = 'bvyard_session_v12';
+// v0.8 — 3 specific Group Incharge roles (Necessary / Basic / Fresh)
+const DB_KEY = 'bvyard_db_v13';
+const SESSION_KEY = 'bvyard_session_v13';
 const PREFS_KEY = 'bvyard_prefs_v1';
+
+// Roles that represent section-scoped Group Incharges
+const GROUP_INCHARGE_ROLES = ['group_incharge_necessary', 'group_incharge_basic', 'group_incharge_fresh'];
 
 const DB = {
   load() {
@@ -16,7 +19,7 @@ const DB = {
     localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem(PREFS_KEY);
     // also clear older versions
-    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9','bvyard_db_v10','bvyard_session_v10','bvyard_db_v11','bvyard_session_v11'].forEach(k => localStorage.removeItem(k));
+    ['navy_ims_db_v1','navy_ims_session_v1','navy_ims_db_v2','navy_ims_session_v2','navy_ims_db_v3','navy_ims_session_v3','bvyard_db_v4','bvyard_session_v4','bvyard_db_v5','bvyard_session_v5','bvyard_db_v6','bvyard_session_v6','bvyard_db_v7','bvyard_session_v7','bvyard_db_v8','bvyard_session_v8','bvyard_db_v9','bvyard_session_v9','bvyard_db_v10','bvyard_session_v10','bvyard_db_v11','bvyard_session_v11','bvyard_db_v12','bvyard_session_v12'].forEach(k => localStorage.removeItem(k));
     this.seed();
   },
 
@@ -293,8 +296,20 @@ const ROLES = {
     nav: ['dashboard', 'demand', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
     can: { create: true, update: true, delete: false, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: false, viewAllSections: true }
   },
-  inventory_manager: {
-    label: 'Group Incharge',
+  group_incharge_necessary: {
+    label: 'Group Incharge — Necessary',
+    icon: '◈',
+    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }
+  },
+  group_incharge_basic: {
+    label: 'Group Incharge — Basic',
+    icon: '◈',
+    nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }
+  },
+  group_incharge_fresh: {
+    label: 'Group Incharge — Fresh',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }

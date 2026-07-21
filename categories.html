@@ -121,7 +121,7 @@
     }
 
     function secForm(s = {}) {
-      const users = DB.list('users').filter(u => u.role === 'inventory_manager');
+      const users = DB.list('users').filter(u => GROUP_INCHARGE_ROLES.includes(u.role));
       return `
         <div class="form-grid">
           <div class="form-row">
