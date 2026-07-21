@@ -43,7 +43,7 @@
       <div class="card-header">
         <h3>Approved — Ready to Dispatch</h3>
         <div style="display:flex;gap:8px;">
-          <button class="btn" id="scanQrBtn">⬚ Scan Voucher QR</button>
+          <button class="btn" id="scanQrBtn">⬚ Scan Gate Pass QR</button>
           <button class="btn btn-primary" id="newBtn">+ Ex-post Facto Supply</button>
         </div>
       </div>
@@ -507,82 +507,81 @@
       }
     }
 
+    // Resolve a scanned/typed text to a gate-out key (demandId or soId)
     window.handleScannedVoucher = function(text) {
       stopScanner();
       text = (text || '').trim();
 
-      let so = null;
       const parts = text.split('|');
-
-      if (parts.length >= 2 && parts[0].startsWith('DMD-')) {
-        // Demand QR format: demandNo|shipId|approved
-        const demandNo = parts[0];
-        const demand = DB.list('demands').find(d => d.demandNo === demandNo);
-        if (!demand) { toast(`Demand ${demandNo} not found`, 'danger'); return; }
+      // Gate pass QR: DMD-2026-001-S1 or DMD-2026-001-S1|shipId|...
+      const demandNo = parts[0].startsWith('DMD-') ? parts[0] : null;
+      // Direct demand number typed in manual box (no pipes)
+      const demandByNo = demandNo || (text.startsWith('DMD-') ? text : null);
+      if (demandByNo) {
+        const demand = DB.list('demands').find(d => d.demandNo === demandByNo);
+        if (!demand) { toast(`Demand ${demandByNo} not found`, 'danger'); return; }
+        const dispatches = DB.list('dispatch');
+        if (dispatches.find(d => d.demandId === demand.id)) {
+          toast(`${demandByNo} has already been dispatched`, 'warn'); return;
+        }
         const linkedSOs = DB.list('stockOut').filter(s => s.demandId === demand.id);
-        const approved = linkedSOs.find(s => s.dispatchApproved && !DB.list('dispatch').find(d => d.stockOutId === s.id));
-        if (!approved) {
-          if (!linkedSOs.length) { toast(`No issue vouchers found for ${demandNo}`, 'warn'); return; }
-          const hasGatePass = linkedSOs.some(s => s.gatePassGenerated);
-          if (hasGatePass) {
-            toast(`${demandNo} — gate pass awaiting Group OiC or Gate Keeper approval.`, 'warn');
-          } else {
-            toast(`${demandNo} — gate pass not yet generated. R&D Section must confirm collection first.`, 'warn');
-          }
-          return;
+        if (!linkedSOs.length) { toast(`No issue vouchers found for ${demandByNo}`, 'warn'); return; }
+        if (!linkedSOs.every(s => s.gatePassGenerated)) {
+          toast(`${demandByNo} — gate pass not yet generated. R&D Section must confirm collection first.`, 'warn'); return;
+        }
+        if (!linkedSOs.every(s => s.dispatchApproved)) {
+          toast(`${demandByNo} — gate pass awaiting Group OiC or Gate Keeper approval.`, 'warn'); return;
         }
         closeModal();
-        setTimeout(() => openGateOutFor(approved.id), 150);
+        setTimeout(() => openGateOutFor(demand.id), 150);
         return;
       }
 
+      // Voucher QR fallback — resolve to demand if one exists, else dispatch directly
+      let so = null;
       if (parts.length >= 3 && !text.startsWith('{')) {
         // Pipe format: voucherNo|shipId|approved|item1:qty:unit;...|absent1;...
         const [vno, shipId, approvedFlag, itemsStr, absentStr] = parts;
-        const approved = approvedFlag === '1';
-        // Same-device lookup first (has full product data)
         so = DB.list('stockOut').find(s => s.voucherNo === vno);
         if (!so) {
-          // Cross-device: parse items from QR string
           const items = (itemsStr || '').split(';').filter(Boolean).map(seg => {
             const [name, qty, unit] = seg.split(':');
             return { productId: '', qty: parseFloat(qty) || 0, outcome: 'exact', _name: name || '—', _unit: unit || '' };
           });
           const absentItems = (absentStr || '').split(';').filter(Boolean).map(n => ({ name: n }));
           so = { id: 'syn_' + vno, voucherNo: vno, shipId, demandId: null,
-                 status: 'completed', dispatchApproved: approved,
+                 status: 'completed', dispatchApproved: approvedFlag === '1',
                  items, absent: [], _absentItems: absentItems, _crossDevice: true };
           DB.upsert('stockOut', so);
         }
       } else {
-        // Fallback: same-device plain ID or voucher number (manual entry / old QR)
         so = DB.get('stockOut', text) || DB.list('stockOut').find(s => s.voucherNo === text);
       }
 
-      if (!so) { toast(`Voucher not found: "${text}"`, 'danger'); return; }
+      if (!so) { toast(`Not found: "${text}" — scan the gate pass QR or enter the demand number (DMD-...)`, 'danger'); return; }
       if (!so.gatePassGenerated && !so.dispatchApproved) {
-        toast(`${so.voucherNo} — gate pass not yet generated. R&D Section must confirm collection first.`, 'warn');
-        return;
+        toast(`${so.voucherNo} — gate pass not yet generated`, 'warn'); return;
       }
       if (!so.dispatchApproved) {
-        toast(`${so.voucherNo} — gate pass awaiting Group OiC or Gate Keeper approval.`, 'warn');
-        return;
+        toast(`${so.voucherNo} — gate pass awaiting approval`, 'warn'); return;
       }
-      if (DB.list('dispatch').find(d => d.stockOutId === so.id)) {
-        toast(`${so.voucherNo} has already been dispatched`, 'warn');
-        return;
+      const dispatches = DB.list('dispatch');
+      if (so.demandId) {
+        if (dispatches.find(d => d.demandId === so.demandId)) { toast(`Demand already dispatched`, 'warn'); return; }
+        closeModal(); setTimeout(() => openGateOutFor(so.demandId), 150);
+      } else {
+        if (dispatches.find(d => d.stockOutId === so.id)) { toast(`${so.voucherNo} already dispatched`, 'warn'); return; }
+        closeModal(); setTimeout(() => openGateOutFor(so.id), 150);
       }
-      closeModal();
-      setTimeout(() => openGateOutFor(so.id), 150);
     };
 
     function openQRScan() {
       if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
-      openModal('Scan Voucher QR', `
+      openModal('Scan Gate Pass QR', `
         <div class="form-grid">
           <div class="text-sm text-mute" style="line-height:1.7;">
-            Point the camera at the <strong>QR code on the printed Issue Voucher</strong>.<br>
-            The gate-out form will auto-fill with the demand items — no typing needed.
+            Point the camera at the <strong>QR code on the printed Gate Pass</strong>.<br>
+            The gate-out form will auto-fill with all vouchers for that demand — no typing needed.
           </div>
           <div id="qr-cam-wrap" style="width:100%;max-width:420px;margin:0 auto;border-radius:8px;overflow:hidden;background:#0f2040;min-height:160px;display:flex;align-items:center;justify-content:center;">
             <span class="text-sm text-mute" style="color:rgba(255,255,255,0.4);">Starting camera…</span>
@@ -593,7 +592,7 @@
             <div style="flex:1;height:1px;background:var(--border);"></div>
           </div>
           <div style="display:flex;gap:8px;">
-            <input id="qr-manual-in" placeholder="Voucher No. — e.g. 26BIB12345"
+            <input id="qr-manual-in" placeholder="Demand No. — e.g. DMD-2026-001-S1"
               style="flex:1;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;"
               onkeydown="if(event.key==='Enter') lookupManualVoucher()">
             <button class="btn" onclick="lookupManualVoucher()">Look up</button>
