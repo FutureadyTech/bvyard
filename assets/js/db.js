@@ -192,12 +192,13 @@ const DB = {
   },
 
   // Notification helpers
-  notify(message, type = 'info', link = null) {
+  // targetRoles: null = all roles see it; array of role keys = only those roles see it
+  notify(message, type = 'info', link = null, targetRoles = null) {
     const s = this.load();
     if (!s.notifications) s.notifications = [];
     s.notifications.push({
       id: this.uid('nt'),
-      message, type, link,
+      message, type, link, targetRoles,
       createdAt: new Date().toISOString(),
       read: false
     });
@@ -205,15 +206,24 @@ const DB = {
     this.save(s);
   },
   markAllRead() {
+    const role = Session?.get()?.role;
     const s = this.load();
-    if (s.notifications) s.notifications.forEach(n => n.read = true);
+    if (s.notifications) s.notifications.forEach(n => {
+      if (!n.targetRoles || n.targetRoles.includes(role)) n.read = true;
+    });
     this.save(s);
   },
   unreadCount() {
-    return (this.load().notifications || []).filter(n => !n.read).length;
+    const role = Session?.get()?.role;
+    return (this.load().notifications || []).filter(n =>
+      !n.read && (!n.targetRoles || n.targetRoles.includes(role))
+    ).length;
   },
   listNotifications() {
-    return (this.load().notifications || []).slice().reverse();
+    const role = Session?.get()?.role;
+    return (this.load().notifications || []).filter(n =>
+      !n.targetRoles || n.targetRoles.includes(role)
+    ).slice().reverse();
   }
 };
 
