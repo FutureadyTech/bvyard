@@ -4,11 +4,11 @@
 window.SEED_DATA = {
   sections: [
     { id: 'sec_dry',    name: 'Dry / Necessary Store',  code: 'NG',  inCharge: 'u4' },
-    { id: 'sec_basic',  name: 'Basic / Rice Store',     code: 'BG',  inCharge: 'u3' },
-    { id: 'sec_dal',    name: 'Dal Store',               code: 'DAL', inCharge: 'u6' },
-    { id: 'sec_masala', name: 'Masala Store',            code: 'MS',  inCharge: 'u7' },
-    { id: 'sec_fresh',  name: 'Fresh / Cold Store',      code: 'FG',  inCharge: 'u8' },
-    { id: 'sec_meat',   name: 'Meat Store (Off-site)',   code: 'MT',  inCharge: 'u9' }
+    { id: 'sec_basic',  name: 'Basic / Rice Store',     code: 'BG',  inCharge: 'u6' },
+    { id: 'sec_dal',    name: 'Dal Store',               code: 'DAL', inCharge: 'u4' },
+    { id: 'sec_masala', name: 'Masala Store',            code: 'MS',  inCharge: 'u4' },
+    { id: 'sec_fresh',  name: 'Fresh / Cold Store',      code: 'FG',  inCharge: 'u7' },
+    { id: 'sec_meat',   name: 'Meat Store (Off-site)',   code: 'MT',  inCharge: 'u7' }
   ],
 
   users: [
