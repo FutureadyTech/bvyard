@@ -61,6 +61,9 @@
   <script>
     renderShell('stock-out', 'Fulfillment', 'Issue against approved demands · exact / short / over / absent / substitute');
 
+    const canIssue = can('create') && Session.get()?.role !== 'rd_section';
+    if (!canIssue) document.getElementById('newBtn').style.display = 'none';
+
     function refreshPending() {
       const pending = DB.list('demands').filter(d => ['approved', 'partially_approved', 'partially_fulfilled'].includes(d.status));
       document.getElementById('pendingTbl').innerHTML = `
@@ -91,7 +94,7 @@
               <td class="text-right">${itemCount}</td>
               <td><span class="badge ${statusCls}">${d.status.replace(/_/g,' ').toUpperCase()}</span>${approvalNote}</td>
               <td class="text-right">
-                ${can('create') ? `<button class="btn btn-sm btn-primary" onclick="fulfillDemand('${d.id}')">Fulfill</button>` : ''}
+                ${canIssue ? `<button class="btn btn-sm btn-primary" onclick="fulfillDemand('${d.id}')">Fulfill</button>` : ''}
               </td>
             </tr>`;
           }).join('') || '<tr><td colspan="7" class="empty">No demands pending fulfillment</td></tr>'}
@@ -409,7 +412,7 @@
     };
 
     function openNew() {
-      if (!can('create')) return toast('Your role cannot create issue vouchers', 'warn');
+      if (!canIssue) return toast('Your role cannot create issue vouchers', 'warn');
       if (linkedDemand) {
         outItems = linkedDemand.items
           .filter(it => (it.approvedQty ?? it.demandedQty) > (it.fulfilledQty || 0))

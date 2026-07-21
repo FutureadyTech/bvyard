@@ -302,7 +302,7 @@ const ROLES = {
   rd_section: {
     label: 'Receipt & Dispatch Section',
     icon: '↑',
-    nav: ['dashboard', 'dispatch'],
+    nav: ['dashboard', 'stock-out', 'dispatch'],
     can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true }
   },
   gate_keeper: {
