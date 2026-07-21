@@ -62,30 +62,57 @@
   <script>
     renderShell('dispatch', 'Outward (Gate-out)', 'R&D Section collects · generates gate pass · Group OiC or Gate Keeper approves · R&D dispatches');
 
-    function fulfillmentSummary(so) {
-      const items = so.items || [];
-      const issued = items.length;
-      const absent = (so.absent || []).length + (so._absentItems || []).length;
-      const totalQty = items.reduce((s, x) => s + (x.qty || 0), 0);
-      return `${issued} item${issued !== 1 ? 's' : ''} · ${totalQty} units` + (absent ? ` · ${absent} absent` : '');
+    // Group stockOut records by demandId — direct issues (no demandId) stay as single-item arrays
+    function groupByDemand(sos) {
+      const byDemand = {};
+      const direct = [];
+      for (const so of sos) {
+        if (so.demandId) { (byDemand[so.demandId] = byDemand[so.demandId] || []).push(so); }
+        else { direct.push([so]); }
+      }
+      return [...Object.values(byDemand), ...direct];
+    }
+
+    function groupSummary(group) {
+      const totalItems = group.reduce((s, so) => s + (so.items || []).length, 0);
+      const totalQty   = group.reduce((s, so) => s + (so.items || []).reduce((q, it) => q + (it.qty || 0), 0), 0);
+      const totalAbsent = group.reduce((s, so) => s + (so.absent || []).length, 0);
+      return `${totalItems} item${totalItems !== 1 ? 's' : ''} · ${totalQty} units` + (totalAbsent ? ` · ${totalAbsent} absent` : '');
+    }
+
+    // Returns demandId for demand groups, soId for direct issues
+    function groupKey(group) { return group[0].demandId || group[0].id; }
+
+    // Resolve a key back to an array of stockOut records
+    function sosForKey(key) {
+      const demand = DB.get('demands', key);
+      return demand
+        ? DB.list('stockOut').filter(s => s.demandId === key)
+        : [DB.get('stockOut', key)].filter(Boolean);
     }
 
     function refresh() {
       const stockOut = DB.list('stockOut').filter(so => so.status === 'completed');
       const dispatches = DB.list('dispatch');
-      const dispatchedIds = new Set(dispatches.map(d => d.stockOutId));
+      const dispatchedSoIds     = new Set(dispatches.filter(d => d.stockOutId).map(d => d.stockOutId));
+      const dispatchedDemandIds = new Set(dispatches.filter(d => d.demandId).map(d => d.demandId));
 
-      const notDispatched = stockOut.filter(so => !dispatchedIds.has(so.id));
-      const awaitCollection = notDispatched.filter(so => !so.gatePassGenerated && !so.dispatchApproved);
-      const awaitApproval = notDispatched.filter(so => so.gatePassGenerated && !so.dispatchApproved);
-      const readyForGateOut = notDispatched.filter(so => so.dispatchApproved);
+      const notDispatched = stockOut.filter(so =>
+        so.demandId ? !dispatchedDemandIds.has(so.demandId) : !dispatchedSoIds.has(so.id)
+      );
+
+      const groups = groupByDemand(notDispatched);
+      const awaitCollection = groups.filter(g => g.some(so => !so.gatePassGenerated && !so.dispatchApproved));
+      const awaitApproval   = groups.filter(g => g.every(so => so.gatePassGenerated) && g.some(so => !so.dispatchApproved));
+      const readyForGateOut = groups.filter(g => g.every(so => so.dispatchApproved));
 
       const today = DB.today();
-      const tmr = (() => { const t = new Date(); t.setDate(t.getDate() + 1); const p = n => String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`; })();
+      const tmr = (() => { const t = new Date(); t.setDate(t.getDate()+1); const p = n => String(n).padStart(2,'0'); return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}`; })();
 
-      function soRow(so, panel) {
-        const ship = DB.ship(so.shipId);
-        const demand = so.demandId ? DB.get('demands', so.demandId) : null;
+      function groupRow(group, panel) {
+        const key = groupKey(group);
+        const demand = group[0].demandId ? DB.get('demands', group[0].demandId) : null;
+        const ship = DB.ship(group[0].shipId);
         const reqBy = demand?.dateRequired;
         const isOverdue = reqBy && reqBy < today;
         const isDueToday = reqBy === today;
@@ -95,25 +122,28 @@
         const urgencyBadge = isOverdue ? '<span class="badge danger" style="font-size:9px;">OVERDUE</span>'
           : isDueToday ? '<span class="badge danger" style="font-size:9px;">DUE TODAY</span>'
           : isDueTmr ? '<span class="badge warn" style="font-size:9px;">DUE TMR</span>' : '';
+        const voucherCell = group.length === 1
+          ? `<span class="text-sm">${group[0].voucherNo}</span>`
+          : `<span class="badge info" style="font-size:9px;margin-right:4px;">${group.length} vouchers</span>${group.map(s => `<span class="text-sm text-mute">${s.voucherNo}</span>`).join(' ')}`;
         const canGenGP = ['rd_section', 'super_admin', 'central_coordinator'].includes(Session.get()?.role);
         const actionBtn = panel === 'collect'
           ? (canGenGP
-              ? `<button class="btn btn-sm btn-primary" onclick="generateGatePass('${so.id}')">Confirm Collection &amp; Generate Gate Pass</button>`
+              ? `<button class="btn btn-sm btn-primary" onclick="generateGatePass('${key}')">Confirm Collection &amp; Generate Gate Pass</button>`
               : '<span class="badge" style="font-size:10px;background:var(--navy-700);color:#fff;">AWAITING R&amp;D SECTION</span>')
           : panel === 'approve'
           ? (can('approveDispatch')
-              ? `<button class="btn btn-sm btn-primary" onclick="approveDispatch('${so.id}')">Approve Gate Pass</button>`
+              ? `<button class="btn btn-sm btn-primary" onclick="approveDispatch('${key}')">Approve Gate Pass</button>`
               : '<span class="badge warn" style="font-size:10px;">AWAITING APPROVAL</span>')
-          : (can('create') ? `<button class="btn btn-sm btn-gold" onclick="openGateOutFor('${so.id}')">Send Out →</button>` : '');
+          : (can('create') ? `<button class="btn btn-sm btn-gold" onclick="openGateOutFor('${key}')">Send Out →</button>` : '');
         return `<tr style="${rowStyle}">
           <td class="bold text-sm">${demand ? demand.demandNo : '<span class="text-mute">Direct</span>'}</td>
-          <td class="bold">${so.voucherNo}</td>
-          <td>${fmtDate(so.date)}</td>
+          <td>${voucherCell}</td>
+          <td>${fmtDate(group[0].date)}</td>
           <td>${ship ? ship.name : '—'}</td>
           <td>${reqBy ? `${fmtDate(reqBy)} ${urgencyBadge}` : '<span class="text-mute">—</span>'}</td>
-          <td class="text-sm text-mute">${fulfillmentSummary(so)}</td>
+          <td class="text-sm text-mute">${groupSummary(group)}</td>
           <td class="text-right" style="white-space:nowrap;">
-            <button class="btn btn-sm" onclick="viewItems('${so.id}')">View Items</button>
+            <button class="btn btn-sm" onclick="viewItemsForKey('${key}')">View Items</button>
             ${actionBtn}
           </td>
         </tr>`;
@@ -123,112 +153,67 @@
       collCard.style.display = awaitCollection.length ? '' : 'none';
       document.getElementById('collectionCount').textContent = awaitCollection.length || '';
       document.getElementById('collectionTbl').innerHTML = `
-        <thead><tr>
-          <th>Demand</th><th>Voucher</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${awaitCollection.slice().reverse().map(so => soRow(so, 'collect')).join('')
-            || '<tr><td colspan="7" class="empty">No vouchers awaiting collection — fulfilled demands will appear here.</td></tr>'}
-        </tbody>
-      `;
+        <thead><tr><th>Demand</th><th>Vouchers</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th></tr></thead>
+        <tbody>${awaitCollection.map(g => groupRow(g, 'collect')).join('')
+          || '<tr><td colspan="7" class="empty">No vouchers awaiting collection — fulfilled demands will appear here.</td></tr>'}</tbody>`;
 
       document.getElementById('awaitApprovalCount').textContent = awaitApproval.length || '';
       document.getElementById('awaitApprovalTbl').innerHTML = `
-        <thead><tr>
-          <th>Demand</th><th>Voucher</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${awaitApproval.slice().reverse().map(so => soRow(so, 'approve')).join('')
-            || '<tr><td colspan="7" class="empty">No vouchers pending approval — fulfilled demands will appear here.</td></tr>'}
-        </tbody>
-      `;
+        <thead><tr><th>Demand</th><th>Vouchers</th><th>Fulfilled</th><th>Ship</th><th>Required By</th><th>Items</th><th></th></tr></thead>
+        <tbody>${awaitApproval.map(g => groupRow(g, 'approve')).join('')
+          || '<tr><td colspan="7" class="empty">No vouchers pending approval — fulfilled demands will appear here.</td></tr>'}</tbody>`;
 
       document.getElementById('awaitingTbl').innerHTML = `
-        <thead><tr>
-          <th>Demand</th><th>Voucher</th><th>Approved</th><th>Ship</th><th>Required By</th><th>Items</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${readyForGateOut.slice().reverse().map(so => soRow(so, 'dispatch')).join('')
-            || '<tr><td colspan="7" class="empty">No approved vouchers waiting for dispatch.</td></tr>'}
-        </tbody>
-      `;
+        <thead><tr><th>Demand</th><th>Vouchers</th><th>Approved</th><th>Ship</th><th>Required By</th><th>Items</th><th></th></tr></thead>
+        <tbody>${readyForGateOut.map(g => groupRow(g, 'dispatch')).join('')
+          || '<tr><td colspan="7" class="empty">No approved vouchers waiting for dispatch.</td></tr>'}</tbody>`;
 
+      // Dispatch log — handle both old (stockOutId) and new (demandId + stockOutIds)
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
-          <th>Vehicle</th><th>Voucher</th><th>Ship</th><th>Items</th>
+          <th>Vehicle</th><th>Demand / Voucher</th><th>Ship</th><th>Items</th>
           <th>Driver / Carrier</th><th>POC</th><th>Gate Out</th><th>Gate In</th><th></th>
         </tr></thead>
         <tbody>
           ${dispatches.slice().reverse().map(d => {
-            const so = DB.get('stockOut', d.stockOutId);
-            const ship = so ? DB.ship(so.shipId) : null;
-            const locationStr = (d.fromLocation && d.toLocation) ? `${escapeHtml(d.fromLocation)} → ${escapeHtml(d.toLocation)}` : '';
+            const demand = d.demandId ? DB.get('demands', d.demandId) : null;
+            const sos = d.stockOutIds
+              ? d.stockOutIds.map(id => DB.get('stockOut', id)).filter(Boolean)
+              : d.stockOutId ? [DB.get('stockOut', d.stockOutId)].filter(Boolean) : [];
+            const ship = sos.length ? DB.ship(sos[0].shipId) : null;
+            const totalItems = sos.reduce((s, so) => s + (so.items || []).length, 0);
+            const totalQty   = sos.reduce((s, so) => s + (so.items || []).reduce((q, it) => q + (it.qty || 0), 0), 0);
+            const itemsSummary = `${totalItems} item${totalItems !== 1 ? 's' : ''} · ${totalQty} units`;
+            const viewKey = d.demandId || d.stockOutId || '';
             return `<tr${d.isExPostFacto ? ' style="border-left:3px solid var(--warn);"' : ''}>
               <td class="bold">${escapeHtml(d.vehicleNo)}${d.isExPostFacto ? ' <span class="badge warn" style="font-size:9px;">EX-POST</span>' : ''}</td>
-              <td>${so ? `<a class="text-sm bold" href="#" onclick="viewItems('${so.id}'); return false;">${so.voucherNo}</a>` : '—'}</td>
+              <td>${demand
+                ? `<span class="text-sm bold">${demand.demandNo}</span><div class="text-sm text-mute">${(d.stockOutIds||[]).length} voucher(s)</div>`
+                : (sos[0] ? `<a class="text-sm bold" href="#" onclick="viewItemsForKey('${sos[0].id}'); return false;">${sos[0].voucherNo}</a>` : '—')}</td>
               <td>${ship ? ship.name : '—'} ${d.destination ? `<span class="text-sm text-mute">→ ${escapeHtml(d.destination)}</span>` : ''}</td>
-              <td class="text-sm text-mute">${so ? fulfillmentSummary(so) : '—'}</td>
+              <td class="text-sm text-mute">${itemsSummary}</td>
               <td>${escapeHtml(d.driver||'—')} ${d.carrierName ? `<div class="text-sm text-mute">Carrier: ${escapeHtml(d.carrierName)}</div>` : ''}</td>
               <td class="text-sm">${d.pocName ? escapeHtml(d.pocName) : '—'} ${d.pocPhone ? `<div class="text-mute">${escapeHtml(d.pocPhone)}</div>` : ''}</td>
               <td>${fmtDateTime(d.gateOutTime)}</td>
               <td>${d.gateInTime ? fmtDateTime(d.gateInTime) : '<span class="badge warn">VEHICLE OUT</span>'}</td>
               <td class="text-right">
-                ${so ? `<button class="btn btn-sm" onclick="viewItems('${so.id}')">Items</button>` : ''}
+                ${viewKey ? `<button class="btn btn-sm" onclick="viewItemsForKey('${viewKey}')">Items</button>` : ''}
                 ${!d.gateInTime && can('create') ? `<button class="btn btn-sm btn-primary" onclick="openCloseDispatch('${d.id}')">Close (Gate-in)</button>` : ''}
               </td>
             </tr>`;
           }).join('') || '<tr><td colspan="9" class="empty">No vehicles have left yet</td></tr>'}
-        </tbody>
-      `;
+        </tbody>`;
     }
 
-    window.generateGatePass = (stockOutId) => {
-      const role = Session.get()?.role;
-      if (!['rd_section', 'super_admin', 'central_coordinator'].includes(role))
-        return toast('Only R&amp;D Section can confirm collection and generate gate passes', 'warn');
-      const so = DB.get('stockOut', stockOutId);
-      if (!so) return;
-      so.gatePassGenerated = true;
-      so.gatePassGeneratedBy = Session.get()?.id;
-      so.gatePassGeneratedAt = new Date().toISOString();
-      DB.upsert('stockOut', so);
-      const demand = so.demandId ? DB.get('demands', so.demandId) : null;
-      const ship = DB.ship(so.shipId);
-      DB.notify(
-        `[Action required] Gate pass generated for ${demand ? demand.demandNo : so.voucherNo} (${ship?.name || '—'}) — awaiting your approval`,
-        'ok', 'dispatch.html',
-        ['reviewer', 'gate_keeper', 'super_admin']
+    // View all items for a demand (or single SO for direct issues)
+    window.viewItemsForKey = (key) => {
+      const sos = sosForKey(key);
+      if (!sos.length) return;
+      const demand = DB.get('demands', key);
+      const ship = DB.ship(sos[0].shipId);
+      const dispatch = DB.list('dispatch').find(d =>
+        d.demandId === key || d.stockOutId === key || (d.stockOutIds || []).includes(sos[0]?.id)
       );
-      toast('Gate pass generated — forwarded to Group OiC for approval', 'ok');
-      refresh();
-    };
-
-    window.approveDispatch = (stockOutId) => {
-      if (!can('approveDispatch')) return toast('Only Group OiC or Gate Keeper can approve gate passes', 'warn');
-      const so = DB.get('stockOut', stockOutId);
-      if (!so) return;
-      so.dispatchApproved = true;
-      so.dispatchApprovedBy = Session.get()?.id;
-      so.dispatchApprovedAt = new Date().toISOString();
-      DB.upsert('stockOut', so);
-      const demand = so.demandId ? DB.get('demands', so.demandId) : null;
-      const ship = DB.ship(so.shipId);
-      DB.notify(
-        `Gate pass approved — ${demand ? demand.demandNo : so.voucherNo} for ${ship?.name || '—'} · R&D Section can now dispatch`,
-        'ok', 'dispatch.html',
-        ['rd_section', 'super_admin', 'central_coordinator']
-      );
-      toast('Gate pass approved — R&amp;D Section can now enter vehicle details and dispatch', 'ok');
-      refresh();
-    };
-
-    window.viewItems = (stockOutId) => {
-      const so = DB.get('stockOut', stockOutId);
-      if (!so) return;
-      const ship = DB.ship(so.shipId);
-      const demand = so.demandId ? DB.get('demands', so.demandId) : null;
-      const dispatch = DB.list('dispatch').find(d => d.stockOutId === stockOutId);
-      // Build a map of returned items: productId → { qty, condition }
       const returnedMap = {};
       (dispatch?.returnedItems || []).forEach(r => { returnedMap[r.productId] = r; });
 
@@ -240,136 +225,95 @@
         return '<span class="badge ok" style="font-size:9px;">DELIVERED</span>';
       }
 
-      const rows = so.items.map(it => {
-        const p = DB.product(it.productId);
-        const subOf = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
-        const outcome = it.outcome || 'exact';
-        return `<tr>
-          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
-          <td class="text-sm text-mute">${p?.code || ''}</td>
-          <td>${it.demandedQty || '—'} ${p?.baseUnit || ''}</td>
-          <td class="bold">${it.qty} ${p?.baseUnit || ''}</td>
-          <td><span class="badge ${outcome === 'exact' ? 'ok' : outcome === 'over' ? 'info' : outcome === 'short' ? 'warn' : outcome === 'substituted' ? 'muted' : 'danger'}">${outcome.toUpperCase()}</span></td>
-          <td class="text-sm">${subOf ? `↔ replaced ${escapeHtml(subOf.name)}` : '—'}</td>
-          <td class="text-sm">${gateInCell(it.productId, p?.baseUnit)}</td>
-        </tr>`;
+      const rows = sos.flatMap(so => {
+        const vLabel = sos.length > 1 ? `<div class="text-mute" style="font-size:10px;">${so.voucherNo}</div>` : '';
+        return so.items.map(it => {
+          const p = DB.product(it.productId);
+          const subOf = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
+          const outcome = it.outcome || 'exact';
+          return `<tr>
+            <td>${p ? escapeHtml(displayName(p)) : '—'}${vLabel}</td>
+            <td class="text-sm text-mute">${p?.code || ''}</td>
+            <td>${it.demandedQty || '—'} ${p?.baseUnit || ''}</td>
+            <td class="bold">${it.qty} ${p?.baseUnit || ''}</td>
+            <td><span class="badge ${outcome === 'exact' ? 'ok' : outcome === 'over' ? 'info' : outcome === 'short' ? 'warn' : outcome === 'substituted' ? 'muted' : 'danger'}">${outcome.toUpperCase()}</span></td>
+            <td class="text-sm">${subOf ? `↔ replaced ${escapeHtml(subOf.name)}` : '—'}</td>
+            <td class="text-sm">${gateInCell(it.productId, p?.baseUnit)}</td>
+          </tr>`;
+        });
       }).join('');
-      const absentRows = (so.absent || []).map(pid => {
+
+      const absentRows = sos.flatMap(so => (so.absent || []).map(pid => {
         const p = DB.product(pid);
         const demItem = demand?.items.find(it => it.productId === pid);
         return `<tr style="opacity:0.7;">
           <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
           <td class="text-sm text-mute">${p?.code || ''}</td>
           <td>${demItem?.demandedQty || 0} ${p?.baseUnit || ''}</td>
-          <td>0</td>
-          <td><span class="badge danger">ABSENT</span></td>
-          <td>—</td>
-          <td>—</td>
+          <td>0</td><td><span class="badge danger">ABSENT</span></td><td>—</td><td>—</td>
         </tr>`;
-      }).join('');
-      openModal(`Items Going Out — ${so.voucherNo}`, `
+      })).join('');
+
+      const voucherInfo = sos.length > 1
+        ? `<div style="grid-column:1/-1;"><div class="text-sm text-mute">Vouchers</div><div class="text-sm">${sos.map(s => s.voucherNo).join(' · ')}</div></div>`
+        : '';
+      openModal(demand ? `Items for ${demand.demandNo}` : `Items — ${sos[0].voucherNo}`, `
         <div class="form-grid">
           <div class="grid-3">
             <div><div class="text-sm text-mute">Ship</div><div class="bold">${ship?.name || '—'}</div></div>
-            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(so.date)}</div></div>
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(sos[0].date)}</div></div>
             <div><div class="text-sm text-mute">From Demand</div><div class="bold">${demand ? demand.demandNo : 'Direct'}</div></div>
             ${dispatch ? `<div><div class="text-sm text-mute">Gate-out</div><div class="bold">${fmtDateTime(dispatch.gateOutTime)}</div></div>` : ''}
             ${dispatch ? `<div><div class="text-sm text-mute">Gate-in</div><div class="bold">${dispatch.gateInTime ? fmtDateTime(dispatch.gateInTime) : '<span class="badge warn" style="font-size:10px;">VEHICLE OUT</span>'}</div></div>` : ''}
-            ${dispatch?.exPostFactoNote ? `<div style="grid-column:1/-1;"><div class="text-sm text-mute">Ex-post Facto Note</div><div class="text-sm">${escapeHtml(dispatch.exPostFactoNote)}</div></div>` : ''}
+            ${voucherInfo}
           </div>
           <table class="data">
             <thead><tr><th>Item</th><th>Code</th><th>Demanded</th><th>Going Out</th><th>Outcome</th><th>Note</th><th>Gate-in Status</th></tr></thead>
             <tbody>${rows}${absentRows}</tbody>
           </table>
-        </div>
-      `, null, '', 'wide');
+        </div>`, null, '', 'wide');
+    };
+    // Alias for legacy calls (QR scanner etc.)
+    window.viewItems = (soId) => viewItemsForKey(soId);
+
+    window.generateGatePass = (key) => {
+      const role = Session.get()?.role;
+      if (!['rd_section', 'super_admin', 'central_coordinator'].includes(role))
+        return toast('Only R&amp;D Section can confirm collection and generate gate passes', 'warn');
+      const sos = sosForKey(key);
+      if (!sos.length) return;
+      const now = new Date().toISOString();
+      const uid = Session.get()?.id;
+      sos.forEach(so => { so.gatePassGenerated = true; so.gatePassGeneratedBy = uid; so.gatePassGeneratedAt = now; DB.upsert('stockOut', so); });
+      const demand = DB.get('demands', key);
+      const ship = DB.ship(sos[0].shipId);
+      DB.notify(`[Action required] Gate pass generated for ${demand ? demand.demandNo : sos[0].voucherNo} (${ship?.name || '—'}) — awaiting your approval`, 'ok', 'dispatch.html', ['reviewer', 'gate_keeper', 'super_admin']);
+      toast('Gate pass generated — forwarded to Group OiC for approval', 'ok');
+      refresh();
     };
 
-    function gateOutForm(prefilledStockOutId) {
-      const completed = DB.list('stockOut').filter(so => so.status === 'completed');
-      const dispatched = new Set(DB.list('dispatch').map(d => d.stockOutId));
-      const available = completed.filter(so => !dispatched.has(so.id) || so.id === prefilledStockOutId);
-      const selected = prefilledStockOutId ? DB.get('stockOut', prefilledStockOutId) : null;
-      const selShip = selected ? DB.ship(selected.shipId) : null;
+    window.approveDispatch = (key) => {
+      if (!can('approveDispatch')) return toast('Only Group OiC or Gate Keeper can approve gate passes', 'warn');
+      const sos = sosForKey(key);
+      if (!sos.length) return;
+      const now = new Date().toISOString();
+      const uid = Session.get()?.id;
+      sos.forEach(so => { so.dispatchApproved = true; so.dispatchApprovedBy = uid; so.dispatchApprovedAt = now; DB.upsert('stockOut', so); });
+      const demand = DB.get('demands', key);
+      const ship = DB.ship(sos[0].shipId);
+      DB.notify(`Gate pass approved — ${demand ? demand.demandNo : sos[0].voucherNo} for ${ship?.name || '—'} · R&D Section can now dispatch`, 'ok', 'dispatch.html', ['rd_section', 'super_admin', 'central_coordinator']);
+      toast('Gate pass approved — R&amp;D Section can now enter vehicle details and dispatch', 'ok');
+      refresh();
+    };
 
-      return `
-        <div class="form-grid">
-          <div class="field"><label>Fulfillment Record <span class="req">*</span></label>
-            <select id="f_so">
-              <option value="">— pick a voucher —</option>
-              ${available.map(so => `<option value="${so.id}" ${so.id === prefilledStockOutId ? 'selected' : ''}>${so.voucherNo} · ${DB.ship(so.shipId)?.name || ''} · ${fulfillmentSummary(so)}</option>`).join('')}
-            </select>
-          </div>
-          <div id="itemsPreview" style="display:${selected ? 'block' : 'none'};border:1px solid var(--border);padding:12px;border-radius:6px;background:#fafbfd;">
-            <div class="bold" style="margin-bottom:8px;">Items on this vehicle</div>
-            <div id="itemsList"></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Vehicle No. <span class="req">*</span></label><input id="f_veh" placeholder="MH03CV8631"></div>
-            <div class="field"><label>Driver Name</label><input id="f_drv"></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>Destination Ship / Unit</label><input id="f_dest" placeholder="e.g. S2 — Dock 2" value="${selShip ? selShip.name : ''}"></div>
-            <div class="field"><label>Carrier Person (if different)</label><input id="f_carrier" placeholder="e.g. PO Sharma"></div>
-          </div>
-          <div class="form-row">
-            <div class="field"><label>From Location</label><input id="f_from" placeholder="e.g. BV Yard Mumbai" value="BV Yard Mumbai"></div>
-            <div class="field"><label>To Location</label><input id="f_to" placeholder="e.g. Mumbai → Kochi" value="${selShip ? selShip.name : ''}"></div>
-          </div>
-          <div class="form-row">
-            <div class="field">
-              <label>POC Name (Receiving Officer)</label>
-              <input id="f_pocname" placeholder="Auto-filled from ship record" value="${selShip?.pocName || ''}">
-            </div>
-            <div class="field">
-              <label>POC Phone</label>
-              <input id="f_pocphone" placeholder="Auto-filled from ship record" value="${selShip?.pocPhone || ''}">
-            </div>
-          </div>
-          <div class="field"><label>Gate-out Time</label><input id="f_out" type="datetime-local" value="${localNow()}"></div>
-        </div>
-      `;
-    }
-
-    function renderItemsPreview(stockOutId) {
-      const so = stockOutId ? DB.get('stockOut', stockOutId) : null;
-      const preview = document.getElementById('itemsPreview');
-      const list = document.getElementById('itemsList');
-      if (!so) { preview.style.display = 'none'; return; }
-      preview.style.display = 'block';
-      const itemLines = so.items.map(it => {
-        const p = DB.product(it.productId);
-        const name = p?.name || it._name || '—';
-        const unit = p?.baseUnit || it._unit || '';
-        const sub = it.substitutedForProductId ? DB.product(it.substitutedForProductId) : null;
-        const badge = it.outcome === 'substituted' ? `<span class="badge muted" style="font-size:9px;">SUBST</span>`
-          : it.outcome === 'over' ? `<span class="badge info" style="font-size:9px;">OVER</span>`
-          : it.outcome === 'short' ? `<span class="badge warn" style="font-size:9px;">SHORT</span>` : '';
-        return `<div class="text-sm" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-          <strong>${escapeHtml(name)}</strong> — ${it.qty} ${unit} ${badge}
-          ${sub ? `<div class="text-mute" style="margin-left:12px;font-size:11px;">↔ replacing ${escapeHtml(sub.name)}</div>` : ''}
-        </div>`;
-      }).join('');
-      const absentLines = (so._absentItems
-        ? so._absentItems.map(a => `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-            <strong>${escapeHtml(a.name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
-          </div>`)
-        : (so.absent || []).map(pid => {
-            const p = DB.product(pid);
-            const name = p?.name || (so._absentNames && so._absentNames[pid]) || '—';
-            return `<div class="text-sm text-mute" style="padding:4px 0;border-bottom:1px solid #e2e8f0;">
-              <strong>${escapeHtml(name)}</strong> — <span class="badge danger" style="font-size:9px;">ABSENT</span>
-            </div>`;
-          })
-      ).join('');
-      list.innerHTML = itemLines + absentLines || '<div class="empty">Nothing on the manifest</div>';
-    }
-
-    // Close Gate-in with optional returns
+    // Close Gate-in with optional returns (handles both single SO and multi-SO demand dispatches)
     window.openCloseDispatch = (id) => {
       const d = DB.get('dispatch', id);
-      const so = d.stockOutId ? DB.get('stockOut', d.stockOutId) : null;
-      const returnRows = so ? so.items.map((it, i) => {
+      const sos = d.stockOutIds
+        ? d.stockOutIds.map(sid => DB.get('stockOut', sid)).filter(Boolean)
+        : d.stockOutId ? [DB.get('stockOut', d.stockOutId)].filter(Boolean) : [];
+      const allItems = sos.flatMap(so => so.items || []);
+      const returnRows = allItems.map((it, i) => {
         const p = DB.product(it.productId);
         return `<tr>
           <td>${p ? escapeHtml(displayName(p)) : '—'} <span class="text-sm text-mute">${p?.code||''}</span></td>
@@ -383,15 +327,15 @@
             <option value="damaged">Damaged</option>
           </select></td>
         </tr>`;
-      }).join('') : '';
+      }).join('');
 
       openModal('Close Gate-in — Record Vehicle Return', `
         <div class="form-grid">
           <div class="field"><label>Gate-in Time</label><input id="ci_time" type="datetime-local" value="${localNow()}"></div>
-          ${so ? `
+          ${allItems.length ? `
           <div style="border:1px dashed var(--border);border-radius:8px;padding:12px;">
             <div class="bold" style="margin-bottom:8px;">Items Returned (optional)</div>
-            <div class="text-sm text-mute" style="margin-bottom:10px;">Enter qty returned for any items that came back with the vehicle. Leave 0 if nothing returned. Stock will be incremented for returned items.</div>
+            <div class="text-sm text-mute" style="margin-bottom:10px;">Enter qty for any items that came back. Leave 0 if nothing returned. Stock increments for good condition returns.</div>
             <table class="data">
               <thead><tr><th>Item</th><th class="text-right">Issued</th><th class="text-right">Returned Qty</th><th>Condition</th></tr></thead>
               <tbody>${returnRows}</tbody>
@@ -402,21 +346,17 @@
       `, () => {
         d.gateInTime = document.getElementById('ci_time').value;
         d.gateInNotes = document.getElementById('ci_notes')?.value.trim() || undefined;
-
-        // Process returns
         const returnItems = [];
-        if (so) {
-          document.querySelectorAll('.ret_qty').forEach(el => {
-            const qty = Number(el.value) || 0;
-            if (qty > 0) {
-              const i = +el.dataset.i;
-              const pid = el.dataset.pid;
-              const cond = document.querySelectorAll('.ret_cond')[i]?.value || 'good';
-              returnItems.push({ productId: pid, qty, condition: cond });
-              if (cond === 'good') DB.adjustStock(pid, qty);
-            }
-          });
-        }
+        document.querySelectorAll('.ret_qty').forEach(el => {
+          const qty = Number(el.value) || 0;
+          if (qty > 0) {
+            const i = +el.dataset.i;
+            const pid = el.dataset.pid;
+            const cond = document.querySelectorAll('.ret_cond')[i]?.value || 'good';
+            returnItems.push({ productId: pid, qty, condition: cond });
+            if (cond === 'good') DB.adjustStock(pid, qty);
+          }
+        });
         if (returnItems.length) d.returnedItems = returnItems;
         DB.upsert('dispatch', d);
         if (returnItems.length) toast(`Gate-in recorded · ${returnItems.length} item(s) returned to stock`, 'ok');
@@ -425,15 +365,47 @@
       }, 'Confirm Gate-in', 'wide');
     };
 
-    function openGateOut(prefilledStockOutId) {
+    function openGateOut(key) {
       if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
-      openModal('Record Gate-out', gateOutForm(prefilledStockOutId), () => {
-        const stockOutId = document.getElementById('f_so').value;
+      const sos = sosForKey(key);
+      if (!sos.length) return;
+      const demand = DB.get('demands', key);
+      const ship = DB.ship(sos[0].shipId);
+      const totalItems = sos.reduce((s, so) => s + (so.items || []).length, 0);
+      const totalQty   = sos.reduce((s, so) => s + (so.items || []).reduce((q, it) => q + (it.qty || 0), 0), 0);
+
+      openModal('Record Gate-out', `
+        <div class="form-grid">
+          ${demand
+            ? `<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px;">
+                <div class="text-sm bold" style="color:var(--navy-700);">${demand.demandNo} — ${ship?.name || '—'}</div>
+                <div class="text-sm text-mute">${sos.length} voucher${sos.length !== 1 ? 's' : ''} · ${totalItems} items · ${totalQty} total units</div>
+                <div class="text-sm text-mute" style="margin-top:4px;">${sos.map(s => s.voucherNo).join(' · ')}</div>
+              </div>`
+            : `<div class="field"><label>Fulfillment Voucher</label><div class="text-sm bold">${sos[0].voucherNo} · ${groupSummary(sos)}</div></div>`}
+          <div class="form-row">
+            <div class="field"><label>Vehicle No. <span class="req">*</span></label><input id="f_veh" placeholder="MH03CV8631"></div>
+            <div class="field"><label>Driver Name</label><input id="f_drv"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Destination Ship / Unit</label><input id="f_dest" value="${ship ? escapeHtml(ship.name) : ''}"></div>
+            <div class="field"><label>Carrier Person (if different)</label><input id="f_carrier" placeholder="e.g. PO Sharma"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>From Location</label><input id="f_from" value="BV Yard Mumbai"></div>
+            <div class="field"><label>To Location</label><input id="f_to" value="${ship ? escapeHtml(ship.name) : ''}"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>POC Name (Receiving Officer)</label><input id="f_pocname" value="${escapeHtml(ship?.pocName || '')}"></div>
+            <div class="field"><label>POC Phone</label><input id="f_pocphone" value="${escapeHtml(ship?.pocPhone || '')}"></div>
+          </div>
+          <div class="field"><label>Gate-out Time</label><input id="f_out" type="datetime-local" value="${localNow()}"></div>
+        </div>`, () => {
         const vehicleNo = document.getElementById('f_veh').value.trim();
-        if (!stockOutId || !vehicleNo) { toast('Voucher and Vehicle No. required', 'danger'); return false; }
-        DB.upsert('dispatch', {
+        if (!vehicleNo) { toast('Vehicle No. required', 'danger'); return false; }
+        const rec = {
           id: DB.uid('dp'),
-          stockOutId, vehicleNo,
+          vehicleNo,
           driver: document.getElementById('f_drv').value.trim(),
           carrierName: document.getElementById('f_carrier').value.trim() || undefined,
           destination: document.getElementById('f_dest').value.trim(),
@@ -443,30 +415,19 @@
           pocPhone: document.getElementById('f_pocphone').value.trim(),
           gateOutTime: document.getElementById('f_out').value,
           gateInTime: null
-        });
+        };
+        if (demand) {
+          rec.demandId = demand.id;
+          rec.stockOutIds = sos.map(s => s.id);
+        } else {
+          rec.stockOutId = sos[0].id;
+        }
+        DB.upsert('dispatch', rec);
         toast('Gate-out recorded — vehicle is on its way', 'ok');
         refresh();
       }, 'Record Gate-out');
-      setTimeout(() => {
-        renderItemsPreview(prefilledStockOutId);
-        document.getElementById('f_so').addEventListener('change', e => {
-          renderItemsPreview(e.target.value);
-          const so = e.target.value ? DB.get('stockOut', e.target.value) : null;
-          const ship = so ? DB.ship(so.shipId) : null;
-          const destEl = document.getElementById('f_dest');
-          const toEl = document.getElementById('f_to');
-          const pocNameEl = document.getElementById('f_pocname');
-          const pocPhoneEl = document.getElementById('f_pocphone');
-          if (ship) {
-            if (!destEl.value) destEl.value = ship.name;
-            if (!toEl.value) toEl.value = ship.name;
-            if (ship.pocName) pocNameEl.value = ship.pocName;
-            if (ship.pocPhone) pocPhoneEl.value = ship.pocPhone;
-          }
-        });
-      }, 50);
     }
-    window.openGateOutFor = (stockOutId) => openGateOut(stockOutId);
+    window.openGateOutFor = (key) => openGateOut(key);
 
     // Ex-post facto supply — back-dated emergency supply recorded after the fact
     document.getElementById('newBtn').addEventListener('click', () => {
