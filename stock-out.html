@@ -64,8 +64,20 @@
     const canIssue = can('create') && Session.get()?.role !== 'rd_section';
     if (!canIssue) document.getElementById('newBtn').style.display = 'none';
 
+    const _userSections = Session.get()?.sections || ['*'];
+    const _scopedPids = _userSections.includes('*')
+      ? null
+      : new Set(DB.productsForUser(_userSections).map(p => p.id));
+
+    function inScope(items) {
+      if (!_scopedPids) return true;
+      return (items || []).some(it => _scopedPids.has(it.productId));
+    }
+
     function refreshPending() {
-      const pending = DB.list('demands').filter(d => ['approved', 'partially_approved', 'partially_fulfilled'].includes(d.status));
+      const pending = DB.list('demands')
+        .filter(d => ['approved', 'partially_approved', 'partially_fulfilled'].includes(d.status))
+        .filter(d => inScope(d.items));
       document.getElementById('pendingTbl').innerHTML = `
         <thead><tr>
           <th>Demand No.</th><th>Date</th><th>Required By</th><th>Ship</th>
@@ -103,7 +115,7 @@
     }
 
     function refreshHistory() {
-      const rows = DB.list('stockOut');
+      const rows = DB.list('stockOut').filter(so => inScope(so.items));
       const dispatched = new Set(DB.list('dispatch').map(d => d.stockOutId));
       document.getElementById('tbl').innerHTML = `
         <thead><tr>
@@ -415,6 +427,7 @@
       if (!canIssue) return toast('Your role cannot create issue vouchers', 'warn');
       if (linkedDemand) {
         outItems = linkedDemand.items
+          .filter(it => !_scopedPids || _scopedPids.has(it.productId))
           .filter(it => (it.approvedQty ?? it.demandedQty) > (it.fulfilledQty || 0))
           .map(it => {
             const p = DB.product(it.productId);
@@ -433,7 +446,7 @@
             };
           });
         if (!outItems.length) {
-          outItems = linkedDemand.items.map(it => ({
+          outItems = linkedDemand.items.filter(it => !_scopedPids || _scopedPids.has(it.productId)).map(it => ({
             productId: it.productId,
             demandedQty: it.approvedQty ?? it.demandedQty,
             qty: 0, batchNo: '', mode: 'issue', substituteProductId: null
