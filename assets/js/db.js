@@ -309,7 +309,7 @@ const ROLES = {
     label: 'Gate Keeper',
     icon: '⬚',
     nav: ['dashboard', 'dispatch'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, approveSpoilage: false, manageUsers: false, viewAllSections: true }
   },
   data_entry: {
     label: 'DEO',
