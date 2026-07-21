@@ -284,7 +284,7 @@ const ROLES = {
   central_coordinator: {
     label: 'Overall Coordinator',
     icon: '◆',
-    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products'],
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'users'],
     can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, approveSpoilage: true, manageUsers: true, viewAllSections: true }
   },
   reviewer: {
