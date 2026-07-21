@@ -183,14 +183,17 @@
             const ship = sos.length ? DB.ship(sos[0].shipId) : null;
             const totalItems = sos.reduce((s, so) => s + (so.items || []).length, 0);
             const totalQty   = sos.reduce((s, so) => s + (so.items || []).reduce((q, it) => q + (it.qty || 0), 0), 0);
-            const itemsSummary = `${totalItems} item${totalItems !== 1 ? 's' : ''} · ${totalQty} units`;
+            const itemsSummary = sos.length ? `${totalItems} item${totalItems !== 1 ? 's' : ''} · ${totalQty} units` : '<span class="text-mute" style="font-size:11px;">cross-device</span>';
             const viewKey = d.demandId || d.stockOutId || '';
-            return `<tr${d.isExPostFacto ? ' style="border-left:3px solid var(--warn);"' : ''}>
+            const demandCell = demand
+              ? `<span class="text-sm bold">${demand.demandNo}</span><div class="text-sm text-mute">${(d.stockOutIds||[]).length} voucher(s)</div>`
+              : d.demandNo
+                ? `<span class="text-sm bold">${escapeHtml(d.demandNo)}</span><div><span class="badge warn" style="font-size:9px;">CROSS-DEVICE</span></div>`
+                : (sos[0] ? `<a class="text-sm bold" href="#" onclick="viewItemsForKey('${sos[0].id}'); return false;">${sos[0].voucherNo}</a>` : '—');
+            return `<tr${d.isExPostFacto ? ' style="border-left:3px solid var(--warn);"' : d._crossDevice ? ' style="border-left:3px solid var(--warn);opacity:0.85;"' : ''}>
               <td class="bold">${escapeHtml(d.vehicleNo)}${d.isExPostFacto ? ' <span class="badge warn" style="font-size:9px;">EX-POST</span>' : ''}</td>
-              <td>${demand
-                ? `<span class="text-sm bold">${demand.demandNo}</span><div class="text-sm text-mute">${(d.stockOutIds||[]).length} voucher(s)</div>`
-                : (sos[0] ? `<a class="text-sm bold" href="#" onclick="viewItemsForKey('${sos[0].id}'); return false;">${sos[0].voucherNo}</a>` : '—')}</td>
-              <td>${ship ? ship.name : '—'} ${d.destination ? `<span class="text-sm text-mute">→ ${escapeHtml(d.destination)}</span>` : ''}</td>
+              <td>${demandCell}</td>
+              <td>${ship ? ship.name : (d.destination ? escapeHtml(d.destination) : '—')} ${d.destination && ship ? `<span class="text-sm text-mute">→ ${escapeHtml(d.destination)}</span>` : ''}</td>
               <td class="text-sm text-mute">${itemsSummary}</td>
               <td>${escapeHtml(d.driver||'—')} ${d.carrierName ? `<div class="text-sm text-mute">Carrier: ${escapeHtml(d.carrierName)}</div>` : ''}</td>
               <td class="text-sm">${d.pocName ? escapeHtml(d.pocName) : '—'} ${d.pocPhone ? `<div class="text-mute">${escapeHtml(d.pocPhone)}</div>` : ''}</td>
@@ -429,6 +432,55 @@
     }
     window.openGateOutFor = (key) => openGateOut(key);
 
+    // Cross-device gate-out: demand was approved on another device (different localStorage)
+    // Gate keeper still records the vehicle — demand number stored as text reference
+    function openCrossDeviceGateOut(demandNo, hintShipCode) {
+      if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
+      openModal('Record Gate-out', `
+        <div class="form-grid">
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;">
+            <div class="text-sm bold" style="color:#92400e;">Gate Pass — Cross-device</div>
+            <div class="text-sm" style="color:#92400e;margin-top:2px;">Demand <strong>${escapeHtml(demandNo)}</strong> was fulfilled on another device. Vehicle details are recorded here; items will sync when connected to the same device.</div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Demand Reference</label><input value="${escapeHtml(demandNo)}" readonly style="background:#f1f5f9;cursor:not-allowed;"></div>
+            <div class="field"><label>Ship / Unit ${hintShipCode ? `<span class="text-mute">(from gate pass)</span>` : ''}</label><input id="f_dest" value="${escapeHtml(hintShipCode || '')}"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Vehicle No. <span class="req">*</span></label><input id="f_veh" placeholder="MH03CV8631"></div>
+            <div class="field"><label>Driver Name</label><input id="f_drv"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Carrier Person</label><input id="f_carrier" placeholder="e.g. PO Sharma"></div>
+            <div class="field"><label>POC Name (Receiving Officer)</label><input id="f_pocname"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>From Location</label><input id="f_from" value="BV Yard Mumbai"></div>
+            <div class="field"><label>To Location</label><input id="f_to" value="${escapeHtml(hintShipCode || '')}"></div>
+          </div>
+          <div class="field"><label>Gate-out Time</label><input id="f_out" type="datetime-local" value="${localNow()}"></div>
+        </div>`, () => {
+        const vehicleNo = document.getElementById('f_veh').value.trim();
+        if (!vehicleNo) { toast('Vehicle No. required', 'danger'); return false; }
+        DB.upsert('dispatch', {
+          id: DB.uid('dp'),
+          demandNo,           // text reference only — no demandId/stockOutIds on this device
+          _crossDevice: true,
+          vehicleNo,
+          driver: document.getElementById('f_drv').value.trim(),
+          carrierName: document.getElementById('f_carrier').value.trim() || undefined,
+          destination: document.getElementById('f_dest').value.trim(),
+          fromLocation: document.getElementById('f_from').value.trim(),
+          toLocation: document.getElementById('f_to').value.trim(),
+          pocName: document.getElementById('f_pocname').value.trim(),
+          gateOutTime: document.getElementById('f_out').value,
+          gateInTime: null
+        });
+        toast('Gate-out recorded', 'ok');
+        refresh();
+      }, 'Record Gate-out');
+    }
+
     // Ex-post facto supply — back-dated emergency supply recorded after the fact
     document.getElementById('newBtn').addEventListener('click', () => {
       if (!can('create')) return toast('Your role cannot record dispatches', 'warn');
@@ -519,9 +571,14 @@
       const demandByNo = demandNo || (text.startsWith('DMD-') ? text : null);
       if (demandByNo) {
         const demand = DB.list('demands').find(d => d.demandNo === demandByNo);
-        if (!demand) { toast(`Demand ${demandByNo} not found`, 'danger'); return; }
+        if (!demand) {
+          // Cross-device: gate pass was approved on another device; open a reference-only gate-out
+          closeModal();
+          setTimeout(() => openCrossDeviceGateOut(demandByNo, parts[1] || null), 150);
+          return;
+        }
         const dispatches = DB.list('dispatch');
-        if (dispatches.find(d => d.demandId === demand.id)) {
+        if (dispatches.find(d => d.demandId === demand.id || d.demandNo === demandByNo)) {
           toast(`${demandByNo} has already been dispatched`, 'warn'); return;
         }
         const linkedSOs = DB.list('stockOut').filter(s => s.demandId === demand.id);
