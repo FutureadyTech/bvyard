@@ -280,7 +280,7 @@ const ROLES = {
   reviewer: {
     label: 'Group OiC',
     icon: '✓',
-    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
+    nav: ['dashboard', 'demand', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
     can: { create: true, update: true, delete: false, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: false, viewAllSections: true }
   },
   inventory_manager: {

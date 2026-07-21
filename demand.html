@@ -38,7 +38,7 @@
     renderShell('demand', 'Demands', 'Ship raises demand → Reviewer approves → Fulfill → Outward (gate-out)');
 
     if (can('create')) document.getElementById('newBtn').style.display = '';
-    const canFulfillDemand = can('create') && Session.get()?.role !== 'data_entry';
+    const canFulfillDemand = can('create') && !['data_entry', 'reviewer'].includes(Session.get()?.role);
     const canRaiseRIO = Session.get()?.role !== 'data_entry';
 
     const my = userSections();
