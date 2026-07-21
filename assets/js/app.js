@@ -14,6 +14,7 @@ const NAV_DEFS = {
   'inventory':       { label: 'Inventory',         href: 'inventory.html',       icon: '◻' },
   'low-stock':       { label: 'Low Stock Alerts',  href: 'low-stock.html',       icon: '!' },
   'reports':         { label: 'Reports',           href: 'reports.html',         icon: '≡' },
+  'returns':         { label: 'Returns',            href: 'returns.html',         icon: '↩' },
   'products':        { label: 'Items',             href: 'products.html',        icon: '▤' },
   'categories':      { label: 'Categories',        href: 'categories.html',      icon: '▣' },
   'suppliers':       { label: 'Suppliers',          href: 'suppliers.html',       icon: '◇' },

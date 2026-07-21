@@ -57,6 +57,13 @@
       </tbody>
     `;
 
+    function canManageUser(u) {
+      if (!can('manageUsers')) return false;
+      const me = Session.get();
+      const allowed = ROLES[me?.role]?.can?.manageableRoles || [];
+      return allowed.includes(u.role);
+    }
+
     function refresh() {
       const users = DB.list('users');
       document.getElementById('tbl').innerHTML = `
@@ -64,6 +71,7 @@
         <tbody>
           ${users.map(u => {
             const sections = u.sections.includes('*') ? 'All sections' : u.sections.map(sid => DB.section(sid)?.name).filter(Boolean).join(', ');
+            const editable = canManageUser(u);
             return `<tr>
               <td class="bold">${escapeHtml(u.name)}</td>
               <td>${u.rank}</td>
@@ -71,8 +79,8 @@
               <td><span class="badge info">${ROLES[u.role]?.label || u.role}</span></td>
               <td class="text-sm">${sections}</td>
               <td class="text-right">
-                ${can('manageUsers') ? `<button class="btn btn-sm" onclick="editUser('${u.id}')">Edit</button>` : ''}
-                ${can('manageUsers') ? `<button class="btn btn-sm btn-danger" onclick="delUser('${u.id}')">×</button>` : ''}
+                ${editable ? `<button class="btn btn-sm" onclick="editUser('${u.id}')">Edit</button>` : ''}
+                ${editable ? `<button class="btn btn-sm btn-danger" onclick="delUser('${u.id}')">×</button>` : ''}
               </td>
             </tr>`;
           }).join('')}
@@ -83,6 +91,8 @@
     function userForm(u = {}) {
       const sections = DB.list('sections');
       const selected = new Set(u.sections || []);
+      const me = Session.get();
+      const allowedRoles = ROLES[me?.role]?.can?.manageableRoles || [];
       return `
         <div class="form-grid">
           <div class="form-row">
@@ -95,7 +105,7 @@
             </div>
             <div class="field"><label>Designation</label><input id="f_des" value="${escapeHtml(u.designation || '')}"></div>
             <div class="field"><label>Role</label>
-              <select id="f_role">${Object.entries(ROLES).map(([k, r]) => `<option value="${k}" ${k === u.role ? 'selected' : ''}>${r.label}</option>`).join('')}</select>
+              <select id="f_role">${Object.entries(ROLES).filter(([k]) => allowedRoles.includes(k)).map(([k, r]) => `<option value="${k}" ${k === u.role ? 'selected' : ''}>${r.label}</option>`).join('')}</select>
             </div>
           </div>
           <div class="field">
@@ -112,10 +122,10 @@
         </div>
       `;
     }
-    window.editUser = (id) => { if (!can('manageUsers')) return; const u = DB.user(id); openModal('Edit User', userForm(u), () => save(u), 'Save'); };
+    window.editUser = (id) => { const u = DB.user(id); if (!canManageUser(u)) return; openModal('Edit User', userForm(u), () => save(u), 'Save'); };
     window.delUser = (id) => {
-      if (!can('manageUsers')) return;
       const u = DB.user(id);
+      if (!canManageUser(u)) return;
       if (confirm('Delete user "' + u.name + '"?')) { DB.remove('users', id); refresh(); toast('Deleted'); }
     };
     function save(existing = {}) {

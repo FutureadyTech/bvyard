@@ -156,6 +156,15 @@ const DB = {
     return `VCH-${year}-${seq}-${code}`;
   },
 
+  // Sequential return number: RET-YYYY-NNN
+  nextReturnNo() {
+    const year = new Date().getFullYear();
+    const count = this.list('returns').filter(r =>
+      (r.returnNo || '').startsWith(`RET-${year}-`)
+    ).length;
+    return `RET-${year}-${String(count + 1).padStart(3, '0')}`;
+  },
+
   // FIFO batches — returns the available batches for a product, oldest first
   // Looks at stockIn entries to determine batch age (by date received)
   fifoBatchesFor(productId) {
@@ -281,63 +290,65 @@ const ROLES = {
   super_admin: {
     label: 'BVO',
     icon: '★',
-    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
-    can: { create: true, update: true, delete: true, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: true, viewAllSections: true }
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'returns', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'categories', 'suppliers', 'users'],
+    can: { create: true, update: true, delete: true, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: true, viewAllSections: true,
+      manageableRoles: ['central_coordinator', 'reviewer', 'group_incharge_necessary', 'group_incharge_basic', 'group_incharge_fresh', 'rd_section', 'gate_keeper', 'data_entry'] }
   },
   central_coordinator: {
     label: 'Overall Coordinator',
     icon: '◆',
-    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'users'],
-    can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, approveSpoilage: true, manageUsers: true, viewAllSections: true }
+    nav: ['dashboard', 'demand', 'stock-out', 'dispatch', 'returns', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'reports', 'products', 'users'],
+    can: { create: false, update: false, delete: false, approve: false, approveDispatch: false, approveSpoilage: true, manageUsers: true, viewAllSections: true,
+      manageableRoles: ['group_incharge_necessary', 'group_incharge_basic', 'group_incharge_fresh', 'rd_section', 'gate_keeper', 'data_entry'] }
   },
   reviewer: {
     label: 'Group OiC',
     icon: '✓',
-    nav: ['dashboard', 'demand', 'dispatch', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
-    can: { create: true, update: true, delete: false, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: false, viewAllSections: true }
+    nav: ['dashboard', 'demand', 'dispatch', 'returns', 'purchase-orders', 'spoilage', 'inventory', 'low-stock', 'reports'],
+    can: { create: true, update: true, delete: false, approve: true, approveDispatch: true, approveSpoilage: true, manageUsers: false, viewAllSections: true, manageableRoles: [] }
   },
   group_incharge_necessary: {
     label: 'Group Incharge — Necessary',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false, manageableRoles: [] }
   },
   group_incharge_basic: {
     label: 'Group Incharge — Basic',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false, manageableRoles: [] }
   },
   group_incharge_fresh: {
     label: 'Group Incharge — Fresh',
     icon: '◈',
     nav: ['dashboard', 'demand', 'stock-out', 'purchase-orders', 'stock-in', 'spoilage', 'inventory', 'low-stock', 'products', 'suppliers'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: false, manageableRoles: [] }
   },
   rd_section: {
     label: 'Receipt & Dispatch Section',
     icon: '↑',
-    nav: ['dashboard', 'stock-out', 'dispatch'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true }
+    nav: ['dashboard', 'stock-out', 'dispatch', 'returns'],
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true, manageableRoles: [] }
   },
   gate_keeper: {
     label: 'Gate Keeper',
     icon: '⬚',
     nav: ['dashboard', 'dispatch'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, approveSpoilage: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: true, approveSpoilage: false, manageUsers: false, viewAllSections: true, manageableRoles: [] }
   },
   data_entry: {
     label: 'DEO',
     icon: '✎',
     nav: ['dashboard', 'demand', 'products', 'inventory'],
-    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true }
+    can: { create: true, update: true, delete: false, approve: false, approveDispatch: false, approveSpoilage: false, manageUsers: false, viewAllSections: true, manageableRoles: [] }
   }
 };
 
 // Two parallel flows that share the same inventory pool
 const NAV_GROUPS = [
   { label: 'Overview', items: ['dashboard'] },
-  { label: 'Demand → Outward (to ships)', items: ['demand', 'stock-out', 'dispatch'] },
+  { label: 'Demand → Outward (to ships)', items: ['demand', 'stock-out', 'dispatch', 'returns'] },
   { label: 'Replenishment (from suppliers)', items: ['purchase-orders', 'stock-in', 'spoilage'] },
   { label: 'Insights', items: ['inventory', 'low-stock', 'reports'] },
   { label: 'Admin', items: ['products', 'categories', 'suppliers', 'users'] }

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Returns · BV Yard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="pageContent">
+    <div class="card mb-16" style="background:#f0f9ff;border-color:#bae6fd;">
+      <div class="bold" style="color:#0369a1;">Why this page exists</div>
+      <div class="text-sm" style="color:#0369a1;">Record items returned by ships against original dispatch. Stock is only re-credited after Group OiC confirmation.</div>
+    </div>
+
+    <div id="pendingCard" style="display:none;" class="card mb-16">
+      <div class="card-header"><h3 style="color:var(--warn);">Pending Confirmation</h3></div>
+      <div class="table-wrap"><table class="data" id="pendingTbl"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="row" style="gap:12px;">
+          <h3>Returns Log</h3>
+          <select id="filterStatus" style="border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="newBtn">+ Record Return</button>
+      </div>
+      <div class="table-wrap"><table class="data" id="tbl"></table></div>
+    </div>
+  </div>
+
+  <script src="assets/js/seed.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    renderShell('returns', 'Returns', 'Items returned by ships · stock re-credited on confirmation');
+
+    const REASONS = ['excess', 'wrong_item', 'quality_issue', 'damaged_in_transit', 'other'];
+    const CONDITIONS = ['good', 'damaged', 'expired'];
+
+    function refresh() {
+      const f = document.getElementById('filterStatus').value;
+      const all = DB.list('returns');
+      const pending = all.filter(r => r.status === 'pending');
+
+      const pendingCard = document.getElementById('pendingCard');
+      pendingCard.style.display = (pending.length && can('approve')) ? '' : 'none';
+
+      document.getElementById('pendingTbl').innerHTML = `
+        <thead><tr>
+          <th>Return No.</th><th>Date</th><th>Ship</th>
+          <th class="text-right">Items</th><th>Reference</th><th>Recorded By</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${pending.slice().reverse().map(r => {
+            const ship = DB.ship(r.shipId);
+            const u = DB.user(r.recordedBy);
+            return `<tr style="background:#fffbeb;">
+              <td class="bold">${r.returnNo}</td>
+              <td>${fmtDate(r.date)}</td>
+              <td>${ship ? escapeHtml(ship.name) : '—'}</td>
+              <td class="text-right">${r.items.length}</td>
+              <td class="text-sm text-mute">${escapeHtml(r.dispatchRef || '—')}</td>
+              <td class="text-sm">${u ? u.name : '—'}</td>
+              <td class="text-right">
+                <button class="btn btn-sm" onclick="viewReturn('${r.id}')">View</button>
+                ${can('approve') ? `
+                  <button class="btn btn-sm btn-primary" onclick="confirmReturn('${r.id}')">Confirm</button>
+                  <button class="btn btn-sm btn-danger" onclick="rejectReturn('${r.id}')">Reject</button>
+                ` : '<span class="badge warn" style="font-size:10px;">AWAITING</span>'}
+              </td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="7" class="empty">No pending returns.</td></tr>'}
+        </tbody>
+      `;
+
+      let rows = f ? all.filter(r => r.status === f) : all;
+      document.getElementById('tbl').innerHTML = `
+        <thead><tr>
+          <th>Return No.</th><th>Date</th><th>Ship</th>
+          <th class="text-right">Items</th><th>Reference</th>
+          <th>Status</th><th>Confirmed By</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.slice().reverse().map(r => {
+            const ship = DB.ship(r.shipId);
+            const cb = DB.user(r.confirmedBy);
+            const statusClass = r.status === 'confirmed' ? 'ok' : r.status === 'rejected' ? 'danger' : 'warn';
+            return `<tr>
+              <td class="bold">${r.returnNo}</td>
+              <td>${fmtDate(r.date)}</td>
+              <td>${ship ? escapeHtml(ship.name) : '—'}</td>
+              <td class="text-right">${r.items.length}</td>
+              <td class="text-sm text-mute">${escapeHtml(r.dispatchRef || '—')}</td>
+              <td><span class="badge ${statusClass}">${r.status.toUpperCase()}</span></td>
+              <td class="text-sm">${cb ? cb.name : '—'}</td>
+              <td class="text-right"><button class="btn btn-sm" onclick="viewReturn('${r.id}')">View</button></td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="8" class="empty">No returns recorded yet.</td></tr>'}
+        </tbody>
+      `;
+    }
+
+    window.confirmReturn = (id) => {
+      if (!can('approve')) return toast('Only Group OiC or BVO can confirm returns', 'warn');
+      const r = DB.get('returns', id);
+      if (!r) return;
+      r.status = 'confirmed';
+      r.confirmedBy = Session.get()?.id;
+      r.confirmedAt = new Date().toISOString();
+      DB.upsert('returns', r);
+      // Re-credit stock for all items
+      r.items.forEach(it => {
+        if (it.condition !== 'damaged' && it.condition !== 'expired') {
+          DB.adjustStock(it.productId, it.qtyReturned);
+        }
+      });
+      const goodItems = r.items.filter(it => it.condition !== 'damaged' && it.condition !== 'expired');
+      toast(`Return ${r.returnNo} confirmed — ${goodItems.length} item(s) re-credited to stock`, 'ok');
+      refresh();
+    };
+
+    window.rejectReturn = (id) => {
+      if (!can('approve')) return;
+      const r = DB.get('returns', id);
+      if (!r || !confirm(`Reject return ${r.returnNo}? No stock will be adjusted.`)) return;
+      r.status = 'rejected';
+      r.rejectedBy = Session.get()?.id;
+      r.rejectedAt = new Date().toISOString();
+      DB.upsert('returns', r);
+      toast('Return rejected — no stock change', 'warn');
+      refresh();
+    };
+
+    window.viewReturn = (id) => {
+      const r = DB.get('returns', id);
+      const ship = DB.ship(r.shipId);
+      const u = DB.user(r.recordedBy);
+      const cb = DB.user(r.confirmedBy);
+      const statusClass = r.status === 'confirmed' ? 'ok' : r.status === 'rejected' ? 'danger' : 'warn';
+      const itemRows = r.items.map(it => {
+        const p = DB.product(it.productId);
+        const creditNote = it.condition !== 'damaged' && it.condition !== 'expired'
+          ? `<span class="text-sm" style="color:var(--ok);">+${it.qtyReturned} to stock</span>`
+          : `<span class="text-sm" style="color:var(--text-muted);">no credit (${it.condition})</span>`;
+        return `<tr>
+          <td>${p ? escapeHtml(displayName(p)) : '—'}</td>
+          <td class="text-sm text-mute">${p?.code || ''}</td>
+          <td class="text-right bold">${it.qtyReturned} ${p?.baseUnit || ''}</td>
+          <td><span class="badge ${it.condition === 'good' ? 'ok' : 'danger'}">${it.condition.toUpperCase()}</span></td>
+          <td class="text-sm text-mute">${it.reason.replace(/_/g,' ')}</td>
+          <td>${r.status === 'confirmed' ? creditNote : ''}</td>
+        </tr>`;
+      }).join('');
+
+      openModal(`Return ${r.returnNo}`, `
+        <div class="form-grid">
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Return No.</div><div class="bold">${r.returnNo}</div></div>
+            <div><div class="text-sm text-mute">Date</div><div class="bold">${fmtDate(r.date)}</div></div>
+            <div><div class="text-sm text-mute">Status</div><div><span class="badge ${statusClass}">${r.status.toUpperCase()}</span></div></div>
+          </div>
+          <div class="grid-3">
+            <div><div class="text-sm text-mute">Ship / Unit</div><div class="bold">${ship ? escapeHtml(ship.name) : '—'}</div></div>
+            <div><div class="text-sm text-mute">Dispatch / Demand Ref.</div><div class="bold">${escapeHtml(r.dispatchRef || '—')}</div></div>
+            <div><div class="text-sm text-mute">Recorded By</div><div class="bold">${u ? u.name : '—'}</div></div>
+          </div>
+          ${cb ? `<div class="text-sm" style="color:var(--ok);">Confirmed by ${cb.name} on ${fmtDate(r.confirmedAt?.slice(0,10) || '')}</div>` : ''}
+          ${r.notes ? `<div class="text-sm text-mute">${escapeHtml(r.notes)}</div>` : ''}
+          <table class="data">
+            <thead><tr><th>Item</th><th>Code</th><th class="text-right">Qty Returned</th><th>Condition</th><th>Reason</th><th>Stock Impact</th></tr></thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+        </div>
+      `, null, '', 'wide');
+    };
+
+    // ─── Return form ─────────────────────────────────────────────
+    let returnItems = [];
+
+    function buildReturnRow(it, i) {
+      const p = DB.product(it.productId);
+      return `<tr data-i="${i}">
+        <td class="bold" style="font-size:13px;">${p ? escapeHtml(p.name) : '—'}</td>
+        <td class="text-sm text-mute">${p?.code || ''}</td>
+        <td style="width:110px;">
+          <input data-i="${i}" class="ri_qty" type="number" value="${it.qtyReturned || ''}" min="1" placeholder="0"
+            style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:13px;text-align:right;">
+        </td>
+        <td style="width:130px;">
+          <select data-i="${i}" class="ri_cond" style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:13px;">
+            ${CONDITIONS.map(c => `<option value="${c}" ${c === it.condition ? 'selected' : ''}>${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('')}
+          </select>
+        </td>
+        <td style="width:160px;">
+          <select data-i="${i}" class="ri_rsn" style="width:100%;border:1px solid var(--border);padding:6px 8px;border-radius:4px;font-size:13px;">
+            ${REASONS.map(r => `<option value="${r}" ${r === it.reason ? 'selected' : ''}>${r.replace(/_/g,' ')}</option>`).join('')}
+          </select>
+        </td>
+        <td><button onclick="rmReturnItem(${i})" class="btn btn-sm" style="color:var(--danger);border-color:var(--danger);padding:4px 8px;">×</button></td>
+      </tr>`;
+    }
+
+    function renderReturnItems() {
+      const tbody = document.getElementById('riTbody');
+      if (!tbody) return;
+      if (!returnItems.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty" style="padding:20px;">No items added yet — use the picker above</td></tr>';
+        return;
+      }
+      tbody.innerHTML = returnItems.map((it, i) => buildReturnRow(it, i)).join('');
+      tbody.querySelectorAll('.ri_qty').forEach(el => el.oninput = e => { returnItems[+e.target.dataset.i].qtyReturned = Number(e.target.value) || 0; });
+      tbody.querySelectorAll('.ri_cond').forEach(el => el.onchange = e => { returnItems[+e.target.dataset.i].condition = e.target.value; });
+      tbody.querySelectorAll('.ri_rsn').forEach(el => el.onchange = e => { returnItems[+e.target.dataset.i].reason = e.target.value; });
+    }
+
+    window.rmReturnItem = (i) => { returnItems.splice(i, 1); renderReturnItems(); };
+
+    function returnForm() {
+      const ships = DB.list('ships');
+      const my = userSections();
+      const prods = DB.productsForUser(my);
+      const cats = DB.list('categories');
+      return `
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input id="rf_date" type="date" value="${DB.today()}">
+            </div>
+            <div class="field">
+              <label>Ship / Unit <span class="req">*</span></label>
+              <select id="rf_ship">
+                <option value="">— Select ship —</option>
+                ${ships.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${s.code})</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Dispatch / Demand Reference <span class="text-mute" style="font-weight:400;font-size:11px;">(optional)</span></label>
+            <input id="rf_ref" placeholder="e.g. DMD-2026-001-S1 or gate-out vehicle TN09AB1234">
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+            <div style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid var(--border);">
+              <div class="bold" style="font-size:13px;margin-bottom:8px;">Add Items</div>
+              <div class="row" style="gap:8px;flex-wrap:wrap;">
+                <select id="rf_catPick" style="border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;flex:1;min-width:160px;">
+                  <option value="">— Category —</option>
+                  ${cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}
+                </select>
+                <select id="rf_itemPick" style="border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;flex:2;min-width:200px;" disabled>
+                  <option value="">— Pick category first —</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="rf_addBtn" disabled>+ Add to Return</button>
+              </div>
+            </div>
+            <div class="table-wrap" style="margin:0;">
+              <table class="data" style="margin:0;">
+                <thead><tr>
+                  <th>Item</th><th>Code</th>
+                  <th class="text-right">Qty <span class="req">*</span></th>
+                  <th>Condition</th><th>Reason</th><th></th>
+                </tr></thead>
+                <tbody id="riTbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="field">
+            <label>Notes <span class="text-mute" style="font-weight:400;font-size:11px;">(optional)</span></label>
+            <input id="rf_notes" placeholder="e.g. Items in good condition, returned unused">
+          </div>
+          <div class="text-sm" style="background:#f0f4ff;border-radius:6px;padding:10px;color:#374151;">
+            This return will be submitted for Group OiC confirmation. Stock is only re-credited after confirmation, and only for items in <strong>good</strong> condition.
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('newBtn').addEventListener('click', () => {
+      if (!can('create')) return toast('Your role cannot record returns', 'warn');
+      returnItems = [];
+      openModal('Record Return', returnForm(), () => {
+        const shipId = document.getElementById('rf_ship').value;
+        const date = document.getElementById('rf_date').value;
+        const dispatchRef = document.getElementById('rf_ref').value.trim();
+        const notes = document.getElementById('rf_notes').value.trim();
+        const items = returnItems.filter(it => it.qtyReturned > 0);
+        if (!shipId) { toast('Ship / Unit is required', 'danger'); return false; }
+        if (!items.length) { toast('Add at least one item with qty', 'danger'); return false; }
+        DB.upsert('returns', {
+          id: DB.uid('ret'),
+          returnNo: DB.nextReturnNo(),
+          date, shipId, dispatchRef: dispatchRef || undefined,
+          items,
+          notes: notes || undefined,
+          recordedBy: Session.get()?.id,
+          status: 'pending'
+        });
+        toast('Return submitted for Group OiC confirmation', 'ok');
+        refresh();
+      }, 'Submit for Confirmation', 'wide');
+
+      setTimeout(() => {
+        renderReturnItems();
+        document.getElementById('rf_catPick').addEventListener('change', e => {
+          const catId = e.target.value;
+          const itemPick = document.getElementById('rf_itemPick');
+          const addBtn = document.getElementById('rf_addBtn');
+          if (!catId) { itemPick.innerHTML = '<option value="">— Pick category first —</option>'; itemPick.disabled = true; addBtn.disabled = true; return; }
+          const my = userSections();
+          const prods = DB.productsForUser(my).filter(p => p.categoryId === catId);
+          itemPick.innerHTML = '<option value="">— Select item —</option>' +
+            prods.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.currentStock} ${p.baseUnit} on hand)</option>`).join('');
+          itemPick.disabled = false; addBtn.disabled = true;
+          itemPick.addEventListener('change', () => { addBtn.disabled = !itemPick.value; });
+        });
+        document.getElementById('rf_addBtn').addEventListener('click', () => {
+          const pid = document.getElementById('rf_itemPick').value;
+          if (!pid) return;
+          if (returnItems.some(it => it.productId === pid)) { toast('Item already added', 'warn'); return; }
+          returnItems.push({ productId: pid, qtyReturned: 0, condition: 'good', reason: 'excess' });
+          renderReturnItems();
+          document.getElementById('rf_itemPick').value = '';
+          document.getElementById('rf_addBtn').disabled = true;
+        });
+      }, 50);
+    });
+
+    document.getElementById('filterStatus').addEventListener('change', refresh);
+    refresh();
+  </script>
+</body>
+</html>
