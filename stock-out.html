@@ -78,13 +78,18 @@
             const rowStyle = isPast ? 'background:#fef2f2;border-left:3px solid var(--danger);' : isDue ? 'background:#fffbeb;border-left:3px solid var(--warn);' : '';
             const statusCls = d.status === 'approved' ? 'ok' : d.status === 'partially_approved' ? 'warn' : 'info';
             const itemCount = d.items?.length || 0;
+            const reducedCount = d.items.filter(it => it.approvedQty !== undefined && it.approvedQty < it.demandedQty && it.approvedQty > 0).length;
+            const rejectedCount = d.items.filter(it => it.approvedQty !== undefined && it.approvedQty === 0).length;
+            const approvalNote = d.status === 'partially_approved' && (reducedCount || rejectedCount)
+              ? `<div class="text-sm" style="color:var(--warn);margin-top:2px;">${[reducedCount ? `${reducedCount} qty reduced` : '', rejectedCount ? `${rejectedCount} item${rejectedCount>1?'s':''} removed` : ''].filter(Boolean).join(' · ')}</div>`
+              : '';
             return `<tr style="${rowStyle}">
               <td class="bold">${d.demandNo}${isDue ? ' <span class="badge warn" style="font-size:9px;">DUE TMR</span>' : ''}${isPast ? ' <span class="badge danger" style="font-size:9px;">OVERDUE</span>' : ''}</td>
               <td>${fmtDate(d.date)}</td>
               <td>${d.dateRequired ? fmtDate(d.dateRequired) : '<span class="text-mute">—</span>'}</td>
               <td>${ship ? ship.name : '—'}</td>
               <td class="text-right">${itemCount}</td>
-              <td><span class="badge ${statusCls}">${d.status.replace(/_/g,' ').toUpperCase()}</span></td>
+              <td><span class="badge ${statusCls}">${d.status.replace(/_/g,' ').toUpperCase()}</span>${approvalNote}</td>
               <td class="text-right">
                 ${can('create') ? `<button class="btn btn-sm btn-primary" onclick="fulfillDemand('${d.id}')">Fulfill</button>` : ''}
               </td>
@@ -272,6 +277,20 @@
             <div class="bold">${linkedDemand.demandNo}</div>
             <div class="text-sm">For each line, choose: Issue (with qty) · Mark Absent · Substitute</div>
           </div>` : ''}
+          ${linkedDemand ? (() => {
+            const removedItems = linkedDemand.items.filter(it => it.approvedQty !== undefined && it.approvedQty === 0);
+            if (!removedItems.length) return '';
+            return `<div style="border:1px solid #fecaca;background:#fef2f2;border-radius:8px;padding:12px;">
+              <div class="bold text-sm" style="color:var(--danger);margin-bottom:8px;">Removed by Group OiC — do not issue</div>
+              ${removedItems.map(it => {
+                const p = DB.product(it.productId);
+                return `<div class="text-sm" style="padding:5px 0;border-bottom:1px solid #fecaca;display:flex;justify-content:space-between;align-items:center;">
+                  <span class="bold">${p ? escapeHtml(displayName(p)) : '—'} <span class="text-mute" style="font-weight:400;">${p?.code||''}</span></span>
+                  <span style="color:var(--danger);">× ${it.demandedQty} ${p?.baseUnit||''} rejected${it.rejectionReason ? ' — ' + escapeHtml(it.rejectionReason) : ''}</span>
+                </div>`;
+              }).join('')}
+            </div>`;
+          })() : ''}
           <div style="border:1px dashed var(--border); padding:12px; border-radius:8px;">
             <div class="row-between" style="margin-bottom:10px;">
               <div class="bold">Items to Issue</div>
@@ -306,7 +325,11 @@
               <div style="flex:2;">
                 <div class="bold">${p ? escapeHtml(displayName(p)) : '—'}</div>
                 <div class="text-sm text-mute">${p?.code || ''} · Avail: ${p?.currentStock || 0} ${p?.baseUnit || ''}</div>
-                ${it.demandedQty ? `<div class="text-sm">Demanded: <span class="bold">${it.demandedQty} ${p?.baseUnit || ''}</span></div>` : ''}
+                ${it.demandedQty ? `<div class="text-sm">${
+                  it.originalDemandedQty !== undefined
+                    ? `<span style="text-decoration:line-through;color:var(--muted);">${it.originalDemandedQty} ${p?.baseUnit||''}</span> → <span class="bold" style="color:var(--ok);">${it.demandedQty} ${p?.baseUnit||''}</span> <span class="text-sm text-mute">(reduced by Group OiC${it.rejectionReason ? ': ' + escapeHtml(it.rejectionReason) : ''})</span>`
+                    : `Demanded: <span class="bold">${it.demandedQty} ${p?.baseUnit||''}</span>`
+                }</div>` : ''}
               </div>
               ${linkedDemand ? `
                 <div class="out-tabs">
@@ -398,6 +421,8 @@
             return {
               productId: it.productId,
               demandedQty: approved,
+              originalDemandedQty: it.approvedQty !== undefined && it.approvedQty !== it.demandedQty ? it.demandedQty : undefined,
+              rejectionReason: it.rejectionReason,
               qty: issueQty,
               batchNo: '',
               mode: 'issue',
