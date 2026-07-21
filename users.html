@@ -39,7 +39,7 @@
       { key: 'Raise demand',            test: r => r.can.create },
       { key: 'Approve demand → PO',     test: r => r.can.approve },
       { key: 'Receive stock (SRV)',     test: r => r.can.create },
-      { key: 'Record spoilage / write-off', test: r => r.can.create },
+      { key: 'Record spoilage / deficiency', test: r => r.can.create },
       { key: 'Issue stock to ships',    test: r => r.can.create },
       { key: 'View all sections',       test: r => r.can.viewAllSections },
       { key: 'Delete records',          test: r => r.can.delete },

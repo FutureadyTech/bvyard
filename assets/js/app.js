@@ -10,7 +10,7 @@ const NAV_DEFS = {
   'dispatch':        { label: 'Outward (Gate-out)', href: 'dispatch.html',       icon: '▷' },
   'purchase-orders': { label: 'Purchase Orders',   href: 'purchase-orders.html', icon: '◧' },
   'stock-in':        { label: 'Goods Receipt (from vendor)', href: 'stock-in.html', icon: '↓' },
-  'spoilage':        { label: 'Spoilage / Write-off', href: 'spoilage.html',     icon: '⚠' },
+  'spoilage':        { label: 'Spoilage / Deficiency', href: 'spoilage.html',     icon: '⚠' },
   'inventory':       { label: 'Inventory',         href: 'inventory.html',       icon: '◻' },
   'low-stock':       { label: 'Low Stock Alerts',  href: 'low-stock.html',       icon: '!' },
   'reports':         { label: 'Reports',           href: 'reports.html',         icon: '≡' },

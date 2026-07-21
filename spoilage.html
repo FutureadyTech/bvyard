@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Spoilage / Write-off · BV Yard</title>
+  <title>Spoilage / Deficiency · BV Yard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -48,7 +48,7 @@
   <script src="assets/js/db.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
-    renderShell('spoilage', 'Spoilage / Write-off', 'Reconcile inventory · all adjustments require Group OiC approval');
+    renderShell('spoilage', 'Spoilage / Deficiency', 'Reconcile inventory · all adjustments require Group OiC approval');
 
     const TYPES = ['spoilage', 'damage', 'expired', 'theft', 'surplus', 'misc'];
 
@@ -185,7 +185,7 @@
           </div>
           <div class="field"><label>Quantity <span class="req">*</span></label>
             <input id="f_qty" type="number" min="1" placeholder="Enter quantity">
-            <div class="text-sm text-mute" style="margin-top:4px;">Write-offs reduce stock · Surplus increases stock · Applied only after Group OiC approval.</div>
+            <div class="text-sm text-mute" style="margin-top:4px;">Deficiencies reduce stock · Surplus increases stock · Applied only after Group OiC approval.</div>
           </div>
           <div class="field"><label>Notes</label><textarea id="f_notes" rows="2" placeholder="e.g. Crate damaged in transit; or found extra stock during count"></textarea></div>
           <div class="text-sm" style="background:#f0f4ff;border-radius:6px;padding:10px;color:#374151;">
